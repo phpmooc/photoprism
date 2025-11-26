@@ -396,6 +396,11 @@ msgstr "อนุญาตให้แก้ไขข้อมูลเมตา
 msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
 msgstr "อนุญาตให้แก้ไขข้อมูลเมตา, ป้ายกำกับ, และอัลบั้มของรูปภาพหลายรูปพร้อมกัน"
 
+#: src/page/settings/general.vue:194
+#, fuzzy
+msgid "Allow files to be copied or moved from the Import to the Originals folder."
+msgstr "เปิดใช้งานเครื่องมือการนำเข้าเพื่อคัดลอกหรือย้ายไฟล์จากโฟลเดอร์นำเข้าไปยังไฟล์ต้นฉบับ"
+
 #: src/page/settings/general.vue:269
 msgid "Allow files to be permanently deleted to free up storage space."
 msgstr "อนุญาตให้ลบไฟล์ถาวรเพื่อเพิ่มพื้นที่จัดเก็บ"
@@ -1353,10 +1358,6 @@ msgstr "เปิดใช้งานฟีเจอร์ใหม่ที่
 msgid "Enable the file browser to navigate the Originals folder structure."
 msgstr "เปิดใช้งานตัวเรียกดูไฟล์เพื่อนำทางโครงสร้างโฟลเดอร์ Originals"
 
-#: src/page/settings/general.vue:194
-msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
-msgstr "เปิดใช้งานเครื่องมือการนำเข้าเพื่อคัดลอกหรือย้ายไฟล์จากโฟลเดอร์นำเข้าไปยังไฟล์ต้นฉบับ"
-
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
 msgstr "เปิดใช้งานการตั้งค่าล่วงหน้าของตัวแปลง RAW อาจลดประสิทธิภาพลง"
@@ -1689,7 +1690,8 @@ msgid "Hide"
 msgstr "ซ่อน"
 
 #: src/page/settings/general.vue:148
-msgid "Hide private items from global views while keeping them accessible in the Private section."
+#, fuzzy
+msgid "Hide private content from global views while keeping it accessible in the Private section."
 msgstr "ซ่อนรายการส่วนตัวจากมุมมองทั่วโลกในขณะที่ยังคงสามารถเข้าถึงได้ในส่วนส่วนตัว"
 
 #: src/options/options.js:381

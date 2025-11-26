@@ -393,6 +393,11 @@ msgstr "Laat redigering van metadata soos titel, beskrywing, datum en ligging to
 msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
 msgstr "Laat die redigering van die metadata, etikette en albums van verskeie prente gelyktydig toe."
 
+#: src/page/settings/general.vue:194
+#, fuzzy
+msgid "Allow files to be copied or moved from the Import to the Originals folder."
+msgstr "Aktiveer die Invoer-instrument om lêers van die Invoer-vouer na Oorspronklikes te kopieer of te skuif."
+
 #: src/page/settings/general.vue:269
 msgid "Allow files to be permanently deleted to free up storage space."
 msgstr "Laat toe dat lêers permanent verwyder word om stoorplek vry te maak."
@@ -1350,10 +1355,6 @@ msgstr "Aktiveer nuwe kenmerke wat onvolledig of onstabiel kan wees."
 msgid "Enable the file browser to navigate the Originals folder structure."
 msgstr "Aktiveer die lêerblaaier om deur die Originals-lêergidsstruktuur te navigeer."
 
-#: src/page/settings/general.vue:194
-msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
-msgstr "Aktiveer die Invoer-instrument om lêers van die Invoer-vouer na Oorspronklikes te kopieer of te skuif."
-
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
 msgstr "Aktiveer RAW-omskakelaarvoorinstellings. Kan prestasie verminder."
@@ -1686,7 +1687,8 @@ msgid "Hide"
 msgstr "Versteek"
 
 #: src/page/settings/general.vue:148
-msgid "Hide private items from global views while keeping them accessible in the Private section."
+#, fuzzy
+msgid "Hide private content from global views while keeping it accessible in the Private section."
 msgstr "Versteek private items van globale aansigte terwyl hulle toeganklik bly in die Privaat-afdeling."
 
 #: src/options/options.js:381

@@ -393,6 +393,11 @@ msgstr "Cho phép chỉnh sửa metadata như tiêu đề, mô tả, ngày thán
 msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
 msgstr "Cho phép chỉnh sửa metadata, nhãn và album của nhiều hình ảnh cùng một lúc."
 
+#: src/page/settings/general.vue:194
+#, fuzzy
+msgid "Allow files to be copied or moved from the Import to the Originals folder."
+msgstr "Bật công cụ Nhập để sao chép hoặc di chuyển tệp từ thư mục Nhập sang thư mục Gốc."
+
 #: src/page/settings/general.vue:269
 msgid "Allow files to be permanently deleted to free up storage space."
 msgstr "Cho phép xóa vĩnh viễn các tệp để giải phóng không gian lưu trữ."
@@ -1350,10 +1355,6 @@ msgstr "Kích hoạt các tính năng mới có thể chưa đầy đủ hoặc 
 msgid "Enable the file browser to navigate the Originals folder structure."
 msgstr "Kích hoạt trình duyệt tệp để điều hướng cấu trúc thư mục Originals."
 
-#: src/page/settings/general.vue:194
-msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
-msgstr "Bật công cụ Nhập để sao chép hoặc di chuyển tệp từ thư mục Nhập sang thư mục Gốc."
-
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
 msgstr "Cho phép cài đặt trước bộ chuyển đổi RAW. Có thể làm giảm hiệu suất."
@@ -1686,7 +1687,8 @@ msgid "Hide"
 msgstr "Trốn"
 
 #: src/page/settings/general.vue:148
-msgid "Hide private items from global views while keeping them accessible in the Private section."
+#, fuzzy
+msgid "Hide private content from global views while keeping it accessible in the Private section."
 msgstr "Ẩn các mục riêng tư khỏi các chế độ xem chung trong khi vẫn giữ chúng có thể truy cập được trong phần Riêng tư."
 
 #: src/options/options.js:381

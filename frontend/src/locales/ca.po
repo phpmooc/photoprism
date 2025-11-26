@@ -396,6 +396,11 @@ msgstr "Permet l'edició de metadades com ara el títol, la descripció, la data
 msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
 msgstr "Permet editar les metadades, les etiquetes i els àlbums de diverses imatges alhora."
 
+#: src/page/settings/general.vue:194
+#, fuzzy
+msgid "Allow files to be copied or moved from the Import to the Originals folder."
+msgstr "Activeu l'eina d'importació per copiar o moure fitxers de la carpeta d'importació a Originals."
+
 #: src/page/settings/general.vue:269
 msgid "Allow files to be permanently deleted to free up storage space."
 msgstr "Permet que els fitxers s'eliminin permanentment per alliberar espai d'emmagatzematge."
@@ -1353,10 +1358,6 @@ msgstr "Activa les noves funcions que poden ser incompletes o inestables."
 msgid "Enable the file browser to navigate the Originals folder structure."
 msgstr "Habiliteu el navegador de fitxers per navegar per l'estructura de carpetes Originals."
 
-#: src/page/settings/general.vue:194
-msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
-msgstr "Activeu l'eina d'importació per copiar o moure fitxers de la carpeta d'importació a Originals."
-
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
 msgstr "Habilita els valors predefinits del convertidor RAW. Pot reduir el rendiment."
@@ -1689,7 +1690,8 @@ msgid "Hide"
 msgstr "Amagar"
 
 #: src/page/settings/general.vue:148
-msgid "Hide private items from global views while keeping them accessible in the Private section."
+#, fuzzy
+msgid "Hide private content from global views while keeping it accessible in the Private section."
 msgstr "Amaga els elements privats de les vistes globals i mantén-los accessibles a la secció Privada."
 
 #: src/options/options.js:381

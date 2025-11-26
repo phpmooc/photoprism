@@ -396,6 +396,11 @@ msgstr "Позволяй редактировать метаданные, так
 msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
 msgstr "Позволяет редактировать метаданные, метки и альбомы сразу нескольких фотографий."
 
+#: src/page/settings/general.vue:194
+#, fuzzy
+msgid "Allow files to be copied or moved from the Import to the Originals folder."
+msgstr "Включи инструмент \"Импорт\", чтобы скопировать или переместить файлы из папки \"Импорт\" в \"Оригиналы\"."
+
 #: src/page/settings/general.vue:269
 msgid "Allow files to be permanently deleted to free up storage space."
 msgstr "Позволяй безвозвратно удалять файлы, чтобы освободить место в хранилище."
@@ -1353,10 +1358,6 @@ msgstr "Включай новые функции, которые могут бы
 msgid "Enable the file browser to navigate the Originals folder structure."
 msgstr "Включи файловый браузер для навигации по структуре папок Originals."
 
-#: src/page/settings/general.vue:194
-msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
-msgstr "Включи инструмент \"Импорт\", чтобы скопировать или переместить файлы из папки \"Импорт\" в \"Оригиналы\"."
-
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
 msgstr "Включает предустановки конвертера RAW. Может снизить производительность."
@@ -1689,7 +1690,8 @@ msgid "Hide"
 msgstr "Скрыть"
 
 #: src/page/settings/general.vue:148
-msgid "Hide private items from global views while keeping them accessible in the Private section."
+#, fuzzy
+msgid "Hide private content from global views while keeping it accessible in the Private section."
 msgstr "Скрывай приватные элементы из глобальных представлений, сохраняя их доступными в разделе Private."
 
 #: src/options/options.js:381
