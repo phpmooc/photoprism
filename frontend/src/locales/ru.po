@@ -128,7 +128,7 @@ msgstr "Токен доступа"
 #: src/component/navigation.vue:1068 src/component/navigation.vue:868
 #: src/component/service/upload.vue:25 src/locales.js:331
 #: src/model/service.js:72 src/model/user.js:151 src/page/settings.vue:112
-#: src/page/settings/general.vue:342
+#: src/page/settings/general.vue:344
 msgid "Account"
 msgstr "Учётная запись"
 
@@ -213,10 +213,6 @@ msgstr "Добавить учётную запись"
 msgid "Add Album"
 msgstr "Добавить альбом"
 
-#: src/page/settings/general.vue:164
-msgid "Add files to your library via Web Upload."
-msgstr "Добавьте файлы в свою библиотеку через Веб Загрузку."
-
 #: src/component/share/dialog.vue:19
 msgid "Add Link"
 msgstr "Добавить ссылку"
@@ -240,11 +236,11 @@ msgstr "Добавьте картинки из результатов поиск
 msgid "Add to album"
 msgstr "Добавить в альбом"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all"
 msgstr "Добавить ко всему"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all selected photos"
 msgstr "Добавить ко всем выбранным фотографиям"
 
@@ -388,6 +384,34 @@ msgstr "Все оригиналы"
 msgid "All Years"
 msgstr "Все года"
 
+#: src/page/settings/general.vue:284
+msgid "Allow configuration and use of connected apps and services for remote uploads and sync."
+msgstr ""
+
+#: src/page/settings/general.vue:224
+msgid "Allow editing of metadata such as title, description, date, and location."
+msgstr ""
+
+#: src/page/settings/general.vue:239
+msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
+msgstr ""
+
+#: src/page/settings/general.vue:269
+msgid "Allow files to be permanently deleted to free up storage space."
+msgstr ""
+
+#: src/page/settings/general.vue:254
+msgid "Allow users to archive photos and videos so they are hidden without being deleted."
+msgstr ""
+
+#: src/page/settings/general.vue:209
+msgid "Allow users to create and share links, and enable sharing with connected services."
+msgstr ""
+
+#: src/page/settings/general.vue:164
+msgid "Allow users to upload new photos and videos through the web interface."
+msgstr ""
+
 #: src/component/share/dialog.vue:134
 msgid "Alternatively, you can upload files directly to WebDAV servers like Nextcloud."
 msgstr "Кроме того, вы можете загружать файлы непосредственно на WebDAV-серверы, такие как Nextcloud."
@@ -415,7 +439,7 @@ msgstr "AM"
 msgid "Animated"
 msgstr "Анимированный"
 
-#: src/page/settings/general.vue:399
+#: src/page/settings/general.vue:401
 msgid "Animation"
 msgstr "Анимация"
 
@@ -602,21 +626,9 @@ msgstr "Коричневый"
 msgid "Browse"
 msgstr "Просмотреть"
 
-#: src/page/settings/general.vue:133
-msgid "Browse and edit image classification labels."
-msgstr "Просматривайте и редактируйте метки классификации изображений."
-
-#: src/page/settings/general.vue:103
-msgid "Browse and share your pictures organized into monthly albums."
-msgstr "Просматривай и делись своими фотографиями, организованными в ежемесячные альбомы."
-
 #: src/locales.js:278
 msgid "Browse Files"
 msgstr "Просмотреть файлы"
-
-#: src/page/settings/general.vue:313
-msgid "Browse indexed files and folders in Library."
-msgstr "Просматривайте проиндексированные файлы и папки в Библиотеке."
 
 #: src/component/photo/edit/people.vue:232
 msgid "Browse Pictures"
@@ -719,14 +731,6 @@ msgstr "Изменить аватар"
 msgid "Change Password"
 msgstr "Изменить пароль"
 
-#: src/page/settings/general.vue:343
-msgid "Change personal profile and security settings."
-msgstr "Изменить личный профиль и настройки безопасности."
-
-#: src/page/settings/general.vue:224
-msgid "Change photo titles, locations, and other metadata."
-msgstr "Изменить названия фотографий, местоположения и другие метаданные."
-
 #: src/component/photo/clipboard.vue:80
 msgid "Change private flag"
 msgstr "Изменить флаг приватности"
@@ -748,7 +752,7 @@ msgstr "Изменения не будут сохранены"
 #: src/component/share/dialog.vue:240 src/component/share/dialog.vue:259
 #: src/page/albums.vue:1268 src/page/people/recognized.vue:320
 #: src/page/settings/advanced.vue:535 src/page/settings/content.vue:300
-#: src/page/settings/general.vue:525
+#: src/page/settings/general.vue:527
 msgid "Changes successfully saved"
 msgstr "Изменения успешно сохранены"
 
@@ -829,7 +833,7 @@ msgstr "Цвет"
 msgid "Color Profile"
 msgstr "Цветовой профиль"
 
-#: src/page/discover.vue:13 src/page/discover.vue:5
+#: src/page/discover.vue:12 src/page/discover.vue:5
 msgid "Colors"
 msgstr "Цвета"
 
@@ -1249,10 +1253,6 @@ msgstr "Загружайте только оригинальные медиаф�
 msgid "Download remote files"
 msgstr "Скачать удалённые файлы"
 
-#: src/page/settings/general.vue:179
-msgid "Download single files and zip archives."
-msgstr "Скачать отдельные файлы и zip-архивы."
-
 #: src/component/album/clipboard.vue:227 src/component/album/toolbar.vue:252
 #: src/component/file/clipboard.vue:150 src/component/label/clipboard.vue:172
 #: src/component/lightbox.vue:2426 src/component/people/clipboard.vue:144
@@ -1324,10 +1324,6 @@ msgstr "Редактировать фотографию"
 msgid "Edit Photos (%{n})"
 msgstr "Редактирование фотографий (%{n})"
 
-#: src/page/settings/general.vue:239
-msgid "Edit the metadata, labels, and albums of multiple pictures at once."
-msgstr "Редактируй метаданные, ярлыки и альбомы сразу нескольких фотографий."
-
 #: src/component/photo/edit/info.vue:222 src/component/photo/edit/info.vue:223
 msgid "Edited"
 msgstr "Отредактировано"
@@ -1341,9 +1337,25 @@ msgstr "Электронная почта"
 msgid "Enable debug mode to display additional logs and help with troubleshooting."
 msgstr "Включи режим отладки, чтобы отобразить дополнительные журналы и помочь в устранении неполадок."
 
+#: src/page/settings/general.vue:179
+msgid "Enable downloading of original and sidecar files from the web interface."
+msgstr ""
+
+#: src/page/settings/general.vue:88
+msgid "Enable face recognition and the People view to easily find people you know."
+msgstr ""
+
 #: src/page/settings/advanced.vue:53
 msgid "Enable new features that may be incomplete or unstable."
 msgstr "Включай новые функции, которые могут быть неполными или нестабильными."
+
+#: src/page/settings/general.vue:315
+msgid "Enable the file browser to navigate the Originals folder structure."
+msgstr ""
+
+#: src/page/settings/general.vue:194
+msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
+msgstr ""
 
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
@@ -1365,7 +1377,7 @@ msgstr "Введите дату"
 msgid "Enter dates"
 msgstr "Введите даты"
 
-#: src/component/input/chip-selector.vue:128
+#: src/component/input/chip-selector.vue:129
 msgid "Enter item name..."
 msgstr "Введите название предмета..."
 
@@ -1409,10 +1421,6 @@ msgstr "Оценивай примерное местоположение кар�
 #: src/options/options.js:427
 msgid "Every two days"
 msgstr "Каждые два дня"
-
-#: src/page/settings/general.vue:148
-msgid "Exclude content marked as private from search results, shared albums, labels, and places."
-msgstr "Исключить содержимое, отмеченное приватным, из результатов поиска, общих альбомов, меток и мест."
 
 #: src/page/people/new.vue:20 src/page/people/recognized.vue:53
 msgid "Exclude hidden"
@@ -1611,10 +1619,6 @@ msgstr "Основные"
 msgid "Generate"
 msgstr "Генерировать"
 
-#: src/page/settings/general.vue:118
-msgid "Generate albums of special moments, journeys, and places."
-msgstr "Автоматически создает альбомы особых моментов, поездок и мест."
-
 #: src/page/settings/content.vue:58
 msgid "Generate Previews"
 msgstr "Создавайте предварительные просмотры"
@@ -1684,9 +1688,9 @@ msgstr "Скрытые файлы"
 msgid "Hide"
 msgstr "Скрыть"
 
-#: src/page/settings/general.vue:254
-msgid "Hide photos that have been moved to archive."
-msgstr "Скрыть фотографии, которые были перенесены в архив."
+#: src/page/settings/general.vue:148
+msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgstr ""
 
 #: src/options/options.js:381
 msgid "High"
@@ -1719,7 +1723,7 @@ msgstr "Изображение"
 msgid "Image Quality"
 msgstr "Качество изображения"
 
-#: src/page/library.vue:74 src/page/library/import.vue:44
+#: src/page/library.vue:73 src/page/library/import.vue:44
 #: src/page/library/import.vue:45 src/page/library/import.vue:73
 #: src/page/library/import.vue:86 src/page/settings/general.vue:193
 msgid "Import"
@@ -1727,10 +1731,6 @@ msgstr "Импортировать"
 
 #: src/page/library/import.vue:57
 msgid "Imported files will be sorted by date and given a unique name to avoid duplicates."
-msgstr "Импортированные файлы будут отсортированы по датам и получат уникальные имена."
-
-#: src/page/settings/general.vue:194
-msgid "Imported files will be sorted by date and given a unique name."
 msgstr "Импортированные файлы будут отсортированы по датам и получат уникальные имена."
 
 #: src/page/library/import.vue:5
@@ -1768,14 +1768,10 @@ msgstr "Включать файлы sidecar при загрузке стеков
 msgid "Increase storage size or delete files to continue."
 msgstr "Увеличь размер хранилища или удали файлы, чтобы продолжить."
 
-#: src/component/navigation.vue:942 src/page/library.vue:64
+#: src/component/navigation.vue:942 src/page/library.vue:63
 #: src/page/settings/content.vue:12
 msgid "Index"
 msgstr "Индексировать"
-
-#: src/page/settings/general.vue:298
-msgid "Index and import files through the user interface."
-msgstr "Индексирование и импортирование файлов через пользовательский интерфейс."
 
 #: src/page/library/index.vue:245 src/page/library/index.vue:251
 msgid "Indexing"
@@ -1962,7 +1958,7 @@ msgid "Lens"
 msgstr "Объектив"
 
 #: src/app/routes.js:475 src/app/routes.js:491 src/app/routes.js:507
-#: src/component/navigation.vue:613 src/page/settings/general.vue:297
+#: src/component/navigation.vue:613 src/page/settings/general.vue:299
 msgid "Library"
 msgstr "Библиотека"
 
@@ -2066,7 +2062,7 @@ msgid "Logout"
 msgstr "Выйти"
 
 #: src/component/navigation.vue:948 src/component/navigation.vue:951
-#: src/page/library.vue:87 src/page/settings/general.vue:327
+#: src/page/library.vue:86 src/page/settings/general.vue:329
 msgid "Logs"
 msgstr "Журнал"
 
@@ -2114,7 +2110,7 @@ msgstr "Руководство"
 msgid "Manual Upload"
 msgstr "Загрузка вручную"
 
-#: src/page/settings/general.vue:383
+#: src/page/settings/general.vue:385
 msgid "Maps"
 msgstr "Карты"
 
@@ -2247,7 +2243,7 @@ msgstr "Название слишком длинное"
 msgid "Never"
 msgstr "Никогда"
 
-#: src/page/people.vue:74
+#: src/page/people.vue:73
 msgid "New"
 msgstr "Новый"
 
@@ -2516,7 +2512,7 @@ msgstr "Оригинальное Название"
 #: src/component/navigation.vue:627 src/component/navigation.vue:633
 #: src/model/file.js:172 src/options/options.js:474
 #: src/page/library/browse.vue:12 src/page/settings/content.vue:193
-#: src/page/settings/general.vue:312
+#: src/page/settings/general.vue:314
 msgid "Originals"
 msgstr "Оригиналы"
 
@@ -2559,11 +2555,11 @@ msgstr "Панорама"
 msgid "Panoramas"
 msgstr "Панорамы"
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:188
 msgid "Part of all selected photos"
 msgstr "Часть всех выбранных фотографий"
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:186
 msgid "Part of some selected photos"
 msgstr "Часть избранных фотографий"
 
@@ -2596,10 +2592,6 @@ msgstr "Люди, с которыми вы поделились ссылкой, 
 #: src/component/photo/clipboard.vue:315 src/component/photo/toolbar.vue:558
 msgid "Permanently deleted"
 msgstr "Удалено насовсем"
-
-#: src/page/settings/general.vue:269
-msgid "Permanently remove files to free up storage."
-msgstr "Удаление файлов насовсем для освобождения дискового пространства."
 
 #: src/model/subject.js:134
 msgid "Person"
@@ -2654,8 +2646,8 @@ msgstr "Место и время"
 #: src/app/routes.js:335 src/app/routes.js:341 src/app/routes.js:347
 #: src/app/routes.js:362 src/component/navigation.vue:462
 #: src/component/navigation.vue:927 src/options/options.js:262
-#: src/page/places.vue:18 src/page/settings/general.vue:357
-#: src/page/settings/general.vue:371
+#: src/page/places.vue:18 src/page/settings/general.vue:359
+#: src/page/settings/general.vue:373
 msgid "Places"
 msgstr "Места"
 
@@ -2717,7 +2709,7 @@ msgstr "Сохранять имена файлов"
 msgid "Press enter to create a new album."
 msgstr "Нажмите enter, чтобы создать новый альбом."
 
-#: src/component/input/chip-selector.vue:60
+#: src/component/input/chip-selector.vue:61
 msgid "Press enter to create new item"
 msgstr "Нажмите Enter, чтобы создать новый элемент"
 
@@ -2791,7 +2783,7 @@ msgstr "Фильтр Качества"
 msgid "Quality Score"
 msgstr "Показатель Качества"
 
-#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:25
+#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:24
 msgid "Random"
 msgstr "Случайно"
 
@@ -2835,11 +2827,7 @@ msgstr "Недавно отредактированные"
 msgid "Recognition starts after indexing has been completed."
 msgstr "Распознавание начинается после завершения индексации."
 
-#: src/page/settings/general.vue:88
-msgid "Recognize faces so people can be assigned and found."
-msgstr "Распознает лица, чтобы можно было найти конкретных людей."
-
-#: src/page/people.vue:61
+#: src/page/people.vue:60
 msgid "Recognized"
 msgstr "Распознано"
 
@@ -2880,7 +2868,7 @@ msgid "Reload"
 msgstr "Перезагрузить"
 
 #: src/component/navigation.vue:1089 src/component/update.vue:62
-#: src/page/settings/general.vue:521
+#: src/page/settings/general.vue:523
 msgid "Reloading…"
 msgstr "Перезагрузка…"
 
@@ -2900,11 +2888,11 @@ msgstr "не могу удалить: неизвестный альбом"
 msgid "Remove from Album"
 msgstr "Удалить из альбома"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all"
 msgstr "Удали из всех"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all selected photos"
 msgstr "Удалить со всех выбранных фотографий"
 
@@ -3068,11 +3056,7 @@ msgstr "Прицелы"
 msgid "Search"
 msgstr "Поиск"
 
-#: src/page/settings/general.vue:358
-msgid "Search and display photos on a map."
-msgstr "Поиск и отображение фотографий на карте."
-
-#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:21
+#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:20
 msgid "Season"
 msgstr "Сезон"
 
@@ -3210,10 +3194,6 @@ msgstr "Поделиться"
 msgid "Share %{s}"
 msgstr "Поделится %{s}"
 
-#: src/page/settings/general.vue:283
-msgid "Share your pictures with other apps and services."
-msgstr "Делись своими фотографиями с другими приложениями и сервисами."
-
 #: src/page/people/new.vue:70 src/page/people/recognized.vue:127
 msgid "Show"
 msgstr "Показать"
@@ -3238,9 +3218,33 @@ msgstr "Показать скрытые"
 msgid "Show Important Only"
 msgstr "Показать только важное"
 
-#: src/page/settings/general.vue:328
-msgid "Show server logs in Library."
-msgstr "Показывать журналы сервера в Библиотеке."
+#: src/page/settings/general.vue:330
+msgid "Show logs in the web interface to monitor activity and troubleshoot problems."
+msgstr ""
+
+#: src/page/settings/general.vue:118
+msgid "Show smart albums that group pictures by occasion, trip, or location."
+msgstr ""
+
+#: src/page/settings/general.vue:345
+msgid "Show the Account page so users can manage their profile and security settings."
+msgstr ""
+
+#: src/page/settings/general.vue:103
+msgid "Show the Calendar view to browse the library by year and month."
+msgstr ""
+
+#: src/page/settings/general.vue:133
+msgid "Show the Labels section to view and manage AI-generated labels."
+msgstr ""
+
+#: src/page/settings/general.vue:300
+msgid "Show the Library section to index, manage, and monitor the media library."
+msgstr ""
+
+#: src/page/settings/general.vue:360
+msgid "Show the Places view with interactive maps so you can browse photos by location."
+msgstr ""
 
 #: src/page/settings/content.vue:155
 msgid "Show Titles"
@@ -3260,7 +3264,7 @@ msgstr "Файлы для сайдкаров"
 msgid "Sign in"
 msgstr "Войти"
 
-#: src/page/discover.vue:17 src/page/discover.vue:8 src/page/discover.vue:9
+#: src/page/discover.vue:16 src/page/discover.vue:8 src/page/discover.vue:9
 msgid "Similar"
 msgstr "Похожие"
 
@@ -3716,10 +3720,6 @@ msgstr "Загрузка локальных файлов"
 msgid "Upload Path"
 msgstr "Путь загрузки"
 
-#: src/page/settings/general.vue:209
-msgid "Upload to WebDAV and share links with friends."
-msgstr "Загружайте WebDAV и делитесь ссылками с друзьями."
-
 #: src/component/upload/dialog.vue:40
 msgid "Uploading %{n} of %{t}…"
 msgstr "Загрузка %{n} из %{t}…"
@@ -4016,6 +4016,63 @@ msgstr "Название"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Архивировать"
+
+#~ msgid "Add files to your library via Web Upload."
+#~ msgstr "Добавьте файлы в свою библиотеку через Веб Загрузку."
+
+#~ msgid "Browse and edit image classification labels."
+#~ msgstr "Просматривайте и редактируйте метки классификации изображений."
+
+#~ msgid "Browse and share your pictures organized into monthly albums."
+#~ msgstr "Просматривай и делись своими фотографиями, организованными в ежемесячные альбомы."
+
+#~ msgid "Browse indexed files and folders in Library."
+#~ msgstr "Просматривайте проиндексированные файлы и папки в Библиотеке."
+
+#~ msgid "Change personal profile and security settings."
+#~ msgstr "Изменить личный профиль и настройки безопасности."
+
+#~ msgid "Change photo titles, locations, and other metadata."
+#~ msgstr "Изменить названия фотографий, местоположения и другие метаданные."
+
+#~ msgid "Download single files and zip archives."
+#~ msgstr "Скачать отдельные файлы и zip-архивы."
+
+#~ msgid "Edit the metadata, labels, and albums of multiple pictures at once."
+#~ msgstr "Редактируй метаданные, ярлыки и альбомы сразу нескольких фотографий."
+
+#~ msgid "Exclude content marked as private from search results, shared albums, labels, and places."
+#~ msgstr "Исключить содержимое, отмеченное приватным, из результатов поиска, общих альбомов, меток и мест."
+
+#~ msgid "Generate albums of special moments, journeys, and places."
+#~ msgstr "Автоматически создает альбомы особых моментов, поездок и мест."
+
+#~ msgid "Hide photos that have been moved to archive."
+#~ msgstr "Скрыть фотографии, которые были перенесены в архив."
+
+#~ msgid "Imported files will be sorted by date and given a unique name."
+#~ msgstr "Импортированные файлы будут отсортированы по датам и получат уникальные имена."
+
+#~ msgid "Index and import files through the user interface."
+#~ msgstr "Индексирование и импортирование файлов через пользовательский интерфейс."
+
+#~ msgid "Permanently remove files to free up storage."
+#~ msgstr "Удаление файлов насовсем для освобождения дискового пространства."
+
+#~ msgid "Recognize faces so people can be assigned and found."
+#~ msgstr "Распознает лица, чтобы можно было найти конкретных людей."
+
+#~ msgid "Search and display photos on a map."
+#~ msgstr "Поиск и отображение фотографий на карте."
+
+#~ msgid "Share your pictures with other apps and services."
+#~ msgstr "Делись своими фотографиями с другими приложениями и сервисами."
+
+#~ msgid "Show server logs in Library."
+#~ msgstr "Показывать журналы сервера в Библиотеке."
+
+#~ msgid "Upload to WebDAV and share links with friends."
+#~ msgstr "Загружайте WebDAV и делитесь ссылками с друзьями."
 
 #~ msgid "Disable TensorFlow"
 #~ msgstr "Отключить TensorFlow"

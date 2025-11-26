@@ -125,7 +125,7 @@ msgstr "Truy cập thẻ"
 #: src/component/navigation.vue:1068 src/component/navigation.vue:868
 #: src/component/service/upload.vue:25 src/locales.js:331
 #: src/model/service.js:72 src/model/user.js:151 src/page/settings.vue:112
-#: src/page/settings/general.vue:342
+#: src/page/settings/general.vue:344
 msgid "Account"
 msgstr "Tài khoản"
 
@@ -210,10 +210,6 @@ msgstr "Thêm tài khoản"
 msgid "Add Album"
 msgstr "Thêm Anbom"
 
-#: src/page/settings/general.vue:164
-msgid "Add files to your library via Web Upload."
-msgstr "Thêm tệp vào thư viện của bạn thông qua Tải lên web."
-
 #: src/component/share/dialog.vue:19
 msgid "Add Link"
 msgstr "Thêm liên kết"
@@ -237,11 +233,11 @@ msgstr "Thêm hình ảnh từ kết quả tìm kiếm bằng cách chọn chún
 msgid "Add to album"
 msgstr "Thêm vào album"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all"
 msgstr "Thêm vào tất cả"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all selected photos"
 msgstr "Thêm vào tất cả các bức ảnh đã chọn"
 
@@ -385,6 +381,34 @@ msgstr "Tất cả bản gốc"
 msgid "All Years"
 msgstr "Mọi năm"
 
+#: src/page/settings/general.vue:284
+msgid "Allow configuration and use of connected apps and services for remote uploads and sync."
+msgstr ""
+
+#: src/page/settings/general.vue:224
+msgid "Allow editing of metadata such as title, description, date, and location."
+msgstr ""
+
+#: src/page/settings/general.vue:239
+msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
+msgstr ""
+
+#: src/page/settings/general.vue:269
+msgid "Allow files to be permanently deleted to free up storage space."
+msgstr ""
+
+#: src/page/settings/general.vue:254
+msgid "Allow users to archive photos and videos so they are hidden without being deleted."
+msgstr ""
+
+#: src/page/settings/general.vue:209
+msgid "Allow users to create and share links, and enable sharing with connected services."
+msgstr ""
+
+#: src/page/settings/general.vue:164
+msgid "Allow users to upload new photos and videos through the web interface."
+msgstr ""
+
 #: src/component/share/dialog.vue:134
 msgid "Alternatively, you can upload files directly to WebDAV servers like Nextcloud."
 msgstr "Ngoài ra, bạn có thể tải tệp trực tiếp lên máy chủ WebDAV như Nextcloud."
@@ -412,7 +436,7 @@ msgstr "LÀ"
 msgid "Animated"
 msgstr "hoạt hình"
 
-#: src/page/settings/general.vue:399
+#: src/page/settings/general.vue:401
 msgid "Animation"
 msgstr "Hoạt hình"
 
@@ -599,21 +623,9 @@ msgstr "Màu nâu"
 msgid "Browse"
 msgstr "Duyệt qua"
 
-#: src/page/settings/general.vue:133
-msgid "Browse and edit image classification labels."
-msgstr "Duyệt và chỉnh sửa nhãn phân loại hình ảnh."
-
-#: src/page/settings/general.vue:103
-msgid "Browse and share your pictures organized into monthly albums."
-msgstr "Duyệt và chia sẻ hình ảnh được sắp xếp theo album hàng tháng."
-
 #: src/locales.js:278
 msgid "Browse Files"
 msgstr "Duyệt tập tin"
-
-#: src/page/settings/general.vue:313
-msgid "Browse indexed files and folders in Library."
-msgstr "Duyệt các tệp và thư mục được lập chỉ mục trong Thư viện."
 
 #: src/component/photo/edit/people.vue:232
 msgid "Browse Pictures"
@@ -716,14 +728,6 @@ msgstr "Thay đổi hình đại diện"
 msgid "Change Password"
 msgstr "Đổi mật khẩu"
 
-#: src/page/settings/general.vue:343
-msgid "Change personal profile and security settings."
-msgstr "Thay đổi hồ sơ cá nhân và cài đặt bảo mật."
-
-#: src/page/settings/general.vue:224
-msgid "Change photo titles, locations, and other metadata."
-msgstr "Thay đổi tiêu đề ảnh, vị trí và siêu dữ liệu khác."
-
 #: src/component/photo/clipboard.vue:80
 msgid "Change private flag"
 msgstr "Thay đổi cờ riêng tư"
@@ -745,7 +749,7 @@ msgstr "Không thể lưu các thay đổi"
 #: src/component/share/dialog.vue:240 src/component/share/dialog.vue:259
 #: src/page/albums.vue:1268 src/page/people/recognized.vue:320
 #: src/page/settings/advanced.vue:535 src/page/settings/content.vue:300
-#: src/page/settings/general.vue:525
+#: src/page/settings/general.vue:527
 msgid "Changes successfully saved"
 msgstr "Đã lưu thay đổi thành công"
 
@@ -826,7 +830,7 @@ msgstr "Màu sắc"
 msgid "Color Profile"
 msgstr "Hồ sơ màu"
 
-#: src/page/discover.vue:13 src/page/discover.vue:5
+#: src/page/discover.vue:12 src/page/discover.vue:5
 msgid "Colors"
 msgstr "Màu sắc"
 
@@ -1246,10 +1250,6 @@ msgstr "Chỉ tải xuống các tệp phương tiện gốc mà không có bấ
 msgid "Download remote files"
 msgstr "Tải tập tin từ xa"
 
-#: src/page/settings/general.vue:179
-msgid "Download single files and zip archives."
-msgstr "Tải xuống các tập tin đơn lẻ và lưu trữ zip."
-
 #: src/component/album/clipboard.vue:227 src/component/album/toolbar.vue:252
 #: src/component/file/clipboard.vue:150 src/component/label/clipboard.vue:172
 #: src/component/lightbox.vue:2426 src/component/people/clipboard.vue:144
@@ -1321,10 +1321,6 @@ msgstr "Chỉnh sửa hình ảnh"
 msgid "Edit Photos (%{n})"
 msgstr "Chỉnh sửa ảnh (%{n})"
 
-#: src/page/settings/general.vue:239
-msgid "Edit the metadata, labels, and albums of multiple pictures at once."
-msgstr "Chỉnh sửa metadata, nhãn và album của nhiều hình ảnh cùng lúc."
-
 #: src/component/photo/edit/info.vue:222 src/component/photo/edit/info.vue:223
 msgid "Edited"
 msgstr "Đã chỉnh sửa"
@@ -1338,9 +1334,25 @@ msgstr "E-mail"
 msgid "Enable debug mode to display additional logs and help with troubleshooting."
 msgstr "Bật chế độ gỡ lỗi để hiển thị nhật ký bổ sung và trợ giúp khắc phục sự cố."
 
+#: src/page/settings/general.vue:179
+msgid "Enable downloading of original and sidecar files from the web interface."
+msgstr ""
+
+#: src/page/settings/general.vue:88
+msgid "Enable face recognition and the People view to easily find people you know."
+msgstr ""
+
 #: src/page/settings/advanced.vue:53
 msgid "Enable new features that may be incomplete or unstable."
 msgstr "Kích hoạt các tính năng mới có thể chưa đầy đủ hoặc không ổn định."
+
+#: src/page/settings/general.vue:315
+msgid "Enable the file browser to navigate the Originals folder structure."
+msgstr ""
+
+#: src/page/settings/general.vue:194
+msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
+msgstr ""
 
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
@@ -1362,7 +1374,7 @@ msgstr "Nhập ngày"
 msgid "Enter dates"
 msgstr "Nhập ngày"
 
-#: src/component/input/chip-selector.vue:128
+#: src/component/input/chip-selector.vue:129
 msgid "Enter item name..."
 msgstr "Nhập tên mục..."
 
@@ -1406,10 +1418,6 @@ msgstr "Ước tính vị trí gần đúng của hình ảnh mà không cần t
 #: src/options/options.js:427
 msgid "Every two days"
 msgstr "Mỗi hai ngày"
-
-#: src/page/settings/general.vue:148
-msgid "Exclude content marked as private from search results, shared albums, labels, and places."
-msgstr "Loại trừ nội dung được đánh dấu là riêng tư khỏi kết quả tìm kiếm, album chia sẻ, nhãn và địa điểm."
 
 #: src/page/people/new.vue:20 src/page/people/recognized.vue:53
 msgid "Exclude hidden"
@@ -1608,10 +1616,6 @@ msgstr "Tổng quan"
 msgid "Generate"
 msgstr "Phát ra"
 
-#: src/page/settings/general.vue:118
-msgid "Generate albums of special moments, journeys, and places."
-msgstr "Tự động tạo album về những khoảnh khắc, chuyến đi và địa điểm đặc biệt."
-
 #: src/page/settings/content.vue:58
 msgid "Generate Previews"
 msgstr "Tạo bản xem trước"
@@ -1681,9 +1685,9 @@ msgstr "Các tệp ẩn"
 msgid "Hide"
 msgstr "Trốn"
 
-#: src/page/settings/general.vue:254
-msgid "Hide photos that have been moved to archive."
-msgstr "Ẩn ảnh đã được chuyển vào kho lưu trữ."
+#: src/page/settings/general.vue:148
+msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgstr ""
 
 #: src/options/options.js:381
 msgid "High"
@@ -1716,7 +1720,7 @@ msgstr "Hình ảnh"
 msgid "Image Quality"
 msgstr "Chất lượng hình ảnh"
 
-#: src/page/library.vue:74 src/page/library/import.vue:44
+#: src/page/library.vue:73 src/page/library/import.vue:44
 #: src/page/library/import.vue:45 src/page/library/import.vue:73
 #: src/page/library/import.vue:86 src/page/settings/general.vue:193
 msgid "Import"
@@ -1725,10 +1729,6 @@ msgstr "Nhập khẩu"
 #: src/page/library/import.vue:57
 msgid "Imported files will be sorted by date and given a unique name to avoid duplicates."
 msgstr "Các tệp đã nhập sẽ được sắp xếp theo ngày và đặt một tên duy nhất để tránh trùng lặp."
-
-#: src/page/settings/general.vue:194
-msgid "Imported files will be sorted by date and given a unique name."
-msgstr "Các tệp đã nhập sẽ được sắp xếp theo ngày và được đặt một tên duy nhất."
 
 #: src/page/library/import.vue:5
 msgid "Importing %{s}…"
@@ -1765,14 +1765,10 @@ msgstr "Bao gồm các tệp sidecar khi tải xuống ngăn xếp và kho lưu 
 msgid "Increase storage size or delete files to continue."
 msgstr "Tăng dung lượng lưu trữ hoặc xóa tệp để tiếp tục."
 
-#: src/component/navigation.vue:942 src/page/library.vue:64
+#: src/component/navigation.vue:942 src/page/library.vue:63
 #: src/page/settings/content.vue:12
 msgid "Index"
 msgstr "Mục lục"
-
-#: src/page/settings/general.vue:298
-msgid "Index and import files through the user interface."
-msgstr "Lập chỉ mục và nhập tệp thông qua giao diện người dùng."
 
 #: src/page/library/index.vue:245 src/page/library/index.vue:251
 msgid "Indexing"
@@ -1959,7 +1955,7 @@ msgid "Lens"
 msgstr "Ống kính"
 
 #: src/app/routes.js:475 src/app/routes.js:491 src/app/routes.js:507
-#: src/component/navigation.vue:613 src/page/settings/general.vue:297
+#: src/component/navigation.vue:613 src/page/settings/general.vue:299
 msgid "Library"
 msgstr "Thư viện"
 
@@ -2063,7 +2059,7 @@ msgid "Logout"
 msgstr "Đăng xuất"
 
 #: src/component/navigation.vue:948 src/component/navigation.vue:951
-#: src/page/library.vue:87 src/page/settings/general.vue:327
+#: src/page/library.vue:86 src/page/settings/general.vue:329
 msgid "Logs"
 msgstr "Nhật ký"
 
@@ -2111,7 +2107,7 @@ msgstr "Thủ công"
 msgid "Manual Upload"
 msgstr "Tải lên thủ công"
 
-#: src/page/settings/general.vue:383
+#: src/page/settings/general.vue:385
 msgid "Maps"
 msgstr "Bản đồ"
 
@@ -2244,7 +2240,7 @@ msgstr "Tên quá dài"
 msgid "Never"
 msgstr "Không bao giờ"
 
-#: src/page/people.vue:74
+#: src/page/people.vue:73
 msgid "New"
 msgstr "Mới"
 
@@ -2513,7 +2509,7 @@ msgstr "Tên khai sinh"
 #: src/component/navigation.vue:627 src/component/navigation.vue:633
 #: src/model/file.js:172 src/options/options.js:474
 #: src/page/library/browse.vue:12 src/page/settings/content.vue:193
-#: src/page/settings/general.vue:312
+#: src/page/settings/general.vue:314
 msgid "Originals"
 msgstr "Bản gốc"
 
@@ -2556,11 +2552,11 @@ msgstr "Toàn cảnh"
 msgid "Panoramas"
 msgstr "Ảnh toàn cảnh"
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:188
 msgid "Part of all selected photos"
 msgstr "Một phần của tất cả các bức ảnh được chọn"
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:186
 msgid "Part of some selected photos"
 msgstr "Một số bức ảnh được chọn lọc"
 
@@ -2593,10 +2589,6 @@ msgstr "Những người được bạn chia sẻ liên kết sẽ có thể xem
 #: src/component/photo/clipboard.vue:315 src/component/photo/toolbar.vue:558
 msgid "Permanently deleted"
 msgstr "Đã xóa vĩnh viễn"
-
-#: src/page/settings/general.vue:269
-msgid "Permanently remove files to free up storage."
-msgstr "Xóa vĩnh viễn các tập tin để giải phóng bộ nhớ."
 
 #: src/model/subject.js:134
 msgid "Person"
@@ -2651,8 +2643,8 @@ msgstr "Địa điểm & Thời gian"
 #: src/app/routes.js:335 src/app/routes.js:341 src/app/routes.js:347
 #: src/app/routes.js:362 src/component/navigation.vue:462
 #: src/component/navigation.vue:927 src/options/options.js:262
-#: src/page/places.vue:18 src/page/settings/general.vue:357
-#: src/page/settings/general.vue:371
+#: src/page/places.vue:18 src/page/settings/general.vue:359
+#: src/page/settings/general.vue:373
 msgid "Places"
 msgstr "Địa điểm"
 
@@ -2714,7 +2706,7 @@ msgstr "Giữ nguyên tên tập tin"
 msgid "Press enter to create a new album."
 msgstr "Nhấn enter để tạo album mới."
 
-#: src/component/input/chip-selector.vue:60
+#: src/component/input/chip-selector.vue:61
 msgid "Press enter to create new item"
 msgstr "Nhấn Enter để tạo mục mới"
 
@@ -2788,7 +2780,7 @@ msgstr "Bộ lọc chất lượng"
 msgid "Quality Score"
 msgstr "Điểm chất lượng"
 
-#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:25
+#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:24
 msgid "Random"
 msgstr "Ngẫu nhiên"
 
@@ -2832,11 +2824,7 @@ msgstr "Đã chỉnh sửa gần đây"
 msgid "Recognition starts after indexing has been completed."
 msgstr "Công nhận bắt đầu sau khi lập chỉ mục đã được hoàn thành."
 
-#: src/page/settings/general.vue:88
-msgid "Recognize faces so people can be assigned and found."
-msgstr "Nhận dạng khuôn mặt để có thể tìm thấy những người cụ thể."
-
-#: src/page/people.vue:61
+#: src/page/people.vue:60
 msgid "Recognized"
 msgstr "Được công nhận"
 
@@ -2877,7 +2865,7 @@ msgid "Reload"
 msgstr "Tải lại"
 
 #: src/component/navigation.vue:1089 src/component/update.vue:62
-#: src/page/settings/general.vue:521
+#: src/page/settings/general.vue:523
 msgid "Reloading…"
 msgstr "Đang tải lại…"
 
@@ -2897,11 +2885,11 @@ msgstr "xóa không thành công: album không xác định"
 msgid "Remove from Album"
 msgstr "Xóa khỏi album"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all"
 msgstr "Loại bỏ khỏi tất cả"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all selected photos"
 msgstr "Xóa khỏi tất cả các bức ảnh đã chọn"
 
@@ -3065,11 +3053,7 @@ msgstr "Phạm vi"
 msgid "Search"
 msgstr "Tìm kiếm"
 
-#: src/page/settings/general.vue:358
-msgid "Search and display photos on a map."
-msgstr "Tìm kiếm và hiển thị ảnh trên bản đồ."
-
-#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:21
+#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:20
 msgid "Season"
 msgstr "Mùa"
 
@@ -3207,10 +3191,6 @@ msgstr "Chia sẻ"
 msgid "Share %{s}"
 msgstr "Chia sẻ %{s}"
 
-#: src/page/settings/general.vue:283
-msgid "Share your pictures with other apps and services."
-msgstr "Chia sẻ hình ảnh của bạn với các ứng dụng và dịch vụ khác."
-
 #: src/page/people/new.vue:70 src/page/people/recognized.vue:127
 msgid "Show"
 msgstr "Trình diễn"
@@ -3235,9 +3215,33 @@ msgstr "Hiển thị ẩn"
 msgid "Show Important Only"
 msgstr "Chỉ hiển thị quan trọng"
 
-#: src/page/settings/general.vue:328
-msgid "Show server logs in Library."
-msgstr "Hiển thị nhật ký máy chủ trong Thư viện."
+#: src/page/settings/general.vue:330
+msgid "Show logs in the web interface to monitor activity and troubleshoot problems."
+msgstr ""
+
+#: src/page/settings/general.vue:118
+msgid "Show smart albums that group pictures by occasion, trip, or location."
+msgstr ""
+
+#: src/page/settings/general.vue:345
+msgid "Show the Account page so users can manage their profile and security settings."
+msgstr ""
+
+#: src/page/settings/general.vue:103
+msgid "Show the Calendar view to browse the library by year and month."
+msgstr ""
+
+#: src/page/settings/general.vue:133
+msgid "Show the Labels section to view and manage AI-generated labels."
+msgstr ""
+
+#: src/page/settings/general.vue:300
+msgid "Show the Library section to index, manage, and monitor the media library."
+msgstr ""
+
+#: src/page/settings/general.vue:360
+msgid "Show the Places view with interactive maps so you can browse photos by location."
+msgstr ""
 
 #: src/page/settings/content.vue:155
 msgid "Show Titles"
@@ -3257,7 +3261,7 @@ msgstr "Tập tin sidecar"
 msgid "Sign in"
 msgstr "Đăng nhập"
 
-#: src/page/discover.vue:17 src/page/discover.vue:8 src/page/discover.vue:9
+#: src/page/discover.vue:16 src/page/discover.vue:8 src/page/discover.vue:9
 msgid "Similar"
 msgstr "Tương tự"
 
@@ -3713,10 +3717,6 @@ msgstr "Tải lên các tập tin cục bộ"
 msgid "Upload Path"
 msgstr "Đường dẫn tải lên"
 
-#: src/page/settings/general.vue:209
-msgid "Upload to WebDAV and share links with friends."
-msgstr "Tải lên WebDAV và chia sẻ liên kết với bạn bè."
-
 #: src/component/upload/dialog.vue:40
 msgid "Uploading %{n} of %{t}…"
 msgstr "Đang tải lên %{n} trong số %{t}…"
@@ -4015,6 +4015,63 @@ msgstr "Tiêu đề"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Lưu trữ"
+
+#~ msgid "Add files to your library via Web Upload."
+#~ msgstr "Thêm tệp vào thư viện của bạn thông qua Tải lên web."
+
+#~ msgid "Browse and edit image classification labels."
+#~ msgstr "Duyệt và chỉnh sửa nhãn phân loại hình ảnh."
+
+#~ msgid "Browse and share your pictures organized into monthly albums."
+#~ msgstr "Duyệt và chia sẻ hình ảnh được sắp xếp theo album hàng tháng."
+
+#~ msgid "Browse indexed files and folders in Library."
+#~ msgstr "Duyệt các tệp và thư mục được lập chỉ mục trong Thư viện."
+
+#~ msgid "Change personal profile and security settings."
+#~ msgstr "Thay đổi hồ sơ cá nhân và cài đặt bảo mật."
+
+#~ msgid "Change photo titles, locations, and other metadata."
+#~ msgstr "Thay đổi tiêu đề ảnh, vị trí và siêu dữ liệu khác."
+
+#~ msgid "Download single files and zip archives."
+#~ msgstr "Tải xuống các tập tin đơn lẻ và lưu trữ zip."
+
+#~ msgid "Edit the metadata, labels, and albums of multiple pictures at once."
+#~ msgstr "Chỉnh sửa metadata, nhãn và album của nhiều hình ảnh cùng lúc."
+
+#~ msgid "Exclude content marked as private from search results, shared albums, labels, and places."
+#~ msgstr "Loại trừ nội dung được đánh dấu là riêng tư khỏi kết quả tìm kiếm, album chia sẻ, nhãn và địa điểm."
+
+#~ msgid "Generate albums of special moments, journeys, and places."
+#~ msgstr "Tự động tạo album về những khoảnh khắc, chuyến đi và địa điểm đặc biệt."
+
+#~ msgid "Hide photos that have been moved to archive."
+#~ msgstr "Ẩn ảnh đã được chuyển vào kho lưu trữ."
+
+#~ msgid "Imported files will be sorted by date and given a unique name."
+#~ msgstr "Các tệp đã nhập sẽ được sắp xếp theo ngày và được đặt một tên duy nhất."
+
+#~ msgid "Index and import files through the user interface."
+#~ msgstr "Lập chỉ mục và nhập tệp thông qua giao diện người dùng."
+
+#~ msgid "Permanently remove files to free up storage."
+#~ msgstr "Xóa vĩnh viễn các tập tin để giải phóng bộ nhớ."
+
+#~ msgid "Recognize faces so people can be assigned and found."
+#~ msgstr "Nhận dạng khuôn mặt để có thể tìm thấy những người cụ thể."
+
+#~ msgid "Search and display photos on a map."
+#~ msgstr "Tìm kiếm và hiển thị ảnh trên bản đồ."
+
+#~ msgid "Share your pictures with other apps and services."
+#~ msgstr "Chia sẻ hình ảnh của bạn với các ứng dụng và dịch vụ khác."
+
+#~ msgid "Show server logs in Library."
+#~ msgstr "Hiển thị nhật ký máy chủ trong Thư viện."
+
+#~ msgid "Upload to WebDAV and share links with friends."
+#~ msgstr "Tải lên WebDAV và chia sẻ liên kết với bạn bè."
 
 #~ msgid "Disable TensorFlow"
 #~ msgstr "Tắt TensorFlow"

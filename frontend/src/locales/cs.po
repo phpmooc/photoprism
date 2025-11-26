@@ -128,7 +128,7 @@ msgstr "Přístupový token"
 #: src/component/navigation.vue:1068 src/component/navigation.vue:868
 #: src/component/service/upload.vue:25 src/locales.js:331
 #: src/model/service.js:72 src/model/user.js:151 src/page/settings.vue:112
-#: src/page/settings/general.vue:342
+#: src/page/settings/general.vue:344
 msgid "Account"
 msgstr "Účet"
 
@@ -213,10 +213,6 @@ msgstr "Přidat účet"
 msgid "Add Album"
 msgstr "Přidat album"
 
-#: src/page/settings/general.vue:164
-msgid "Add files to your library via Web Upload."
-msgstr "Přidat soubory do vaší knihovny nahráním přes Web."
-
 #: src/component/share/dialog.vue:19
 msgid "Add Link"
 msgstr "Přidat odkaz"
@@ -240,11 +236,11 @@ msgstr "Přidat obrázky z výsledků vyhledávání jejich výběrem."
 msgid "Add to album"
 msgstr "Přidat do alba"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all"
 msgstr "Přidat ke všem"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all selected photos"
 msgstr "Přidat ke všem vybraným fotografiím"
 
@@ -388,6 +384,34 @@ msgstr "Všechny originály"
 msgid "All Years"
 msgstr "Všechny roky"
 
+#: src/page/settings/general.vue:284
+msgid "Allow configuration and use of connected apps and services for remote uploads and sync."
+msgstr ""
+
+#: src/page/settings/general.vue:224
+msgid "Allow editing of metadata such as title, description, date, and location."
+msgstr ""
+
+#: src/page/settings/general.vue:239
+msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
+msgstr ""
+
+#: src/page/settings/general.vue:269
+msgid "Allow files to be permanently deleted to free up storage space."
+msgstr ""
+
+#: src/page/settings/general.vue:254
+msgid "Allow users to archive photos and videos so they are hidden without being deleted."
+msgstr ""
+
+#: src/page/settings/general.vue:209
+msgid "Allow users to create and share links, and enable sharing with connected services."
+msgstr ""
+
+#: src/page/settings/general.vue:164
+msgid "Allow users to upload new photos and videos through the web interface."
+msgstr ""
+
 #: src/component/share/dialog.vue:134
 msgid "Alternatively, you can upload files directly to WebDAV servers like Nextcloud."
 msgstr "Alternativně lze nahrát soubory přímo do WebDAV serverů jako je Nextcloud."
@@ -415,7 +439,7 @@ msgstr "AM"
 msgid "Animated"
 msgstr "Animované"
 
-#: src/page/settings/general.vue:399
+#: src/page/settings/general.vue:401
 msgid "Animation"
 msgstr "Animace"
 
@@ -602,21 +626,9 @@ msgstr "Hnědá"
 msgid "Browse"
 msgstr "Procházet"
 
-#: src/page/settings/general.vue:133
-msgid "Browse and edit image classification labels."
-msgstr "Prohlížet a upravit štítky klasifikace obrazu."
-
-#: src/page/settings/general.vue:103
-msgid "Browse and share your pictures organized into monthly albums."
-msgstr "Prohlížejte a sdílejte své fotografie uspořádané do měsíčních alb."
-
 #: src/locales.js:278
 msgid "Browse Files"
 msgstr "Procházet soubory"
-
-#: src/page/settings/general.vue:313
-msgid "Browse indexed files and folders in Library."
-msgstr "Prohlížet indexované soubory a složky v Knihovně."
 
 #: src/component/photo/edit/people.vue:232
 msgid "Browse Pictures"
@@ -719,14 +731,6 @@ msgstr "Změnit fotku"
 msgid "Change Password"
 msgstr "Změnit heslo"
 
-#: src/page/settings/general.vue:343
-msgid "Change personal profile and security settings."
-msgstr "Změna nastavení osobního profilu a zabezpečení."
-
-#: src/page/settings/general.vue:224
-msgid "Change photo titles, locations, and other metadata."
-msgstr "Změna názvů fotografií, umístění a dalších metadat."
-
 #: src/component/photo/clipboard.vue:80
 msgid "Change private flag"
 msgstr "Změnit soukromou vlaječku"
@@ -748,7 +752,7 @@ msgstr "Změny nemohly být uloženy"
 #: src/component/share/dialog.vue:240 src/component/share/dialog.vue:259
 #: src/page/albums.vue:1268 src/page/people/recognized.vue:320
 #: src/page/settings/advanced.vue:535 src/page/settings/content.vue:300
-#: src/page/settings/general.vue:525
+#: src/page/settings/general.vue:527
 msgid "Changes successfully saved"
 msgstr "Změny byly úspěšně uloženy"
 
@@ -829,7 +833,7 @@ msgstr "Barva"
 msgid "Color Profile"
 msgstr "Barevný profil"
 
-#: src/page/discover.vue:13 src/page/discover.vue:5
+#: src/page/discover.vue:12 src/page/discover.vue:5
 msgid "Colors"
 msgstr "Barvy"
 
@@ -1249,10 +1253,6 @@ msgstr "Stahujte pouze originální mediální soubory bez automaticky generovan
 msgid "Download remote files"
 msgstr "Stáhnout vzdálené soubory"
 
-#: src/page/settings/general.vue:179
-msgid "Download single files and zip archives."
-msgstr "Stáhnout jednotlivé soubory a archivy zip."
-
 #: src/component/album/clipboard.vue:227 src/component/album/toolbar.vue:252
 #: src/component/file/clipboard.vue:150 src/component/label/clipboard.vue:172
 #: src/component/lightbox.vue:2426 src/component/people/clipboard.vue:144
@@ -1324,10 +1324,6 @@ msgstr "Upravit fotografii"
 msgid "Edit Photos (%{n})"
 msgstr "Úprava fotografií (%{n})"
 
-#: src/page/settings/general.vue:239
-msgid "Edit the metadata, labels, and albums of multiple pictures at once."
-msgstr "Upravujte metadata, štítky a alba více obrázků najednou."
-
 #: src/component/photo/edit/info.vue:222 src/component/photo/edit/info.vue:223
 msgid "Edited"
 msgstr "Upraveno"
@@ -1341,9 +1337,25 @@ msgstr "Email"
 msgid "Enable debug mode to display additional logs and help with troubleshooting."
 msgstr "Povolením režimu ladění zobrazíte další protokoly a pomůžete při řešení problémů."
 
+#: src/page/settings/general.vue:179
+msgid "Enable downloading of original and sidecar files from the web interface."
+msgstr ""
+
+#: src/page/settings/general.vue:88
+msgid "Enable face recognition and the People view to easily find people you know."
+msgstr ""
+
 #: src/page/settings/advanced.vue:53
 msgid "Enable new features that may be incomplete or unstable."
 msgstr "Povolení nových funkcí, které mohou být neúplné nebo nestabilní."
+
+#: src/page/settings/general.vue:315
+msgid "Enable the file browser to navigate the Originals folder structure."
+msgstr ""
+
+#: src/page/settings/general.vue:194
+msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
+msgstr ""
 
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
@@ -1365,7 +1377,7 @@ msgstr "Zadejte datum"
 msgid "Enter dates"
 msgstr "Zadejte data"
 
-#: src/component/input/chip-selector.vue:128
+#: src/component/input/chip-selector.vue:129
 msgid "Enter item name..."
 msgstr "Zadejte název položky..."
 
@@ -1409,10 +1421,6 @@ msgstr "Odhad přibližné polohy obrázků bez souřadnic GPS."
 #: src/options/options.js:427
 msgid "Every two days"
 msgstr "Každé dva dny"
-
-#: src/page/settings/general.vue:148
-msgid "Exclude content marked as private from search results, shared albums, labels, and places."
-msgstr "Vyloučit obsah označený jako soukromý z výsledků vyhledávání, sdílených alb, štítků a míst."
 
 #: src/page/people/new.vue:20 src/page/people/recognized.vue:53
 msgid "Exclude hidden"
@@ -1611,10 +1619,6 @@ msgstr "Obecné"
 msgid "Generate"
 msgstr "generovat"
 
-#: src/page/settings/general.vue:118
-msgid "Generate albums of special moments, journeys, and places."
-msgstr "Automaticky vytváří alba zvláštních okamžiků, výletů a míst."
-
 #: src/page/settings/content.vue:58
 msgid "Generate Previews"
 msgstr "Generování náhledů"
@@ -1684,9 +1688,9 @@ msgstr "Skryté soubory"
 msgid "Hide"
 msgstr "Skrýt"
 
-#: src/page/settings/general.vue:254
-msgid "Hide photos that have been moved to archive."
-msgstr "Skrýt fotografie, které byly přesunuty do archivu."
+#: src/page/settings/general.vue:148
+msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgstr ""
 
 #: src/options/options.js:381
 msgid "High"
@@ -1719,7 +1723,7 @@ msgstr "Snímek"
 msgid "Image Quality"
 msgstr "Kvalita obrazu"
 
-#: src/page/library.vue:74 src/page/library/import.vue:44
+#: src/page/library.vue:73 src/page/library/import.vue:44
 #: src/page/library/import.vue:45 src/page/library/import.vue:73
 #: src/page/library/import.vue:86 src/page/settings/general.vue:193
 msgid "Import"
@@ -1728,10 +1732,6 @@ msgstr "Importovat"
 #: src/page/library/import.vue:57
 msgid "Imported files will be sorted by date and given a unique name to avoid duplicates."
 msgstr "Importované soubory budou seřazeny podle data a přiděleného jedinečného názvu, aby se předešlo duplicitám."
-
-#: src/page/settings/general.vue:194
-msgid "Imported files will be sorted by date and given a unique name."
-msgstr "Importované soubory budou seřazeny podle data a přiděleného jedinečného názvu."
 
 #: src/page/library/import.vue:5
 msgid "Importing %{s}…"
@@ -1768,14 +1768,10 @@ msgstr "Při stahování zásobníků a archivů zahrnout soubory sidecar."
 msgid "Increase storage size or delete files to continue."
 msgstr "Chcete-li pokračovat, zvětšete velikost úložiště nebo odstraňte soubory."
 
-#: src/component/navigation.vue:942 src/page/library.vue:64
+#: src/component/navigation.vue:942 src/page/library.vue:63
 #: src/page/settings/content.vue:12
 msgid "Index"
 msgstr "Indexovat"
-
-#: src/page/settings/general.vue:298
-msgid "Index and import files through the user interface."
-msgstr "Indexování a importování souborů prostřednictvím uživatelského rozhraní."
 
 #: src/page/library/index.vue:245 src/page/library/index.vue:251
 msgid "Indexing"
@@ -1962,7 +1958,7 @@ msgid "Lens"
 msgstr "Objektiv"
 
 #: src/app/routes.js:475 src/app/routes.js:491 src/app/routes.js:507
-#: src/component/navigation.vue:613 src/page/settings/general.vue:297
+#: src/component/navigation.vue:613 src/page/settings/general.vue:299
 msgid "Library"
 msgstr "Knihovna"
 
@@ -2066,7 +2062,7 @@ msgid "Logout"
 msgstr "Odhlásit se"
 
 #: src/component/navigation.vue:948 src/component/navigation.vue:951
-#: src/page/library.vue:87 src/page/settings/general.vue:327
+#: src/page/library.vue:86 src/page/settings/general.vue:329
 msgid "Logs"
 msgstr "Logy"
 
@@ -2114,7 +2110,7 @@ msgstr "Manuální"
 msgid "Manual Upload"
 msgstr "Ruční nahrání"
 
-#: src/page/settings/general.vue:383
+#: src/page/settings/general.vue:385
 msgid "Maps"
 msgstr "Mapy"
 
@@ -2247,7 +2243,7 @@ msgstr "Název je příliš dlouhý"
 msgid "Never"
 msgstr "Nikdy"
 
-#: src/page/people.vue:74
+#: src/page/people.vue:73
 msgid "New"
 msgstr "Nový"
 
@@ -2516,7 +2512,7 @@ msgstr "Název originálu"
 #: src/component/navigation.vue:627 src/component/navigation.vue:633
 #: src/model/file.js:172 src/options/options.js:474
 #: src/page/library/browse.vue:12 src/page/settings/content.vue:193
-#: src/page/settings/general.vue:312
+#: src/page/settings/general.vue:314
 msgid "Originals"
 msgstr "Originály"
 
@@ -2559,11 +2555,11 @@ msgstr "Panorama"
 msgid "Panoramas"
 msgstr "Panoramata"
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:188
 msgid "Part of all selected photos"
 msgstr "Část všech vybraných fotografií"
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:186
 msgid "Part of some selected photos"
 msgstr "Část vybraných fotografií"
 
@@ -2596,10 +2592,6 @@ msgstr "Lidé, se kterými sdílíte odkaz, budou moci zobrazit veřejný obsah.
 #: src/component/photo/clipboard.vue:315 src/component/photo/toolbar.vue:558
 msgid "Permanently deleted"
 msgstr "Trvale smazáno"
-
-#: src/page/settings/general.vue:269
-msgid "Permanently remove files to free up storage."
-msgstr "Trvale odstraňte soubory, abyste uvolnili úložiště."
 
 #: src/model/subject.js:134
 msgid "Person"
@@ -2654,8 +2646,8 @@ msgstr "Místo a Čas"
 #: src/app/routes.js:335 src/app/routes.js:341 src/app/routes.js:347
 #: src/app/routes.js:362 src/component/navigation.vue:462
 #: src/component/navigation.vue:927 src/options/options.js:262
-#: src/page/places.vue:18 src/page/settings/general.vue:357
-#: src/page/settings/general.vue:371
+#: src/page/places.vue:18 src/page/settings/general.vue:359
+#: src/page/settings/general.vue:373
 msgid "Places"
 msgstr "Místa"
 
@@ -2717,7 +2709,7 @@ msgstr "Zachovat názvy souborů"
 msgid "Press enter to create a new album."
 msgstr "Stiskněte Enter pro vytvoření nového alba."
 
-#: src/component/input/chip-selector.vue:60
+#: src/component/input/chip-selector.vue:61
 msgid "Press enter to create new item"
 msgstr "Stisknutím klávesy enter vytvoříte novou položku"
 
@@ -2791,7 +2783,7 @@ msgstr "Filtr kvality"
 msgid "Quality Score"
 msgstr "Hodnocení kvality"
 
-#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:25
+#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:24
 msgid "Random"
 msgstr "Náhodně"
 
@@ -2835,11 +2827,7 @@ msgstr "Nedávno upravené"
 msgid "Recognition starts after indexing has been completed."
 msgstr "Rozpoznávání se spustí po dokončení indexování."
 
-#: src/page/settings/general.vue:88
-msgid "Recognize faces so people can be assigned and found."
-msgstr "Rozpoznává obličeje, aby bylo možné najít konkrétní osoby."
-
-#: src/page/people.vue:61
+#: src/page/people.vue:60
 msgid "Recognized"
 msgstr "Rozpoznané"
 
@@ -2880,7 +2868,7 @@ msgid "Reload"
 msgstr "Znovu načíst"
 
 #: src/component/navigation.vue:1089 src/component/update.vue:62
-#: src/page/settings/general.vue:521
+#: src/page/settings/general.vue:523
 msgid "Reloading…"
 msgstr "Načítání…"
 
@@ -2900,11 +2888,11 @@ msgstr "odstranění selhalo: neznámé album"
 msgid "Remove from Album"
 msgstr "Odebrat z alba"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all"
 msgstr "Odstranit ze všech"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all selected photos"
 msgstr "Odstranit ze všech vybraných fotografií"
 
@@ -3068,11 +3056,7 @@ msgstr "Rozsahy"
 msgid "Search"
 msgstr "Vyhledat"
 
-#: src/page/settings/general.vue:358
-msgid "Search and display photos on a map."
-msgstr "Vyhledat a zobrazit fotografie na mapě."
-
-#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:21
+#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:20
 msgid "Season"
 msgstr "Období"
 
@@ -3210,10 +3194,6 @@ msgstr "Sdílet"
 msgid "Share %{s}"
 msgstr "Sdílet %{s}"
 
-#: src/page/settings/general.vue:283
-msgid "Share your pictures with other apps and services."
-msgstr "Sdílejte své obrázky s dalšími aplikacemi a službami."
-
 #: src/page/people/new.vue:70 src/page/people/recognized.vue:127
 msgid "Show"
 msgstr "Zobrazit"
@@ -3238,9 +3218,33 @@ msgstr "Zobrazit skryté"
 msgid "Show Important Only"
 msgstr "Zobrazit pouze důležité"
 
-#: src/page/settings/general.vue:328
-msgid "Show server logs in Library."
-msgstr "Zobrazit logy serveru v Knihovně."
+#: src/page/settings/general.vue:330
+msgid "Show logs in the web interface to monitor activity and troubleshoot problems."
+msgstr ""
+
+#: src/page/settings/general.vue:118
+msgid "Show smart albums that group pictures by occasion, trip, or location."
+msgstr ""
+
+#: src/page/settings/general.vue:345
+msgid "Show the Account page so users can manage their profile and security settings."
+msgstr ""
+
+#: src/page/settings/general.vue:103
+msgid "Show the Calendar view to browse the library by year and month."
+msgstr ""
+
+#: src/page/settings/general.vue:133
+msgid "Show the Labels section to view and manage AI-generated labels."
+msgstr ""
+
+#: src/page/settings/general.vue:300
+msgid "Show the Library section to index, manage, and monitor the media library."
+msgstr ""
+
+#: src/page/settings/general.vue:360
+msgid "Show the Places view with interactive maps so you can browse photos by location."
+msgstr ""
 
 #: src/page/settings/content.vue:155
 msgid "Show Titles"
@@ -3260,7 +3264,7 @@ msgstr "Soubory Sidecar"
 msgid "Sign in"
 msgstr "Přihlásit se"
 
-#: src/page/discover.vue:17 src/page/discover.vue:8 src/page/discover.vue:9
+#: src/page/discover.vue:16 src/page/discover.vue:8 src/page/discover.vue:9
 msgid "Similar"
 msgstr "Podobné"
 
@@ -3716,10 +3720,6 @@ msgstr "Nahrát lokální soubory"
 msgid "Upload Path"
 msgstr "Cesta k nahrávání"
 
-#: src/page/settings/general.vue:209
-msgid "Upload to WebDAV and share links with friends."
-msgstr "Nahrát do WebDAV a sdílet odkazy s přáteli."
-
 #: src/component/upload/dialog.vue:40
 msgid "Uploading %{n} of %{t}…"
 msgstr "Nahrávání %{n} z %{t}…"
@@ -4016,6 +4016,63 @@ msgstr "Titulek"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Archivovat"
+
+#~ msgid "Add files to your library via Web Upload."
+#~ msgstr "Přidat soubory do vaší knihovny nahráním přes Web."
+
+#~ msgid "Browse and edit image classification labels."
+#~ msgstr "Prohlížet a upravit štítky klasifikace obrazu."
+
+#~ msgid "Browse and share your pictures organized into monthly albums."
+#~ msgstr "Prohlížejte a sdílejte své fotografie uspořádané do měsíčních alb."
+
+#~ msgid "Browse indexed files and folders in Library."
+#~ msgstr "Prohlížet indexované soubory a složky v Knihovně."
+
+#~ msgid "Change personal profile and security settings."
+#~ msgstr "Změna nastavení osobního profilu a zabezpečení."
+
+#~ msgid "Change photo titles, locations, and other metadata."
+#~ msgstr "Změna názvů fotografií, umístění a dalších metadat."
+
+#~ msgid "Download single files and zip archives."
+#~ msgstr "Stáhnout jednotlivé soubory a archivy zip."
+
+#~ msgid "Edit the metadata, labels, and albums of multiple pictures at once."
+#~ msgstr "Upravujte metadata, štítky a alba více obrázků najednou."
+
+#~ msgid "Exclude content marked as private from search results, shared albums, labels, and places."
+#~ msgstr "Vyloučit obsah označený jako soukromý z výsledků vyhledávání, sdílených alb, štítků a míst."
+
+#~ msgid "Generate albums of special moments, journeys, and places."
+#~ msgstr "Automaticky vytváří alba zvláštních okamžiků, výletů a míst."
+
+#~ msgid "Hide photos that have been moved to archive."
+#~ msgstr "Skrýt fotografie, které byly přesunuty do archivu."
+
+#~ msgid "Imported files will be sorted by date and given a unique name."
+#~ msgstr "Importované soubory budou seřazeny podle data a přiděleného jedinečného názvu."
+
+#~ msgid "Index and import files through the user interface."
+#~ msgstr "Indexování a importování souborů prostřednictvím uživatelského rozhraní."
+
+#~ msgid "Permanently remove files to free up storage."
+#~ msgstr "Trvale odstraňte soubory, abyste uvolnili úložiště."
+
+#~ msgid "Recognize faces so people can be assigned and found."
+#~ msgstr "Rozpoznává obličeje, aby bylo možné najít konkrétní osoby."
+
+#~ msgid "Search and display photos on a map."
+#~ msgstr "Vyhledat a zobrazit fotografie na mapě."
+
+#~ msgid "Share your pictures with other apps and services."
+#~ msgstr "Sdílejte své obrázky s dalšími aplikacemi a službami."
+
+#~ msgid "Show server logs in Library."
+#~ msgstr "Zobrazit logy serveru v Knihovně."
+
+#~ msgid "Upload to WebDAV and share links with friends."
+#~ msgstr "Nahrát do WebDAV a sdílet odkazy s přáteli."
 
 #~ msgid "Disable TensorFlow"
 #~ msgstr "Deaktivovat TensorFlow"

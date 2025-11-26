@@ -125,7 +125,7 @@ msgstr "Sarbide-tokena"
 #: src/component/navigation.vue:1068 src/component/navigation.vue:868
 #: src/component/service/upload.vue:25 src/locales.js:331
 #: src/model/service.js:72 src/model/user.js:151 src/page/settings.vue:112
-#: src/page/settings/general.vue:342
+#: src/page/settings/general.vue:344
 msgid "Account"
 msgstr "Kontua"
 
@@ -210,10 +210,6 @@ msgstr "Kontua gehitu"
 msgid "Add Album"
 msgstr "Gehitu albuma"
 
-#: src/page/settings/general.vue:164
-msgid "Add files to your library via Web Upload."
-msgstr "Gehitu fitxategiak zure liburutegian web-karga bidez."
-
 #: src/component/share/dialog.vue:19
 msgid "Add Link"
 msgstr "Gehitu esteka"
@@ -237,11 +233,11 @@ msgstr "Gehitu bilaketa-emaitzetan argazkiak hautatuta."
 msgid "Add to album"
 msgstr "Gehitu albumera"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all"
 msgstr "Gehitu guztiei"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all selected photos"
 msgstr "Gehitu hautatutako argazki guztiei"
 
@@ -385,6 +381,34 @@ msgstr "Jatorrizko guztiak"
 msgid "All Years"
 msgstr "Urte guztiak"
 
+#: src/page/settings/general.vue:284
+msgid "Allow configuration and use of connected apps and services for remote uploads and sync."
+msgstr ""
+
+#: src/page/settings/general.vue:224
+msgid "Allow editing of metadata such as title, description, date, and location."
+msgstr ""
+
+#: src/page/settings/general.vue:239
+msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
+msgstr ""
+
+#: src/page/settings/general.vue:269
+msgid "Allow files to be permanently deleted to free up storage space."
+msgstr ""
+
+#: src/page/settings/general.vue:254
+msgid "Allow users to archive photos and videos so they are hidden without being deleted."
+msgstr ""
+
+#: src/page/settings/general.vue:209
+msgid "Allow users to create and share links, and enable sharing with connected services."
+msgstr ""
+
+#: src/page/settings/general.vue:164
+msgid "Allow users to upload new photos and videos through the web interface."
+msgstr ""
+
 #: src/component/share/dialog.vue:134
 msgid "Alternatively, you can upload files directly to WebDAV servers like Nextcloud."
 msgstr "Bestela, fitxategiak zuzenean igo ditzakezu Nextcloud bezalako WebDAV zerbitzarietara."
@@ -412,7 +436,7 @@ msgstr "AM"
 msgid "Animated"
 msgstr "Animatua"
 
-#: src/page/settings/general.vue:399
+#: src/page/settings/general.vue:401
 msgid "Animation"
 msgstr "Animazioa"
 
@@ -599,21 +623,9 @@ msgstr "Marroia"
 msgid "Browse"
 msgstr "Arakatu"
 
-#: src/page/settings/general.vue:133
-msgid "Browse and edit image classification labels."
-msgstr "Arakatu eta editatu irudien sailkapen etiketak."
-
-#: src/page/settings/general.vue:103
-msgid "Browse and share your pictures organized into monthly albums."
-msgstr "Arakatu eta partekatu zure argazkiak hileroko albumetan antolatuta."
-
 #: src/locales.js:278
 msgid "Browse Files"
 msgstr "Arakatu fitxategiak"
-
-#: src/page/settings/general.vue:313
-msgid "Browse indexed files and folders in Library."
-msgstr "Arakatu indexatutako fitxategiak eta karpetak Liburutegian."
 
 #: src/component/photo/edit/people.vue:232
 msgid "Browse Pictures"
@@ -716,14 +728,6 @@ msgstr "Aldatu avatarra"
 msgid "Change Password"
 msgstr "Aldatu pasahitza"
 
-#: src/page/settings/general.vue:343
-msgid "Change personal profile and security settings."
-msgstr "Aldatu profil pertsonala eta segurtasun ezarpenak."
-
-#: src/page/settings/general.vue:224
-msgid "Change photo titles, locations, and other metadata."
-msgstr "Aldatu argazkien izenburuak, kokapenak eta beste metadatuak."
-
 #: src/component/photo/clipboard.vue:80
 msgid "Change private flag"
 msgstr "Aldatu bandera pribatua"
@@ -745,7 +749,7 @@ msgstr "Ezin izan dira aldaketak gorde"
 #: src/component/share/dialog.vue:240 src/component/share/dialog.vue:259
 #: src/page/albums.vue:1268 src/page/people/recognized.vue:320
 #: src/page/settings/advanced.vue:535 src/page/settings/content.vue:300
-#: src/page/settings/general.vue:525
+#: src/page/settings/general.vue:527
 msgid "Changes successfully saved"
 msgstr "Aldaketak ongi gorde dira"
 
@@ -826,7 +830,7 @@ msgstr "Kolore"
 msgid "Color Profile"
 msgstr "Kolore-profila"
 
-#: src/page/discover.vue:13 src/page/discover.vue:5
+#: src/page/discover.vue:12 src/page/discover.vue:5
 msgid "Colors"
 msgstr "Koloreak"
 
@@ -1246,10 +1250,6 @@ msgstr "Deskargatu jatorrizko multimedia fitxategiak soilik, automatikoki sortut
 msgid "Download remote files"
 msgstr "Deskargatu urruneko fitxategiak"
 
-#: src/page/settings/general.vue:179
-msgid "Download single files and zip archives."
-msgstr "Deskargatu fitxategi bakarrak eta zip artxiboak."
-
 #: src/component/album/clipboard.vue:227 src/component/album/toolbar.vue:252
 #: src/component/file/clipboard.vue:150 src/component/label/clipboard.vue:172
 #: src/component/lightbox.vue:2426 src/component/people/clipboard.vue:144
@@ -1321,10 +1321,6 @@ msgstr "Editatu argazkia"
 msgid "Edit Photos (%{n})"
 msgstr "Editatu argazkiak (%{n})"
 
-#: src/page/settings/general.vue:239
-msgid "Edit the metadata, labels, and albums of multiple pictures at once."
-msgstr "Editatu hainbat argazkiren metadatuak, etiketak eta albumak aldi berean."
-
 #: src/component/photo/edit/info.vue:222 src/component/photo/edit/info.vue:223
 msgid "Edited"
 msgstr "Editatua"
@@ -1338,9 +1334,25 @@ msgstr "Posta elektronikoa"
 msgid "Enable debug mode to display additional logs and help with troubleshooting."
 msgstr "Gaitu arazketa modua erregistro gehigarriak bistaratzeko eta arazoak konpontzen laguntzeko."
 
+#: src/page/settings/general.vue:179
+msgid "Enable downloading of original and sidecar files from the web interface."
+msgstr ""
+
+#: src/page/settings/general.vue:88
+msgid "Enable face recognition and the People view to easily find people you know."
+msgstr ""
+
 #: src/page/settings/advanced.vue:53
 msgid "Enable new features that may be incomplete or unstable."
 msgstr "Gaitu osatugabeak edo ezegonkorrak izan daitezkeen eginbide berriak."
+
+#: src/page/settings/general.vue:315
+msgid "Enable the file browser to navigate the Originals folder structure."
+msgstr ""
+
+#: src/page/settings/general.vue:194
+msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
+msgstr ""
 
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
@@ -1362,7 +1374,7 @@ msgstr "Sartu data"
 msgid "Enter dates"
 msgstr "Sartu datak"
 
-#: src/component/input/chip-selector.vue:128
+#: src/component/input/chip-selector.vue:129
 msgid "Enter item name..."
 msgstr "Sartu elementuaren izena..."
 
@@ -1406,10 +1418,6 @@ msgstr "Kalkulatu argazkien gutxi gorabeherako kokapena GPS koordenaturik gabe."
 #: src/options/options.js:427
 msgid "Every two days"
 msgstr "Bi egunetik behin"
-
-#: src/page/settings/general.vue:148
-msgid "Exclude content marked as private from search results, shared albums, labels, and places."
-msgstr "Baztertu pribatu gisa markatutako edukia bilaketa-emaitzetatik, partekatutako albumetatik, etiketetatik eta tokietatik."
 
 #: src/page/people/new.vue:20 src/page/people/recognized.vue:53
 msgid "Exclude hidden"
@@ -1608,10 +1616,6 @@ msgstr "Orokorra"
 msgid "Generate"
 msgstr "Sortu"
 
-#: src/page/settings/general.vue:118
-msgid "Generate albums of special moments, journeys, and places."
-msgstr "Momentu, bidai eta leku berezien albumak automatikoki sortzen ditu."
-
 #: src/page/settings/content.vue:58
 msgid "Generate Previews"
 msgstr "Sortu Aurrebistak"
@@ -1681,9 +1685,9 @@ msgstr "Ezkutuko Fitxategiak"
 msgid "Hide"
 msgstr "Ezkutatu"
 
-#: src/page/settings/general.vue:254
-msgid "Hide photos that have been moved to archive."
-msgstr "Ezkutatu artxibora eraman diren argazkiak."
+#: src/page/settings/general.vue:148
+msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgstr ""
 
 #: src/options/options.js:381
 msgid "High"
@@ -1716,7 +1720,7 @@ msgstr "Irudia"
 msgid "Image Quality"
 msgstr "Irudiaren Kalitatea"
 
-#: src/page/library.vue:74 src/page/library/import.vue:44
+#: src/page/library.vue:73 src/page/library/import.vue:44
 #: src/page/library/import.vue:45 src/page/library/import.vue:73
 #: src/page/library/import.vue:86 src/page/settings/general.vue:193
 msgid "Import"
@@ -1725,10 +1729,6 @@ msgstr "Inportatu"
 #: src/page/library/import.vue:57
 msgid "Imported files will be sorted by date and given a unique name to avoid duplicates."
 msgstr "Inportatutako fitxategiak dataren arabera ordenatuko dira eta izen esklusibo bat emango zaie bikoiztuak saihesteko."
-
-#: src/page/settings/general.vue:194
-msgid "Imported files will be sorted by date and given a unique name."
-msgstr "Inportatutako fitxategiak dataren arabera ordenatuko dira eta izen esklusibo bat emango zaie."
 
 #: src/page/library/import.vue:5
 msgid "Importing %{s}…"
@@ -1765,14 +1765,10 @@ msgstr "Sartu sidecar fitxategiak pilak eta artxiboak deskargatzean."
 msgid "Increase storage size or delete files to continue."
 msgstr "Aurrera egiteko, handitu biltegiratze-tamaina edo ezabatu fitxategiak."
 
-#: src/component/navigation.vue:942 src/page/library.vue:64
+#: src/component/navigation.vue:942 src/page/library.vue:63
 #: src/page/settings/content.vue:12
 msgid "Index"
 msgstr "Aurkibidea"
-
-#: src/page/settings/general.vue:298
-msgid "Index and import files through the user interface."
-msgstr "Fitxategiak indexatu eta inportatu erabiltzailearen interfazearen bidez."
 
 #: src/page/library/index.vue:245 src/page/library/index.vue:251
 msgid "Indexing"
@@ -1959,7 +1955,7 @@ msgid "Lens"
 msgstr "Lentea"
 
 #: src/app/routes.js:475 src/app/routes.js:491 src/app/routes.js:507
-#: src/component/navigation.vue:613 src/page/settings/general.vue:297
+#: src/component/navigation.vue:613 src/page/settings/general.vue:299
 msgid "Library"
 msgstr "Liburutegia"
 
@@ -2063,7 +2059,7 @@ msgid "Logout"
 msgstr "Saioa amaitu"
 
 #: src/component/navigation.vue:948 src/component/navigation.vue:951
-#: src/page/library.vue:87 src/page/settings/general.vue:327
+#: src/page/library.vue:86 src/page/settings/general.vue:329
 msgid "Logs"
 msgstr "Erregistroak"
 
@@ -2111,7 +2107,7 @@ msgstr "Eskuliburua"
 msgid "Manual Upload"
 msgstr "Eskuzko igoera"
 
-#: src/page/settings/general.vue:383
+#: src/page/settings/general.vue:385
 msgid "Maps"
 msgstr "Mapak"
 
@@ -2244,7 +2240,7 @@ msgstr "Izena luzeegia"
 msgid "Never"
 msgstr "Inoiz ez"
 
-#: src/page/people.vue:74
+#: src/page/people.vue:73
 msgid "New"
 msgstr "Berria"
 
@@ -2513,7 +2509,7 @@ msgstr "Jatorrizko izena"
 #: src/component/navigation.vue:627 src/component/navigation.vue:633
 #: src/model/file.js:172 src/options/options.js:474
 #: src/page/library/browse.vue:12 src/page/settings/content.vue:193
-#: src/page/settings/general.vue:312
+#: src/page/settings/general.vue:314
 msgid "Originals"
 msgstr "Jatorrizkoak"
 
@@ -2556,11 +2552,11 @@ msgstr "Panorama"
 msgid "Panoramas"
 msgstr "Panoramak"
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:188
 msgid "Part of all selected photos"
 msgstr "Hautatutako argazki guztien zati bat"
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:186
 msgid "Part of some selected photos"
 msgstr "Hautatutako argazki batzuen zati bat"
 
@@ -2593,10 +2589,6 @@ msgstr "Esteka partekatzen duzun pertsonek eduki publikoak ikusi ahal izango dit
 #: src/component/photo/clipboard.vue:315 src/component/photo/toolbar.vue:558
 msgid "Permanently deleted"
 msgstr "Betiko ezabatu da"
-
-#: src/page/settings/general.vue:269
-msgid "Permanently remove files to free up storage."
-msgstr "Kendu fitxategiak betiko biltegia askatzeko."
 
 #: src/model/subject.js:134
 msgid "Person"
@@ -2651,8 +2643,8 @@ msgstr "Lekua eta Ordua"
 #: src/app/routes.js:335 src/app/routes.js:341 src/app/routes.js:347
 #: src/app/routes.js:362 src/component/navigation.vue:462
 #: src/component/navigation.vue:927 src/options/options.js:262
-#: src/page/places.vue:18 src/page/settings/general.vue:357
-#: src/page/settings/general.vue:371
+#: src/page/places.vue:18 src/page/settings/general.vue:359
+#: src/page/settings/general.vue:373
 msgid "Places"
 msgstr "Lekuak"
 
@@ -2714,7 +2706,7 @@ msgstr "Gorde fitxategi-izenak"
 msgid "Press enter to create a new album."
 msgstr "Sakatu Sartu album berri bat sortzeko."
 
-#: src/component/input/chip-selector.vue:60
+#: src/component/input/chip-selector.vue:61
 msgid "Press enter to create new item"
 msgstr "Sakatu Sartu elementu berria sortzeko"
 
@@ -2788,7 +2780,7 @@ msgstr "Kalitate-iragazkia"
 msgid "Quality Score"
 msgstr "Kalitate-maila"
 
-#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:25
+#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:24
 msgid "Random"
 msgstr "Ausazko"
 
@@ -2832,11 +2824,7 @@ msgstr "Berriki editatua"
 msgid "Recognition starts after indexing has been completed."
 msgstr "Aitorpena indexatzea amaitu ondoren hasten da."
 
-#: src/page/settings/general.vue:88
-msgid "Recognize faces so people can be assigned and found."
-msgstr "Aurpegiak ezagutzen ditu, pertsona zehatzak aurkitu ahal izateko."
-
-#: src/page/people.vue:61
+#: src/page/people.vue:60
 msgid "Recognized"
 msgstr "Aitortua"
 
@@ -2877,7 +2865,7 @@ msgid "Reload"
 msgstr "Berriz kargatu"
 
 #: src/component/navigation.vue:1089 src/component/update.vue:62
-#: src/page/settings/general.vue:521
+#: src/page/settings/general.vue:523
 msgid "Reloading…"
 msgstr "Berriro kargatzen…"
 
@@ -2897,11 +2885,11 @@ msgstr "kendu huts egin du: album ezezaguna"
 msgid "Remove from Album"
 msgstr "Kendu albumetik"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all"
 msgstr "Kendu guztietatik"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all selected photos"
 msgstr "Kendu hautatutako argazki guztietatik"
 
@@ -3065,11 +3053,7 @@ msgstr "Esparruak"
 msgid "Search"
 msgstr "Bilatu"
 
-#: src/page/settings/general.vue:358
-msgid "Search and display photos on a map."
-msgstr "Bilatu eta bistaratu argazkiak mapa batean."
-
-#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:21
+#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:20
 msgid "Season"
 msgstr "Denboraldia"
 
@@ -3207,10 +3191,6 @@ msgstr "Partekatu"
 msgid "Share %{s}"
 msgstr "Partekatu %{s}"
 
-#: src/page/settings/general.vue:283
-msgid "Share your pictures with other apps and services."
-msgstr "Partekatu zure argazkiak beste aplikazio eta zerbitzuekin."
-
 #: src/page/people/new.vue:70 src/page/people/recognized.vue:127
 msgid "Show"
 msgstr "Erakutsi"
@@ -3235,9 +3215,33 @@ msgstr "Erakutsi ezkutuan"
 msgid "Show Important Only"
 msgstr "Garrantzitsua bakarrik erakutsi"
 
-#: src/page/settings/general.vue:328
-msgid "Show server logs in Library."
-msgstr "Erakutsi zerbitzariaren erregistroak Liburutegian."
+#: src/page/settings/general.vue:330
+msgid "Show logs in the web interface to monitor activity and troubleshoot problems."
+msgstr ""
+
+#: src/page/settings/general.vue:118
+msgid "Show smart albums that group pictures by occasion, trip, or location."
+msgstr ""
+
+#: src/page/settings/general.vue:345
+msgid "Show the Account page so users can manage their profile and security settings."
+msgstr ""
+
+#: src/page/settings/general.vue:103
+msgid "Show the Calendar view to browse the library by year and month."
+msgstr ""
+
+#: src/page/settings/general.vue:133
+msgid "Show the Labels section to view and manage AI-generated labels."
+msgstr ""
+
+#: src/page/settings/general.vue:300
+msgid "Show the Library section to index, manage, and monitor the media library."
+msgstr ""
+
+#: src/page/settings/general.vue:360
+msgid "Show the Places view with interactive maps so you can browse photos by location."
+msgstr ""
 
 #: src/page/settings/content.vue:155
 msgid "Show Titles"
@@ -3257,7 +3261,7 @@ msgstr "Sidecar fitxategiak"
 msgid "Sign in"
 msgstr "Hasi saioa"
 
-#: src/page/discover.vue:17 src/page/discover.vue:8 src/page/discover.vue:9
+#: src/page/discover.vue:16 src/page/discover.vue:8 src/page/discover.vue:9
 msgid "Similar"
 msgstr "Antzekoa"
 
@@ -3713,10 +3717,6 @@ msgstr "Kargatu tokiko fitxategiak"
 msgid "Upload Path"
 msgstr "Kargatu bidea"
 
-#: src/page/settings/general.vue:209
-msgid "Upload to WebDAV and share links with friends."
-msgstr "Kargatu WebDAV-era eta partekatu estekak lagunekin."
-
 #: src/component/upload/dialog.vue:40
 msgid "Uploading %{n} of %{t}…"
 msgstr "%{t}-tik %{n} kargatzen…"
@@ -4013,6 +4013,63 @@ msgstr "Izenburua"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Artxiboa"
+
+#~ msgid "Add files to your library via Web Upload."
+#~ msgstr "Gehitu fitxategiak zure liburutegian web-karga bidez."
+
+#~ msgid "Browse and edit image classification labels."
+#~ msgstr "Arakatu eta editatu irudien sailkapen etiketak."
+
+#~ msgid "Browse and share your pictures organized into monthly albums."
+#~ msgstr "Arakatu eta partekatu zure argazkiak hileroko albumetan antolatuta."
+
+#~ msgid "Browse indexed files and folders in Library."
+#~ msgstr "Arakatu indexatutako fitxategiak eta karpetak Liburutegian."
+
+#~ msgid "Change personal profile and security settings."
+#~ msgstr "Aldatu profil pertsonala eta segurtasun ezarpenak."
+
+#~ msgid "Change photo titles, locations, and other metadata."
+#~ msgstr "Aldatu argazkien izenburuak, kokapenak eta beste metadatuak."
+
+#~ msgid "Download single files and zip archives."
+#~ msgstr "Deskargatu fitxategi bakarrak eta zip artxiboak."
+
+#~ msgid "Edit the metadata, labels, and albums of multiple pictures at once."
+#~ msgstr "Editatu hainbat argazkiren metadatuak, etiketak eta albumak aldi berean."
+
+#~ msgid "Exclude content marked as private from search results, shared albums, labels, and places."
+#~ msgstr "Baztertu pribatu gisa markatutako edukia bilaketa-emaitzetatik, partekatutako albumetatik, etiketetatik eta tokietatik."
+
+#~ msgid "Generate albums of special moments, journeys, and places."
+#~ msgstr "Momentu, bidai eta leku berezien albumak automatikoki sortzen ditu."
+
+#~ msgid "Hide photos that have been moved to archive."
+#~ msgstr "Ezkutatu artxibora eraman diren argazkiak."
+
+#~ msgid "Imported files will be sorted by date and given a unique name."
+#~ msgstr "Inportatutako fitxategiak dataren arabera ordenatuko dira eta izen esklusibo bat emango zaie."
+
+#~ msgid "Index and import files through the user interface."
+#~ msgstr "Fitxategiak indexatu eta inportatu erabiltzailearen interfazearen bidez."
+
+#~ msgid "Permanently remove files to free up storage."
+#~ msgstr "Kendu fitxategiak betiko biltegia askatzeko."
+
+#~ msgid "Recognize faces so people can be assigned and found."
+#~ msgstr "Aurpegiak ezagutzen ditu, pertsona zehatzak aurkitu ahal izateko."
+
+#~ msgid "Search and display photos on a map."
+#~ msgstr "Bilatu eta bistaratu argazkiak mapa batean."
+
+#~ msgid "Share your pictures with other apps and services."
+#~ msgstr "Partekatu zure argazkiak beste aplikazio eta zerbitzuekin."
+
+#~ msgid "Show server logs in Library."
+#~ msgstr "Erakutsi zerbitzariaren erregistroak Liburutegian."
+
+#~ msgid "Upload to WebDAV and share links with friends."
+#~ msgstr "Kargatu WebDAV-era eta partekatu estekak lagunekin."
 
 #~ msgid "Disable TensorFlow"
 #~ msgstr "Desgaitu TensorFlow"

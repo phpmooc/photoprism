@@ -128,7 +128,7 @@ msgstr "访问令牌"
 #: src/component/navigation.vue:1068 src/component/navigation.vue:868
 #: src/component/service/upload.vue:25 src/locales.js:331
 #: src/model/service.js:72 src/model/user.js:151 src/page/settings.vue:112
-#: src/page/settings/general.vue:342
+#: src/page/settings/general.vue:344
 msgid "Account"
 msgstr "账户"
 
@@ -213,10 +213,6 @@ msgstr "添加账户"
 msgid "Add Album"
 msgstr "添加相册"
 
-#: src/page/settings/general.vue:164
-msgid "Add files to your library via Web Upload."
-msgstr "从网页上传文件到库。"
-
 #: src/component/share/dialog.vue:19
 msgid "Add Link"
 msgstr "添加链接"
@@ -240,11 +236,11 @@ msgstr "从搜索结果中选择添加图片。"
 msgid "Add to album"
 msgstr "添加到相册"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all"
 msgstr "添加到全部"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all selected photos"
 msgstr "添加到所有选定照片"
 
@@ -388,6 +384,34 @@ msgstr "全部源图"
 msgid "All Years"
 msgstr "全部年份"
 
+#: src/page/settings/general.vue:284
+msgid "Allow configuration and use of connected apps and services for remote uploads and sync."
+msgstr ""
+
+#: src/page/settings/general.vue:224
+msgid "Allow editing of metadata such as title, description, date, and location."
+msgstr ""
+
+#: src/page/settings/general.vue:239
+msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
+msgstr ""
+
+#: src/page/settings/general.vue:269
+msgid "Allow files to be permanently deleted to free up storage space."
+msgstr ""
+
+#: src/page/settings/general.vue:254
+msgid "Allow users to archive photos and videos so they are hidden without being deleted."
+msgstr ""
+
+#: src/page/settings/general.vue:209
+msgid "Allow users to create and share links, and enable sharing with connected services."
+msgstr ""
+
+#: src/page/settings/general.vue:164
+msgid "Allow users to upload new photos and videos through the web interface."
+msgstr ""
+
 #: src/component/share/dialog.vue:134
 msgid "Alternatively, you can upload files directly to WebDAV servers like Nextcloud."
 msgstr "或者，你也可以上传文件到类似 NextCloud 的 WebDAV 服务端。"
@@ -415,7 +439,7 @@ msgstr "上午"
 msgid "Animated"
 msgstr "动画"
 
-#: src/page/settings/general.vue:399
+#: src/page/settings/general.vue:401
 msgid "Animation"
 msgstr "动画"
 
@@ -602,21 +626,9 @@ msgstr "棕"
 msgid "Browse"
 msgstr "浏览"
 
-#: src/page/settings/general.vue:133
-msgid "Browse and edit image classification labels."
-msgstr "浏览和编辑图像分类标签。"
-
-#: src/page/settings/general.vue:103
-msgid "Browse and share your pictures organized into monthly albums."
-msgstr "浏览并分享按月整理的照片。"
-
 #: src/locales.js:278
 msgid "Browse Files"
 msgstr "浏览文件"
-
-#: src/page/settings/general.vue:313
-msgid "Browse indexed files and folders in Library."
-msgstr "浏览库中已索引的文件和文件夹。"
 
 #: src/component/photo/edit/people.vue:232
 msgid "Browse Pictures"
@@ -719,14 +731,6 @@ msgstr "改变头像"
 msgid "Change Password"
 msgstr "更改密码"
 
-#: src/page/settings/general.vue:343
-msgid "Change personal profile and security settings."
-msgstr "修改个人资料及安全设置。"
-
-#: src/page/settings/general.vue:224
-msgid "Change photo titles, locations, and other metadata."
-msgstr "更改照片标题、位置及其他元数据。"
-
 #: src/component/photo/clipboard.vue:80
 msgid "Change private flag"
 msgstr "更改私有标记"
@@ -748,7 +752,7 @@ msgstr "无法保存变更"
 #: src/component/share/dialog.vue:240 src/component/share/dialog.vue:259
 #: src/page/albums.vue:1268 src/page/people/recognized.vue:320
 #: src/page/settings/advanced.vue:535 src/page/settings/content.vue:300
-#: src/page/settings/general.vue:525
+#: src/page/settings/general.vue:527
 msgid "Changes successfully saved"
 msgstr "更改成功保存"
 
@@ -829,7 +833,7 @@ msgstr "颜色"
 msgid "Color Profile"
 msgstr "颜色简介"
 
-#: src/page/discover.vue:13 src/page/discover.vue:5
+#: src/page/discover.vue:12 src/page/discover.vue:5
 msgid "Colors"
 msgstr "颜色"
 
@@ -1249,10 +1253,6 @@ msgstr "只下载原始媒体文件，不下载任何自动生成的文件。"
 msgid "Download remote files"
 msgstr "下载远端文件"
 
-#: src/page/settings/general.vue:179
-msgid "Download single files and zip archives."
-msgstr "下载单个文件并用 zip 压缩。"
-
 #: src/component/album/clipboard.vue:227 src/component/album/toolbar.vue:252
 #: src/component/file/clipboard.vue:150 src/component/label/clipboard.vue:172
 #: src/component/lightbox.vue:2426 src/component/people/clipboard.vue:144
@@ -1324,10 +1324,6 @@ msgstr "编辑照片"
 msgid "Edit Photos (%{n})"
 msgstr "编辑照片 (%{n})"
 
-#: src/page/settings/general.vue:239
-msgid "Edit the metadata, labels, and albums of multiple pictures at once."
-msgstr "一次性编辑多张图片的元数据、标签和相册。"
-
 #: src/component/photo/edit/info.vue:222 src/component/photo/edit/info.vue:223
 msgid "Edited"
 msgstr "已编辑"
@@ -1341,9 +1337,25 @@ msgstr "电子邮箱"
 msgid "Enable debug mode to display additional logs and help with troubleshooting."
 msgstr "启用调试模式可显示更多日志，帮助排除故障。"
 
+#: src/page/settings/general.vue:179
+msgid "Enable downloading of original and sidecar files from the web interface."
+msgstr ""
+
+#: src/page/settings/general.vue:88
+msgid "Enable face recognition and the People view to easily find people you know."
+msgstr ""
+
 #: src/page/settings/advanced.vue:53
 msgid "Enable new features that may be incomplete or unstable."
 msgstr "启用可能不完整或不稳定的新功能。"
+
+#: src/page/settings/general.vue:315
+msgid "Enable the file browser to navigate the Originals folder structure."
+msgstr ""
+
+#: src/page/settings/general.vue:194
+msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
+msgstr ""
 
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
@@ -1365,7 +1377,7 @@ msgstr "输入日期"
 msgid "Enter dates"
 msgstr "输入日期"
 
-#: src/component/input/chip-selector.vue:128
+#: src/component/input/chip-selector.vue:129
 msgid "Enter item name..."
 msgstr "输入项目名称..."
 
@@ -1409,10 +1421,6 @@ msgstr "在没有 GPS 坐标的情况下估算图片的大致位置。"
 #: src/options/options.js:427
 msgid "Every two days"
 msgstr "每两天"
-
-#: src/page/settings/general.vue:148
-msgid "Exclude content marked as private from search results, shared albums, labels, and places."
-msgstr "排除搜索结果中标记私有的内容，已共享的相册、标签和地点。"
 
 #: src/page/people/new.vue:20 src/page/people/recognized.vue:53
 msgid "Exclude hidden"
@@ -1611,10 +1619,6 @@ msgstr "一般"
 msgid "Generate"
 msgstr "产生"
 
-#: src/page/settings/general.vue:118
-msgid "Generate albums of special moments, journeys, and places."
-msgstr "自动创建特殊时刻、旅行和地点的相册。"
-
 #: src/page/settings/content.vue:58
 msgid "Generate Previews"
 msgstr "生成预览"
@@ -1684,9 +1688,9 @@ msgstr "隐藏文件"
 msgid "Hide"
 msgstr "隐藏"
 
-#: src/page/settings/general.vue:254
-msgid "Hide photos that have been moved to archive."
-msgstr "隐藏已归档的照片。"
+#: src/page/settings/general.vue:148
+msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgstr ""
 
 #: src/options/options.js:381
 msgid "High"
@@ -1719,7 +1723,7 @@ msgstr "图片"
 msgid "Image Quality"
 msgstr "图像质量"
 
-#: src/page/library.vue:74 src/page/library/import.vue:44
+#: src/page/library.vue:73 src/page/library/import.vue:44
 #: src/page/library/import.vue:45 src/page/library/import.vue:73
 #: src/page/library/import.vue:86 src/page/settings/general.vue:193
 msgid "Import"
@@ -1728,10 +1732,6 @@ msgstr "导入"
 #: src/page/library/import.vue:57
 msgid "Imported files will be sorted by date and given a unique name to avoid duplicates."
 msgstr "导入的文件将按日期排序，并指定一个唯一的名称以避免重复。"
-
-#: src/page/settings/general.vue:194
-msgid "Imported files will be sorted by date and given a unique name."
-msgstr "导入的文件将按日期排序，并指定一个唯一的名称。"
 
 #: src/page/library/import.vue:5
 msgid "Importing %{s}…"
@@ -1768,14 +1768,10 @@ msgstr "在下载堆栈和档案时包括sidecar文件。"
 msgid "Increase storage size or delete files to continue."
 msgstr "增加存储空间或删除文件以继续。"
 
-#: src/component/navigation.vue:942 src/page/library.vue:64
+#: src/component/navigation.vue:942 src/page/library.vue:63
 #: src/page/settings/content.vue:12
 msgid "Index"
 msgstr "索引"
-
-#: src/page/settings/general.vue:298
-msgid "Index and import files through the user interface."
-msgstr "通过用户界面索引和导入文件。"
 
 #: src/page/library/index.vue:245 src/page/library/index.vue:251
 msgid "Indexing"
@@ -1962,7 +1958,7 @@ msgid "Lens"
 msgstr "镜头"
 
 #: src/app/routes.js:475 src/app/routes.js:491 src/app/routes.js:507
-#: src/component/navigation.vue:613 src/page/settings/general.vue:297
+#: src/component/navigation.vue:613 src/page/settings/general.vue:299
 msgid "Library"
 msgstr "资料库"
 
@@ -2066,7 +2062,7 @@ msgid "Logout"
 msgstr "登出"
 
 #: src/component/navigation.vue:948 src/component/navigation.vue:951
-#: src/page/library.vue:87 src/page/settings/general.vue:327
+#: src/page/library.vue:86 src/page/settings/general.vue:329
 msgid "Logs"
 msgstr "日志"
 
@@ -2114,7 +2110,7 @@ msgstr "手动"
 msgid "Manual Upload"
 msgstr "手动上传"
 
-#: src/page/settings/general.vue:383
+#: src/page/settings/general.vue:385
 msgid "Maps"
 msgstr "地图"
 
@@ -2247,7 +2243,7 @@ msgstr "名称太长"
 msgid "Never"
 msgstr "永不"
 
-#: src/page/people.vue:74
+#: src/page/people.vue:73
 msgid "New"
 msgstr "新"
 
@@ -2517,7 +2513,7 @@ msgstr "源文件名"
 #: src/component/navigation.vue:627 src/component/navigation.vue:633
 #: src/model/file.js:172 src/options/options.js:474
 #: src/page/library/browse.vue:12 src/page/settings/content.vue:193
-#: src/page/settings/general.vue:312
+#: src/page/settings/general.vue:314
 msgid "Originals"
 msgstr "源"
 
@@ -2560,11 +2556,11 @@ msgstr "全景"
 msgid "Panoramas"
 msgstr "全景"
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:188
 msgid "Part of all selected photos"
 msgstr "所有选定照片的一部分"
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:186
 msgid "Part of some selected photos"
 msgstr "部分精选照片"
 
@@ -2597,10 +2593,6 @@ msgstr "与您共享链接的人将可以查看公共内容。"
 #: src/component/photo/clipboard.vue:315 src/component/photo/toolbar.vue:558
 msgid "Permanently deleted"
 msgstr "已永久删除"
-
-#: src/page/settings/general.vue:269
-msgid "Permanently remove files to free up storage."
-msgstr "永久删除文件以释放存储空间。"
 
 #: src/model/subject.js:134
 msgid "Person"
@@ -2655,8 +2647,8 @@ msgstr "地点和时间"
 #: src/app/routes.js:335 src/app/routes.js:341 src/app/routes.js:347
 #: src/app/routes.js:362 src/component/navigation.vue:462
 #: src/component/navigation.vue:927 src/options/options.js:262
-#: src/page/places.vue:18 src/page/settings/general.vue:357
-#: src/page/settings/general.vue:371
+#: src/page/places.vue:18 src/page/settings/general.vue:359
+#: src/page/settings/general.vue:373
 msgid "Places"
 msgstr "地点"
 
@@ -2718,7 +2710,7 @@ msgstr "保留文件名"
 msgid "Press enter to create a new album."
 msgstr "按下 Enter 键创建一个新相册。"
 
-#: src/component/input/chip-selector.vue:60
+#: src/component/input/chip-selector.vue:61
 msgid "Press enter to create new item"
 msgstr "按回车键创建新项目"
 
@@ -2792,7 +2784,7 @@ msgstr "质量筛选"
 msgid "Quality Score"
 msgstr "质量得分"
 
-#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:25
+#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:24
 msgid "Random"
 msgstr "随机"
 
@@ -2837,11 +2829,7 @@ msgstr "最近编辑"
 msgid "Recognition starts after indexing has been completed."
 msgstr "识别工作在索引完成后开始。"
 
-#: src/page/settings/general.vue:88
-msgid "Recognize faces so people can be assigned and found."
-msgstr "识别人脸，以便能够找到特定的人。"
-
-#: src/page/people.vue:61
+#: src/page/people.vue:60
 msgid "Recognized"
 msgstr "已识别"
 
@@ -2882,7 +2870,7 @@ msgid "Reload"
 msgstr "重载"
 
 #: src/component/navigation.vue:1089 src/component/update.vue:62
-#: src/page/settings/general.vue:521
+#: src/page/settings/general.vue:523
 msgid "Reloading…"
 msgstr "重载中…"
 
@@ -2902,11 +2890,11 @@ msgstr "移除失败：未知相册"
 msgid "Remove from Album"
 msgstr "从相册中移除"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all"
 msgstr "从所有"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all selected photos"
 msgstr "从所有选定照片中删除"
 
@@ -3070,11 +3058,7 @@ msgstr "瞄准镜"
 msgid "Search"
 msgstr "搜索"
 
-#: src/page/settings/general.vue:358
-msgid "Search and display photos on a map."
-msgstr "在地图上搜索并显示照片。"
-
-#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:21
+#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:20
 msgid "Season"
 msgstr "季节"
 
@@ -3212,10 +3196,6 @@ msgstr "分享"
 msgid "Share %{s}"
 msgstr "分享 %{s}"
 
-#: src/page/settings/general.vue:283
-msgid "Share your pictures with other apps and services."
-msgstr "与其他应用程序和服务分享你的图片。"
-
 #: src/page/people/new.vue:70 src/page/people/recognized.vue:127
 msgid "Show"
 msgstr "显示"
@@ -3240,9 +3220,33 @@ msgstr "显示隐藏"
 msgid "Show Important Only"
 msgstr "只显示重要信息"
 
-#: src/page/settings/general.vue:328
-msgid "Show server logs in Library."
-msgstr "在库中显示服务器日志。"
+#: src/page/settings/general.vue:330
+msgid "Show logs in the web interface to monitor activity and troubleshoot problems."
+msgstr ""
+
+#: src/page/settings/general.vue:118
+msgid "Show smart albums that group pictures by occasion, trip, or location."
+msgstr ""
+
+#: src/page/settings/general.vue:345
+msgid "Show the Account page so users can manage their profile and security settings."
+msgstr ""
+
+#: src/page/settings/general.vue:103
+msgid "Show the Calendar view to browse the library by year and month."
+msgstr ""
+
+#: src/page/settings/general.vue:133
+msgid "Show the Labels section to view and manage AI-generated labels."
+msgstr ""
+
+#: src/page/settings/general.vue:300
+msgid "Show the Library section to index, manage, and monitor the media library."
+msgstr ""
+
+#: src/page/settings/general.vue:360
+msgid "Show the Places view with interactive maps so you can browse photos by location."
+msgstr ""
 
 #: src/page/settings/content.vue:155
 msgid "Show Titles"
@@ -3262,7 +3266,7 @@ msgstr "Sidecar 文件"
 msgid "Sign in"
 msgstr "登录"
 
-#: src/page/discover.vue:17 src/page/discover.vue:8 src/page/discover.vue:9
+#: src/page/discover.vue:16 src/page/discover.vue:8 src/page/discover.vue:9
 msgid "Similar"
 msgstr "相似"
 
@@ -3718,10 +3722,6 @@ msgstr "上传本地文件"
 msgid "Upload Path"
 msgstr "上传路径"
 
-#: src/page/settings/general.vue:209
-msgid "Upload to WebDAV and share links with friends."
-msgstr "上传到 WebDAV 并与朋友共享链接。"
-
 #: src/component/upload/dialog.vue:40
 msgid "Uploading %{n} of %{t}…"
 msgstr "上传 %{n} / %{t} …"
@@ -4018,6 +4018,63 @@ msgstr "标题"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "归档"
+
+#~ msgid "Add files to your library via Web Upload."
+#~ msgstr "从网页上传文件到库。"
+
+#~ msgid "Browse and edit image classification labels."
+#~ msgstr "浏览和编辑图像分类标签。"
+
+#~ msgid "Browse and share your pictures organized into monthly albums."
+#~ msgstr "浏览并分享按月整理的照片。"
+
+#~ msgid "Browse indexed files and folders in Library."
+#~ msgstr "浏览库中已索引的文件和文件夹。"
+
+#~ msgid "Change personal profile and security settings."
+#~ msgstr "修改个人资料及安全设置。"
+
+#~ msgid "Change photo titles, locations, and other metadata."
+#~ msgstr "更改照片标题、位置及其他元数据。"
+
+#~ msgid "Download single files and zip archives."
+#~ msgstr "下载单个文件并用 zip 压缩。"
+
+#~ msgid "Edit the metadata, labels, and albums of multiple pictures at once."
+#~ msgstr "一次性编辑多张图片的元数据、标签和相册。"
+
+#~ msgid "Exclude content marked as private from search results, shared albums, labels, and places."
+#~ msgstr "排除搜索结果中标记私有的内容，已共享的相册、标签和地点。"
+
+#~ msgid "Generate albums of special moments, journeys, and places."
+#~ msgstr "自动创建特殊时刻、旅行和地点的相册。"
+
+#~ msgid "Hide photos that have been moved to archive."
+#~ msgstr "隐藏已归档的照片。"
+
+#~ msgid "Imported files will be sorted by date and given a unique name."
+#~ msgstr "导入的文件将按日期排序，并指定一个唯一的名称。"
+
+#~ msgid "Index and import files through the user interface."
+#~ msgstr "通过用户界面索引和导入文件。"
+
+#~ msgid "Permanently remove files to free up storage."
+#~ msgstr "永久删除文件以释放存储空间。"
+
+#~ msgid "Recognize faces so people can be assigned and found."
+#~ msgstr "识别人脸，以便能够找到特定的人。"
+
+#~ msgid "Search and display photos on a map."
+#~ msgstr "在地图上搜索并显示照片。"
+
+#~ msgid "Share your pictures with other apps and services."
+#~ msgstr "与其他应用程序和服务分享你的图片。"
+
+#~ msgid "Show server logs in Library."
+#~ msgstr "在库中显示服务器日志。"
+
+#~ msgid "Upload to WebDAV and share links with friends."
+#~ msgstr "上传到 WebDAV 并与朋友共享链接。"
 
 #~ msgid "Disable TensorFlow"
 #~ msgstr "禁用 TensorFlow"

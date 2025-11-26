@@ -138,7 +138,7 @@ msgstr ""
 #: src/model/service.js:72
 #: src/model/user.js:151
 #: src/page/settings.vue:112
-#: src/page/settings/general.vue:342
+#: src/page/settings/general.vue:344
 msgid "Account"
 msgstr ""
 
@@ -245,10 +245,6 @@ msgstr ""
 msgid "Add Album"
 msgstr ""
 
-#: src/page/settings/general.vue:164
-msgid "Add files to your library via Web Upload."
-msgstr ""
-
 #: src/component/share/dialog.vue:19
 msgid "Add Link"
 msgstr ""
@@ -278,11 +274,11 @@ msgstr ""
 msgid "Add to album"
 msgstr ""
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all"
 msgstr ""
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all selected photos"
 msgstr ""
 
@@ -438,6 +434,34 @@ msgstr ""
 msgid "All Years"
 msgstr ""
 
+#: src/page/settings/general.vue:284
+msgid "Allow configuration and use of connected apps and services for remote uploads and sync."
+msgstr ""
+
+#: src/page/settings/general.vue:224
+msgid "Allow editing of metadata such as title, description, date, and location."
+msgstr ""
+
+#: src/page/settings/general.vue:239
+msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
+msgstr ""
+
+#: src/page/settings/general.vue:269
+msgid "Allow files to be permanently deleted to free up storage space."
+msgstr ""
+
+#: src/page/settings/general.vue:254
+msgid "Allow users to archive photos and videos so they are hidden without being deleted."
+msgstr ""
+
+#: src/page/settings/general.vue:209
+msgid "Allow users to create and share links, and enable sharing with connected services."
+msgstr ""
+
+#: src/page/settings/general.vue:164
+msgid "Allow users to upload new photos and videos through the web interface."
+msgstr ""
+
 #: src/component/share/dialog.vue:134
 msgid "Alternatively, you can upload files directly to WebDAV servers like Nextcloud."
 msgstr ""
@@ -470,7 +494,7 @@ msgstr ""
 msgid "Animated"
 msgstr ""
 
-#: src/page/settings/general.vue:399
+#: src/page/settings/general.vue:401
 msgid "Animation"
 msgstr ""
 
@@ -686,20 +710,8 @@ msgstr ""
 msgid "Browse"
 msgstr ""
 
-#: src/page/settings/general.vue:133
-msgid "Browse and edit image classification labels."
-msgstr ""
-
-#: src/page/settings/general.vue:103
-msgid "Browse and share your pictures organized into monthly albums."
-msgstr ""
-
 #: src/locales.js:278
 msgid "Browse Files"
-msgstr ""
-
-#: src/page/settings/general.vue:313
-msgid "Browse indexed files and folders in Library."
 msgstr ""
 
 #: src/component/photo/edit/people.vue:232
@@ -844,14 +856,6 @@ msgstr ""
 msgid "Change Password"
 msgstr ""
 
-#: src/page/settings/general.vue:343
-msgid "Change personal profile and security settings."
-msgstr ""
-
-#: src/page/settings/general.vue:224
-msgid "Change photo titles, locations, and other metadata."
-msgstr ""
-
 #: src/component/photo/clipboard.vue:80
 msgid "Change private flag"
 msgstr ""
@@ -881,7 +885,7 @@ msgstr ""
 #: src/page/people/recognized.vue:320
 #: src/page/settings/advanced.vue:535
 #: src/page/settings/content.vue:300
-#: src/page/settings/general.vue:525
+#: src/page/settings/general.vue:527
 msgid "Changes successfully saved"
 msgstr ""
 
@@ -975,7 +979,7 @@ msgstr ""
 msgid "Color Profile"
 msgstr ""
 
-#: src/page/discover.vue:13
+#: src/page/discover.vue:12
 #: src/page/discover.vue:5
 msgid "Colors"
 msgstr ""
@@ -1485,10 +1489,6 @@ msgstr ""
 msgid "Download remote files"
 msgstr ""
 
-#: src/page/settings/general.vue:179
-msgid "Download single files and zip archives."
-msgstr ""
-
 #: src/component/album/clipboard.vue:227
 #: src/component/album/toolbar.vue:252
 #: src/component/file/clipboard.vue:150
@@ -1571,10 +1571,6 @@ msgstr ""
 msgid "Edit Photos (%{n})"
 msgstr ""
 
-#: src/page/settings/general.vue:239
-msgid "Edit the metadata, labels, and albums of multiple pictures at once."
-msgstr ""
-
 #: src/component/photo/edit/info.vue:222
 #: src/component/photo/edit/info.vue:223
 msgid "Edited"
@@ -1592,8 +1588,24 @@ msgstr ""
 msgid "Enable debug mode to display additional logs and help with troubleshooting."
 msgstr ""
 
+#: src/page/settings/general.vue:179
+msgid "Enable downloading of original and sidecar files from the web interface."
+msgstr ""
+
+#: src/page/settings/general.vue:88
+msgid "Enable face recognition and the People view to easily find people you know."
+msgstr ""
+
 #: src/page/settings/advanced.vue:53
 msgid "Enable new features that may be incomplete or unstable."
+msgstr ""
+
+#: src/page/settings/general.vue:315
+msgid "Enable the file browser to navigate the Originals folder structure."
+msgstr ""
+
+#: src/page/settings/general.vue:194
+msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
 msgstr ""
 
 #: src/page/settings/advanced.vue:395
@@ -1617,7 +1629,7 @@ msgstr ""
 msgid "Enter dates"
 msgstr ""
 
-#: src/component/input/chip-selector.vue:128
+#: src/component/input/chip-selector.vue:129
 msgid "Enter item name..."
 msgstr ""
 
@@ -1667,10 +1679,6 @@ msgstr ""
 
 #: src/options/options.js:427
 msgid "Every two days"
-msgstr ""
-
-#: src/page/settings/general.vue:148
-msgid "Exclude content marked as private from search results, shared albums, labels, and places."
 msgstr ""
 
 #: src/page/people/new.vue:20
@@ -1906,10 +1914,6 @@ msgstr ""
 msgid "Generate"
 msgstr ""
 
-#: src/page/settings/general.vue:118
-msgid "Generate albums of special moments, journeys, and places."
-msgstr ""
-
 #: src/page/settings/content.vue:58
 msgid "Generate Previews"
 msgstr ""
@@ -1991,8 +1995,8 @@ msgstr ""
 msgid "Hide"
 msgstr ""
 
-#: src/page/settings/general.vue:254
-msgid "Hide photos that have been moved to archive."
+#: src/page/settings/general.vue:148
+msgid "Hide private items from global views while keeping them accessible in the Private section."
 msgstr ""
 
 #: src/options/options.js:381
@@ -2029,7 +2033,7 @@ msgstr ""
 msgid "Image Quality"
 msgstr ""
 
-#: src/page/library.vue:74
+#: src/page/library.vue:73
 #: src/page/library/import.vue:44
 #: src/page/library/import.vue:45
 #: src/page/library/import.vue:73
@@ -2040,10 +2044,6 @@ msgstr ""
 
 #: src/page/library/import.vue:57
 msgid "Imported files will be sorted by date and given a unique name to avoid duplicates."
-msgstr ""
-
-#: src/page/settings/general.vue:194
-msgid "Imported files will be sorted by date and given a unique name."
 msgstr ""
 
 #: src/page/library/import.vue:5
@@ -2085,13 +2085,9 @@ msgid "Increase storage size or delete files to continue."
 msgstr ""
 
 #: src/component/navigation.vue:942
-#: src/page/library.vue:64
+#: src/page/library.vue:63
 #: src/page/settings/content.vue:12
 msgid "Index"
-msgstr ""
-
-#: src/page/settings/general.vue:298
-msgid "Index and import files through the user interface."
 msgstr ""
 
 #: src/page/library/index.vue:245
@@ -2316,7 +2312,7 @@ msgstr ""
 #: src/app/routes.js:491
 #: src/app/routes.js:507
 #: src/component/navigation.vue:613
-#: src/page/settings/general.vue:297
+#: src/page/settings/general.vue:299
 msgid "Library"
 msgstr ""
 
@@ -2446,8 +2442,8 @@ msgstr ""
 
 #: src/component/navigation.vue:948
 #: src/component/navigation.vue:951
-#: src/page/library.vue:87
-#: src/page/settings/general.vue:327
+#: src/page/library.vue:86
+#: src/page/settings/general.vue:329
 msgid "Logs"
 msgstr ""
 
@@ -2499,7 +2495,7 @@ msgstr ""
 msgid "Manual Upload"
 msgstr ""
 
-#: src/page/settings/general.vue:383
+#: src/page/settings/general.vue:385
 msgid "Maps"
 msgstr ""
 
@@ -2667,7 +2663,7 @@ msgstr ""
 msgid "Never"
 msgstr ""
 
-#: src/page/people.vue:74
+#: src/page/people.vue:73
 msgid "New"
 msgstr ""
 
@@ -2977,7 +2973,7 @@ msgstr ""
 #: src/options/options.js:474
 #: src/page/library/browse.vue:12
 #: src/page/settings/content.vue:193
-#: src/page/settings/general.vue:312
+#: src/page/settings/general.vue:314
 msgid "Originals"
 msgstr ""
 
@@ -3028,11 +3024,11 @@ msgstr ""
 msgid "Panoramas"
 msgstr ""
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:188
 msgid "Part of all selected photos"
 msgstr ""
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:186
 msgid "Part of some selected photos"
 msgstr ""
 
@@ -3074,10 +3070,6 @@ msgstr ""
 #: src/component/photo/clipboard.vue:315
 #: src/component/photo/toolbar.vue:558
 msgid "Permanently deleted"
-msgstr ""
-
-#: src/page/settings/general.vue:269
-msgid "Permanently remove files to free up storage."
 msgstr ""
 
 #: src/model/subject.js:134
@@ -3141,8 +3133,8 @@ msgstr ""
 #: src/component/navigation.vue:927
 #: src/options/options.js:262
 #: src/page/places.vue:18
-#: src/page/settings/general.vue:357
-#: src/page/settings/general.vue:371
+#: src/page/settings/general.vue:359
+#: src/page/settings/general.vue:373
 msgid "Places"
 msgstr ""
 
@@ -3206,7 +3198,7 @@ msgstr ""
 msgid "Press enter to create a new album."
 msgstr ""
 
-#: src/component/input/chip-selector.vue:60
+#: src/component/input/chip-selector.vue:61
 msgid "Press enter to create new item"
 msgstr ""
 
@@ -3295,7 +3287,7 @@ msgstr ""
 
 #: src/page/discover.vue:16
 #: src/page/discover.vue:17
-#: src/page/discover.vue:25
+#: src/page/discover.vue:24
 msgid "Random"
 msgstr ""
 
@@ -3344,11 +3336,7 @@ msgstr ""
 msgid "Recognition starts after indexing has been completed."
 msgstr ""
 
-#: src/page/settings/general.vue:88
-msgid "Recognize faces so people can be assigned and found."
-msgstr ""
-
-#: src/page/people.vue:61
+#: src/page/people.vue:60
 msgid "Recognized"
 msgstr ""
 
@@ -3409,7 +3397,7 @@ msgstr ""
 
 #: src/component/navigation.vue:1089
 #: src/component/update.vue:62
-#: src/page/settings/general.vue:521
+#: src/page/settings/general.vue:523
 msgid "Reloading…"
 msgstr ""
 
@@ -3430,11 +3418,11 @@ msgstr ""
 msgid "Remove from Album"
 msgstr ""
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all"
 msgstr ""
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all selected photos"
 msgstr ""
 
@@ -3631,13 +3619,9 @@ msgstr ""
 msgid "Search"
 msgstr ""
 
-#: src/page/settings/general.vue:358
-msgid "Search and display photos on a map."
-msgstr ""
-
 #: src/page/discover.vue:12
 #: src/page/discover.vue:13
-#: src/page/discover.vue:21
+#: src/page/discover.vue:20
 msgid "Season"
 msgstr ""
 
@@ -3795,10 +3779,6 @@ msgstr ""
 msgid "Share %{s}"
 msgstr ""
 
-#: src/page/settings/general.vue:283
-msgid "Share your pictures with other apps and services."
-msgstr ""
-
 #: src/page/people/new.vue:70
 #: src/page/people/recognized.vue:127
 msgid "Show"
@@ -3827,8 +3807,32 @@ msgstr ""
 msgid "Show Important Only"
 msgstr ""
 
-#: src/page/settings/general.vue:328
-msgid "Show server logs in Library."
+#: src/page/settings/general.vue:330
+msgid "Show logs in the web interface to monitor activity and troubleshoot problems."
+msgstr ""
+
+#: src/page/settings/general.vue:118
+msgid "Show smart albums that group pictures by occasion, trip, or location."
+msgstr ""
+
+#: src/page/settings/general.vue:345
+msgid "Show the Account page so users can manage their profile and security settings."
+msgstr ""
+
+#: src/page/settings/general.vue:103
+msgid "Show the Calendar view to browse the library by year and month."
+msgstr ""
+
+#: src/page/settings/general.vue:133
+msgid "Show the Labels section to view and manage AI-generated labels."
+msgstr ""
+
+#: src/page/settings/general.vue:300
+msgid "Show the Library section to index, manage, and monitor the media library."
+msgstr ""
+
+#: src/page/settings/general.vue:360
+msgid "Show the Places view with interactive maps so you can browse photos by location."
 msgstr ""
 
 #: src/page/settings/content.vue:155
@@ -3852,7 +3856,7 @@ msgstr ""
 msgid "Sign in"
 msgstr ""
 
-#: src/page/discover.vue:17
+#: src/page/discover.vue:16
 #: src/page/discover.vue:8
 #: src/page/discover.vue:9
 msgid "Similar"
@@ -4388,10 +4392,6 @@ msgstr ""
 #: src/component/user/edit/dialog.vue:260
 #: src/component/user/edit/dialog.vue:261
 msgid "Upload Path"
-msgstr ""
-
-#: src/page/settings/general.vue:209
-msgid "Upload to WebDAV and share links with friends."
 msgstr ""
 
 #: src/component/upload/dialog.vue:40

@@ -128,7 +128,7 @@ msgstr "Tilgangstoken"
 #: src/component/navigation.vue:1068 src/component/navigation.vue:868
 #: src/component/service/upload.vue:25 src/locales.js:331
 #: src/model/service.js:72 src/model/user.js:151 src/page/settings.vue:112
-#: src/page/settings/general.vue:342
+#: src/page/settings/general.vue:344
 msgid "Account"
 msgstr "Konto"
 
@@ -213,10 +213,6 @@ msgstr "Legg til konto"
 msgid "Add Album"
 msgstr "Legg til Album"
 
-#: src/page/settings/general.vue:164
-msgid "Add files to your library via Web Upload."
-msgstr "Legg til filer i biblioteket ditt ved hjelp av Nettopplasting."
-
 #: src/component/share/dialog.vue:19
 msgid "Add Link"
 msgstr "Legg til Lenke"
@@ -240,11 +236,11 @@ msgstr "Legg til bilder fra søkeresultatene ved å velge dem."
 msgid "Add to album"
 msgstr "Legg til i album"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all"
 msgstr "Legg til alle"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:182
 msgid "Add to all selected photos"
 msgstr "Legg til i alle valgte bilder"
 
@@ -388,6 +384,34 @@ msgstr "Alle originaler"
 msgid "All Years"
 msgstr "Alle År"
 
+#: src/page/settings/general.vue:284
+msgid "Allow configuration and use of connected apps and services for remote uploads and sync."
+msgstr ""
+
+#: src/page/settings/general.vue:224
+msgid "Allow editing of metadata such as title, description, date, and location."
+msgstr ""
+
+#: src/page/settings/general.vue:239
+msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
+msgstr ""
+
+#: src/page/settings/general.vue:269
+msgid "Allow files to be permanently deleted to free up storage space."
+msgstr ""
+
+#: src/page/settings/general.vue:254
+msgid "Allow users to archive photos and videos so they are hidden without being deleted."
+msgstr ""
+
+#: src/page/settings/general.vue:209
+msgid "Allow users to create and share links, and enable sharing with connected services."
+msgstr ""
+
+#: src/page/settings/general.vue:164
+msgid "Allow users to upload new photos and videos through the web interface."
+msgstr ""
+
 #: src/component/share/dialog.vue:134
 msgid "Alternatively, you can upload files directly to WebDAV servers like Nextcloud."
 msgstr "Alternativt kan du laste opp filene direkte til WebDAV-servere som Nextcloud."
@@ -415,7 +439,7 @@ msgstr "AM"
 msgid "Animated"
 msgstr "Animert"
 
-#: src/page/settings/general.vue:399
+#: src/page/settings/general.vue:401
 msgid "Animation"
 msgstr "Animasjon"
 
@@ -602,21 +626,9 @@ msgstr "Brun"
 msgid "Browse"
 msgstr "Bla gjennom"
 
-#: src/page/settings/general.vue:133
-msgid "Browse and edit image classification labels."
-msgstr "Bla gjennom og rediger merkelapper for bildeklassifisering."
-
-#: src/page/settings/general.vue:103
-msgid "Browse and share your pictures organized into monthly albums."
-msgstr "Bla gjennom og del bildene dine organisert i månedlige album."
-
 #: src/locales.js:278
 msgid "Browse Files"
 msgstr "Bla gjennom filer"
-
-#: src/page/settings/general.vue:313
-msgid "Browse indexed files and folders in Library."
-msgstr "Bla gjennom indekserte filer og mapper i Biblioteket."
 
 #: src/component/photo/edit/people.vue:232
 msgid "Browse Pictures"
@@ -719,14 +731,6 @@ msgstr "Endre profilbilde"
 msgid "Change Password"
 msgstr "Bytt Passord"
 
-#: src/page/settings/general.vue:343
-msgid "Change personal profile and security settings."
-msgstr "Endre personlig profil og sikkerhetsinnstillinger."
-
-#: src/page/settings/general.vue:224
-msgid "Change photo titles, locations, and other metadata."
-msgstr "Endre fototitler, steder og andre metadata."
-
 #: src/component/photo/clipboard.vue:80
 msgid "Change private flag"
 msgstr "Endre private flagg"
@@ -748,7 +752,7 @@ msgstr "Kan ikke lagre endringer"
 #: src/component/share/dialog.vue:240 src/component/share/dialog.vue:259
 #: src/page/albums.vue:1268 src/page/people/recognized.vue:320
 #: src/page/settings/advanced.vue:535 src/page/settings/content.vue:300
-#: src/page/settings/general.vue:525
+#: src/page/settings/general.vue:527
 msgid "Changes successfully saved"
 msgstr "Endringene ble lagret"
 
@@ -829,7 +833,7 @@ msgstr "Farge"
 msgid "Color Profile"
 msgstr "Fargeprofil"
 
-#: src/page/discover.vue:13 src/page/discover.vue:5
+#: src/page/discover.vue:12 src/page/discover.vue:5
 msgid "Colors"
 msgstr "Farger"
 
@@ -1249,10 +1253,6 @@ msgstr "Last ned bare originale mediefiler, uten automatisk genererte filer."
 msgid "Download remote files"
 msgstr "Last ned eksterne filer"
 
-#: src/page/settings/general.vue:179
-msgid "Download single files and zip archives."
-msgstr "Last ned enkelte filer og zip-arkiver."
-
 #: src/component/album/clipboard.vue:227 src/component/album/toolbar.vue:252
 #: src/component/file/clipboard.vue:150 src/component/label/clipboard.vue:172
 #: src/component/lightbox.vue:2426 src/component/people/clipboard.vue:144
@@ -1324,10 +1324,6 @@ msgstr "Rediger Bilde"
 msgid "Edit Photos (%{n})"
 msgstr "Rediger bilder (%{n})"
 
-#: src/page/settings/general.vue:239
-msgid "Edit the metadata, labels, and albums of multiple pictures at once."
-msgstr "Rediger metadata, etiketter og album for flere bilder samtidig."
-
 #: src/component/photo/edit/info.vue:222 src/component/photo/edit/info.vue:223
 msgid "Edited"
 msgstr "Redigert"
@@ -1341,9 +1337,25 @@ msgstr "E-post"
 msgid "Enable debug mode to display additional logs and help with troubleshooting."
 msgstr "Aktiver feilsøkingsmodus for å vise flere logger og hjelpe deg med feilsøking."
 
+#: src/page/settings/general.vue:179
+msgid "Enable downloading of original and sidecar files from the web interface."
+msgstr ""
+
+#: src/page/settings/general.vue:88
+msgid "Enable face recognition and the People view to easily find people you know."
+msgstr ""
+
 #: src/page/settings/advanced.vue:53
 msgid "Enable new features that may be incomplete or unstable."
 msgstr "Aktiver nye funksjoner som kan være ufullstendige eller ustabile."
+
+#: src/page/settings/general.vue:315
+msgid "Enable the file browser to navigate the Originals folder structure."
+msgstr ""
+
+#: src/page/settings/general.vue:194
+msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
+msgstr ""
 
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
@@ -1365,7 +1377,7 @@ msgstr "Angi dato"
 msgid "Enter dates"
 msgstr "Angi datoer"
 
-#: src/component/input/chip-selector.vue:128
+#: src/component/input/chip-selector.vue:129
 msgid "Enter item name..."
 msgstr "Skriv inn varenavnet..."
 
@@ -1409,10 +1421,6 @@ msgstr "Anslå omtrentlig plassering av bilder uten GPS-koordinater."
 #: src/options/options.js:427
 msgid "Every two days"
 msgstr "Hver andre dag"
-
-#: src/page/settings/general.vue:148
-msgid "Exclude content marked as private from search results, shared albums, labels, and places."
-msgstr "Ekskluder innhold merket som privat fra søkeresultater, delte album, etiketter og steder."
 
 #: src/page/people/new.vue:20 src/page/people/recognized.vue:53
 msgid "Exclude hidden"
@@ -1611,10 +1619,6 @@ msgstr "Generell"
 msgid "Generate"
 msgstr "generere"
 
-#: src/page/settings/general.vue:118
-msgid "Generate albums of special moments, journeys, and places."
-msgstr "Oppretter automatisk album med spesielle øyeblikk, turer og steder."
-
 #: src/page/settings/content.vue:58
 msgid "Generate Previews"
 msgstr "Generer forhåndsvisninger"
@@ -1684,9 +1688,9 @@ msgstr "Skjulte Filer"
 msgid "Hide"
 msgstr "Skjul"
 
-#: src/page/settings/general.vue:254
-msgid "Hide photos that have been moved to archive."
-msgstr "Skjul bilder som har blitt flyttet til arkivet."
+#: src/page/settings/general.vue:148
+msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgstr ""
 
 #: src/options/options.js:381
 msgid "High"
@@ -1719,7 +1723,7 @@ msgstr "Bilde"
 msgid "Image Quality"
 msgstr "Bildekvalitet"
 
-#: src/page/library.vue:74 src/page/library/import.vue:44
+#: src/page/library.vue:73 src/page/library/import.vue:44
 #: src/page/library/import.vue:45 src/page/library/import.vue:73
 #: src/page/library/import.vue:86 src/page/settings/general.vue:193
 msgid "Import"
@@ -1728,10 +1732,6 @@ msgstr "Importér"
 #: src/page/library/import.vue:57
 msgid "Imported files will be sorted by date and given a unique name to avoid duplicates."
 msgstr "Importerte filer vil bli sortert etter dato og gitt et unikt navn for å unngå duplikater."
-
-#: src/page/settings/general.vue:194
-msgid "Imported files will be sorted by date and given a unique name."
-msgstr "Importerte filer vil bli sortert etter dato og gitt et unikt navn."
 
 #: src/page/library/import.vue:5
 msgid "Importing %{s}…"
@@ -1768,14 +1768,10 @@ msgstr "Ta med sidevognfiler når du laster ned stabler og arkiver."
 msgid "Increase storage size or delete files to continue."
 msgstr "Øk lagringsstørrelsen eller slett filer for å fortsette."
 
-#: src/component/navigation.vue:942 src/page/library.vue:64
+#: src/component/navigation.vue:942 src/page/library.vue:63
 #: src/page/settings/content.vue:12
 msgid "Index"
 msgstr "Indeks"
-
-#: src/page/settings/general.vue:298
-msgid "Index and import files through the user interface."
-msgstr "Indekser og importer filer gjennom brukergrensesnittet."
 
 #: src/page/library/index.vue:245 src/page/library/index.vue:251
 msgid "Indexing"
@@ -1962,7 +1958,7 @@ msgid "Lens"
 msgstr "Linse"
 
 #: src/app/routes.js:475 src/app/routes.js:491 src/app/routes.js:507
-#: src/component/navigation.vue:613 src/page/settings/general.vue:297
+#: src/component/navigation.vue:613 src/page/settings/general.vue:299
 msgid "Library"
 msgstr "Bibliotek"
 
@@ -2066,7 +2062,7 @@ msgid "Logout"
 msgstr "Log ut"
 
 #: src/component/navigation.vue:948 src/component/navigation.vue:951
-#: src/page/library.vue:87 src/page/settings/general.vue:327
+#: src/page/library.vue:86 src/page/settings/general.vue:329
 msgid "Logs"
 msgstr "Logger"
 
@@ -2114,7 +2110,7 @@ msgstr "Manuell"
 msgid "Manual Upload"
 msgstr "Manuell Opplasting"
 
-#: src/page/settings/general.vue:383
+#: src/page/settings/general.vue:385
 msgid "Maps"
 msgstr "Kart"
 
@@ -2247,7 +2243,7 @@ msgstr "Navn for langt"
 msgid "Never"
 msgstr "Aldri"
 
-#: src/page/people.vue:74
+#: src/page/people.vue:73
 msgid "New"
 msgstr "Ny"
 
@@ -2516,7 +2512,7 @@ msgstr "Originalnavn"
 #: src/component/navigation.vue:627 src/component/navigation.vue:633
 #: src/model/file.js:172 src/options/options.js:474
 #: src/page/library/browse.vue:12 src/page/settings/content.vue:193
-#: src/page/settings/general.vue:312
+#: src/page/settings/general.vue:314
 msgid "Originals"
 msgstr "Originaler"
 
@@ -2559,11 +2555,11 @@ msgstr "Panorama"
 msgid "Panoramas"
 msgstr "Panoramaer"
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:188
 msgid "Part of all selected photos"
 msgstr "En del av alle utvalgte bilder"
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:186
 msgid "Part of some selected photos"
 msgstr "En del av noen utvalgte bilder"
 
@@ -2596,10 +2592,6 @@ msgstr "Personer du deler en lenke med vil kunne se offentlig innhold."
 #: src/component/photo/clipboard.vue:315 src/component/photo/toolbar.vue:558
 msgid "Permanently deleted"
 msgstr "Permanent slettet"
-
-#: src/page/settings/general.vue:269
-msgid "Permanently remove files to free up storage."
-msgstr "Permanent fjern bilder for å frigjøre lagringsplass."
 
 #: src/model/subject.js:134
 msgid "Person"
@@ -2654,8 +2646,8 @@ msgstr "Sted og tid"
 #: src/app/routes.js:335 src/app/routes.js:341 src/app/routes.js:347
 #: src/app/routes.js:362 src/component/navigation.vue:462
 #: src/component/navigation.vue:927 src/options/options.js:262
-#: src/page/places.vue:18 src/page/settings/general.vue:357
-#: src/page/settings/general.vue:371
+#: src/page/places.vue:18 src/page/settings/general.vue:359
+#: src/page/settings/general.vue:373
 msgid "Places"
 msgstr "Plasser"
 
@@ -2717,7 +2709,7 @@ msgstr "Behold filnavn"
 msgid "Press enter to create a new album."
 msgstr "Trykk på Enter for å lage et nytt album."
 
-#: src/component/input/chip-selector.vue:60
+#: src/component/input/chip-selector.vue:61
 msgid "Press enter to create new item"
 msgstr "Trykk enter for å opprette et nytt element"
 
@@ -2791,7 +2783,7 @@ msgstr "Kvalitetsfilter"
 msgid "Quality Score"
 msgstr "Kvalitetspoeng"
 
-#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:25
+#: src/page/discover.vue:16 src/page/discover.vue:17 src/page/discover.vue:24
 msgid "Random"
 msgstr "Tilfeldig"
 
@@ -2835,11 +2827,7 @@ msgstr "Nylig redigert"
 msgid "Recognition starts after indexing has been completed."
 msgstr "Gjenkjenning starter etter at indekseringen er fullført."
 
-#: src/page/settings/general.vue:88
-msgid "Recognize faces so people can be assigned and found."
-msgstr "Gjenkjenner ansikter slik at bestemte personer kan bli funnet."
-
-#: src/page/people.vue:61
+#: src/page/people.vue:60
 msgid "Recognized"
 msgstr "Kjente igjen"
 
@@ -2880,7 +2868,7 @@ msgid "Reload"
 msgstr "Oppdater"
 
 #: src/component/navigation.vue:1089 src/component/update.vue:62
-#: src/page/settings/general.vue:521
+#: src/page/settings/general.vue:523
 msgid "Reloading…"
 msgstr "Oppdaterer…"
 
@@ -2900,11 +2888,11 @@ msgstr "fjerning mislyktes: ukjent album"
 msgid "Remove from Album"
 msgstr "Fjern fra albumet"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all"
 msgstr "Fjern fra alle"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:184
 msgid "Remove from all selected photos"
 msgstr "Fjern fra alle valgte bilder"
 
@@ -3068,11 +3056,7 @@ msgstr "Omfang"
 msgid "Search"
 msgstr "Søk"
 
-#: src/page/settings/general.vue:358
-msgid "Search and display photos on a map."
-msgstr "Søk og vis bilder på et kart."
-
-#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:21
+#: src/page/discover.vue:12 src/page/discover.vue:13 src/page/discover.vue:20
 msgid "Season"
 msgstr "Sesong"
 
@@ -3210,10 +3194,6 @@ msgstr "Del"
 msgid "Share %{s}"
 msgstr "Del %{s}"
 
-#: src/page/settings/general.vue:283
-msgid "Share your pictures with other apps and services."
-msgstr "Del bildene dine med andre apper og tjenester."
-
 #: src/page/people/new.vue:70 src/page/people/recognized.vue:127
 msgid "Show"
 msgstr "Vis"
@@ -3238,9 +3218,33 @@ msgstr "Vis skjult"
 msgid "Show Important Only"
 msgstr "Vis kun viktig"
 
-#: src/page/settings/general.vue:328
-msgid "Show server logs in Library."
-msgstr "Vis server-logger i Biblioteket."
+#: src/page/settings/general.vue:330
+msgid "Show logs in the web interface to monitor activity and troubleshoot problems."
+msgstr ""
+
+#: src/page/settings/general.vue:118
+msgid "Show smart albums that group pictures by occasion, trip, or location."
+msgstr ""
+
+#: src/page/settings/general.vue:345
+msgid "Show the Account page so users can manage their profile and security settings."
+msgstr ""
+
+#: src/page/settings/general.vue:103
+msgid "Show the Calendar view to browse the library by year and month."
+msgstr ""
+
+#: src/page/settings/general.vue:133
+msgid "Show the Labels section to view and manage AI-generated labels."
+msgstr ""
+
+#: src/page/settings/general.vue:300
+msgid "Show the Library section to index, manage, and monitor the media library."
+msgstr ""
+
+#: src/page/settings/general.vue:360
+msgid "Show the Places view with interactive maps so you can browse photos by location."
+msgstr ""
 
 #: src/page/settings/content.vue:155
 msgid "Show Titles"
@@ -3260,7 +3264,7 @@ msgstr "Sidevognsfiler"
 msgid "Sign in"
 msgstr "Logg inn"
 
-#: src/page/discover.vue:17 src/page/discover.vue:8 src/page/discover.vue:9
+#: src/page/discover.vue:16 src/page/discover.vue:8 src/page/discover.vue:9
 msgid "Similar"
 msgstr "Lignende"
 
@@ -3716,10 +3720,6 @@ msgstr "Last opp lokale filer"
 msgid "Upload Path"
 msgstr "Last opp bane"
 
-#: src/page/settings/general.vue:209
-msgid "Upload to WebDAV and share links with friends."
-msgstr "Last opp til WebDAV og del lenker med venner."
-
 #: src/component/upload/dialog.vue:40
 msgid "Uploading %{n} of %{t}…"
 msgstr "Laster opp %{n} av %{t}…"
@@ -4016,6 +4016,63 @@ msgstr "Tittel"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Arkivér"
+
+#~ msgid "Add files to your library via Web Upload."
+#~ msgstr "Legg til filer i biblioteket ditt ved hjelp av Nettopplasting."
+
+#~ msgid "Browse and edit image classification labels."
+#~ msgstr "Bla gjennom og rediger merkelapper for bildeklassifisering."
+
+#~ msgid "Browse and share your pictures organized into monthly albums."
+#~ msgstr "Bla gjennom og del bildene dine organisert i månedlige album."
+
+#~ msgid "Browse indexed files and folders in Library."
+#~ msgstr "Bla gjennom indekserte filer og mapper i Biblioteket."
+
+#~ msgid "Change personal profile and security settings."
+#~ msgstr "Endre personlig profil og sikkerhetsinnstillinger."
+
+#~ msgid "Change photo titles, locations, and other metadata."
+#~ msgstr "Endre fototitler, steder og andre metadata."
+
+#~ msgid "Download single files and zip archives."
+#~ msgstr "Last ned enkelte filer og zip-arkiver."
+
+#~ msgid "Edit the metadata, labels, and albums of multiple pictures at once."
+#~ msgstr "Rediger metadata, etiketter og album for flere bilder samtidig."
+
+#~ msgid "Exclude content marked as private from search results, shared albums, labels, and places."
+#~ msgstr "Ekskluder innhold merket som privat fra søkeresultater, delte album, etiketter og steder."
+
+#~ msgid "Generate albums of special moments, journeys, and places."
+#~ msgstr "Oppretter automatisk album med spesielle øyeblikk, turer og steder."
+
+#~ msgid "Hide photos that have been moved to archive."
+#~ msgstr "Skjul bilder som har blitt flyttet til arkivet."
+
+#~ msgid "Imported files will be sorted by date and given a unique name."
+#~ msgstr "Importerte filer vil bli sortert etter dato og gitt et unikt navn."
+
+#~ msgid "Index and import files through the user interface."
+#~ msgstr "Indekser og importer filer gjennom brukergrensesnittet."
+
+#~ msgid "Permanently remove files to free up storage."
+#~ msgstr "Permanent fjern bilder for å frigjøre lagringsplass."
+
+#~ msgid "Recognize faces so people can be assigned and found."
+#~ msgstr "Gjenkjenner ansikter slik at bestemte personer kan bli funnet."
+
+#~ msgid "Search and display photos on a map."
+#~ msgstr "Søk og vis bilder på et kart."
+
+#~ msgid "Share your pictures with other apps and services."
+#~ msgstr "Del bildene dine med andre apper og tjenester."
+
+#~ msgid "Show server logs in Library."
+#~ msgstr "Vis server-logger i Biblioteket."
+
+#~ msgid "Upload to WebDAV and share links with friends."
+#~ msgstr "Last opp til WebDAV og del lenker med venner."
 
 #~ msgid "Disable TensorFlow"
 #~ msgstr "Deaktiver TensorFlow"
