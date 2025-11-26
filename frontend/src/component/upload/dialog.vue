@@ -90,11 +90,11 @@
               </div>
               <div class="form-text">
                 <p v-if="isDemo">
-                  {{ $gettext(`You can upload up to %{n} files for test purposes.`, { n: fileLimit }) }}&nbsp;
+                  {{ $gettext(`You can upload up to %{n} files for test purposes.`, { n: fileLimit }) }}
                   {{ $gettext(`Please do not upload any private, unlawful or offensive pictures.`) }}
                 </p>
                 <p v-else-if="rejectNSFW">
-                  {{ $gettext(`Please don't upload photos containing offensive content.`) }}&nbsp;
+                  {{ $gettext(`Please don't upload photos containing offensive content.`) }}
                   {{ $gettext(`Uploads that may contain such images will be rejected automatically.`) }}
                 </p>
                 <p v-if="featReview">
