@@ -145,7 +145,7 @@
                 density="compact"
                 :label="$gettext('Private')"
                 :hint="
-                  $gettext('Hide private items from global views while keeping them accessible in the Private section.')
+                  $gettext('Hide private content from global views while keeping it accessible in the Private section.')
                 "
                 prepend-icon="mdi-lock"
                 persistent-hint
@@ -191,7 +191,7 @@
                 class="ma-0 pa-0 input-import"
                 density="compact"
                 :label="$gettext('Import')"
-                :hint="$gettext('Enable the Import tool to copy or move files from the Import folder to Originals.')"
+                :hint="$gettext('Allow files to be copied or moved from the Import to the Originals folder.')"
                 prepend-icon="mdi-folder-plus"
                 persistent-hint
                 @update:model-value="onChange"

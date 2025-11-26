@@ -396,6 +396,10 @@ msgstr ""
 msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
 msgstr ""
 
+#: src/page/settings/general.vue:194
+msgid "Allow files to be copied or moved from the Import to the Originals folder."
+msgstr ""
+
 #: src/page/settings/general.vue:269
 msgid "Allow files to be permanently deleted to free up storage space."
 msgstr ""
@@ -1353,10 +1357,6 @@ msgstr "불완전하거나 불안정할 수 있는 새로운 기능을 사용하
 msgid "Enable the file browser to navigate the Originals folder structure."
 msgstr ""
 
-#: src/page/settings/general.vue:194
-msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
-msgstr ""
-
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
 msgstr "RAW 변환기 사전 설정을 활성화합니다. 성능이 저하될 수 있습니다."
@@ -1689,7 +1689,7 @@ msgid "Hide"
 msgstr "숨기기"
 
 #: src/page/settings/general.vue:148
-msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgid "Hide private content from global views while keeping it accessible in the Private section."
 msgstr ""
 
 #: src/options/options.js:381

@@ -396,6 +396,10 @@ msgstr ""
 msgid "Allow editing the metadata, labels, and albums of multiple pictures at once."
 msgstr ""
 
+#: src/page/settings/general.vue:194
+msgid "Allow files to be copied or moved from the Import to the Originals folder."
+msgstr ""
+
 #: src/page/settings/general.vue:269
 msgid "Allow files to be permanently deleted to free up storage space."
 msgstr ""
@@ -1353,10 +1357,6 @@ msgstr "Activa les noves funcions que poden ser incompletes o inestables."
 msgid "Enable the file browser to navigate the Originals folder structure."
 msgstr ""
 
-#: src/page/settings/general.vue:194
-msgid "Enable the Import tool to copy or move files from the Import folder to Originals."
-msgstr ""
-
 #: src/page/settings/advanced.vue:395
 msgid "Enables RAW converter presets. May reduce performance."
 msgstr "Habilita els valors predefinits del convertidor RAW. Pot reduir el rendiment."
@@ -1689,7 +1689,7 @@ msgid "Hide"
 msgstr "Amagar"
 
 #: src/page/settings/general.vue:148
-msgid "Hide private items from global views while keeping them accessible in the Private section."
+msgid "Hide private content from global views while keeping it accessible in the Private section."
 msgstr ""
 
 #: src/options/options.js:381
