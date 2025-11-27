@@ -40,11 +40,11 @@
               class="bg-transparent v-table--batch-edit"
             >
               <template #header.select>
-                <v-checkbox :model-value="isAllSelected" hide-details density="compact" @update:model-value="toggleAll" />
+                <v-checkbox :model-value="isAllSelected" hide-details density="compact" class="toggle-all" @update:model-value="toggleAll" />
               </template>
 
               <template #item.select="{ item }">
-                <v-checkbox :model-value="isSelected(item)" hide-details density="compact" @update:model-value="toggle(item)" />
+                <v-checkbox :model-value="isSelected(item)" hide-details density="compact" class="toggle-select" @update:model-value="toggle(item)" />
               </template>
 
               <template #item.preview="{ item, index }">
@@ -99,11 +99,11 @@
                     class="elevation-0 ra-4 v-table--batch-edit"
                   >
                     <template #header.select>
-                      <v-checkbox :model-value="isAllSelected" hide-details density="compact" @update:model-value="toggleAll" />
+                      <v-checkbox :model-value="isAllSelected" hide-details density="compact" class="toggle-all" @update:model-value="toggleAll" />
                     </template>
 
                     <template #item.select="{ item }">
-                      <v-checkbox :model-value="isSelected(item)" hide-details density="compact" @update:model-value="toggle(item)" />
+                      <v-checkbox :model-value="isSelected(item)" hide-details density="compact" class="toggle-select" @update:model-value="toggle(item)" />
                     </template>
 
                     <template #item.preview="{ item, index }">
@@ -423,6 +423,7 @@
                       :empty-text="$gettext('No labels assigned')"
                       :loading="loading"
                       :disabled="false"
+                      class="input-labels"
                       @update:items="onLabelsUpdate"
                     />
                   </v-col>
@@ -437,6 +438,7 @@
                       :empty-text="$gettext('No albums assigned')"
                       :loading="loading"
                       :disabled="false"
+                      class="input-albums"
                       @update:items="onAlbumsUpdate"
                     />
                   </v-col>
