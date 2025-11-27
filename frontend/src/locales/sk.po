@@ -2626,6 +2626,11 @@ msgstr "Členstvo v programe PhotoPrism+"
 msgid "Photos"
 msgstr "Fotky"
 
+#: src/component/photo/batch-edit.vue:629
+#: src/component/photo/batch-edit.vue:649
+msgid "Picture"
+msgstr ""
+
 #: src/component/album/edit/dialog.vue:146 src/component/photo/toolbar.vue:414
 #: src/component/photo/toolbar.vue:425 src/component/photo/toolbar.vue:436
 msgid "Picture Title"
@@ -2721,8 +2726,7 @@ msgstr "Zabráňte vytváraniu záloh databáz a albumov, ako aj súborov YAML s
 msgid "Prevent other apps from accessing PhotoPrism as a shared network drive."
 msgstr "Zabráňte iným aplikáciám v prístupe k aplikácii PhotoPrism ako k zdieľanej sieťovej jednotke."
 
-#: src/component/photo/batch-edit.vue:629
-#: src/component/photo/batch-edit.vue:649 src/component/photo/edit/files.vue:30
+#: src/component/photo/edit/files.vue:30
 msgid "Preview"
 msgstr "Ukážka"
 

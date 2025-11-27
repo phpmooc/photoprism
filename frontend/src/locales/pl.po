@@ -2625,6 +2625,11 @@ msgstr "Członkostwo w PhotoPrism+"
 msgid "Photos"
 msgstr "Zdjęcia"
 
+#: src/component/photo/batch-edit.vue:629
+#: src/component/photo/batch-edit.vue:649
+msgid "Picture"
+msgstr ""
+
 #: src/component/album/edit/dialog.vue:146 src/component/photo/toolbar.vue:414
 #: src/component/photo/toolbar.vue:425 src/component/photo/toolbar.vue:436
 msgid "Picture Title"
@@ -2720,8 +2725,7 @@ msgstr "Zapobiegaj tworzeniu kopii zapasowych bazy danych i albumów, a także p
 msgid "Prevent other apps from accessing PhotoPrism as a shared network drive."
 msgstr "Uniemożliw innym aplikacjom dostęp do PhotoPrism jako udostępnionego dysku sieciowego."
 
-#: src/component/photo/batch-edit.vue:629
-#: src/component/photo/batch-edit.vue:649 src/component/photo/edit/files.vue:30
+#: src/component/photo/edit/files.vue:30
 msgid "Preview"
 msgstr "Podgląd"
 

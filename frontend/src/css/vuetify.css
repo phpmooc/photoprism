@@ -570,9 +570,14 @@ div.v-dialog.v-dialog--fullscreen > div.v-card {
     box-shadow: none;
 }
 
+.v-table > .v-table__wrapper > table {
+    border-spacing: 2px;
+}
+
 .v-table.v-table--batch-edit tr,
 .v-table.v-table--batch-edit tr th,
 .v-table.v-table--batch-edit tr td {
+    border-top: none !important;
     border-bottom: none !important;
     text-align: start;
 }
@@ -580,6 +585,9 @@ div.v-dialog.v-dialog--fullscreen > div.v-card {
 .v-table.v-table--batch-edit tr th {
     overflow: visible;
     white-space: nowrap;
+    font-size: 0.875rem;
+    line-height: 1;
+    height: 32px !important;
 }
 
 .v-table.v-table--batch-edit tr th,

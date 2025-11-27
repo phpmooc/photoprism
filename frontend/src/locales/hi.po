@@ -2626,6 +2626,11 @@ msgstr "फोटोप्रिज्म+ सदस्यता"
 msgid "Photos"
 msgstr "तस्वीरें"
 
+#: src/component/photo/batch-edit.vue:629
+#: src/component/photo/batch-edit.vue:649
+msgid "Picture"
+msgstr ""
+
 #: src/component/album/edit/dialog.vue:146 src/component/photo/toolbar.vue:414
 #: src/component/photo/toolbar.vue:425 src/component/photo/toolbar.vue:436
 msgid "Picture Title"
@@ -2721,8 +2726,7 @@ msgstr "डेटाबेस और एल्बम बैकअप के स�
 msgid "Prevent other apps from accessing PhotoPrism as a shared network drive."
 msgstr "अन्य ऐप्स को साझा नेटवर्क ड्राइव के रूप में PhotoPrism तक पहुंचने से रोकें।"
 
-#: src/component/photo/batch-edit.vue:629
-#: src/component/photo/batch-edit.vue:649 src/component/photo/edit/files.vue:30
+#: src/component/photo/edit/files.vue:30
 msgid "Preview"
 msgstr "पूर्वावलोकन"
 

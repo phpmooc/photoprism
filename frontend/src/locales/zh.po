@@ -2627,6 +2627,11 @@ msgstr "照片棱镜+会员资格"
 msgid "Photos"
 msgstr "照片"
 
+#: src/component/photo/batch-edit.vue:629
+#: src/component/photo/batch-edit.vue:649
+msgid "Picture"
+msgstr ""
+
 #: src/component/album/edit/dialog.vue:146 src/component/photo/toolbar.vue:414
 #: src/component/photo/toolbar.vue:425 src/component/photo/toolbar.vue:436
 msgid "Picture Title"
@@ -2722,8 +2727,7 @@ msgstr "防止创建数据库和相册备份以及 YAML sidecar 文件。"
 msgid "Prevent other apps from accessing PhotoPrism as a shared network drive."
 msgstr "防止其他应用程序将 PhotoPrism 作为共享网络驱动器访问。"
 
-#: src/component/photo/batch-edit.vue:629
-#: src/component/photo/batch-edit.vue:649 src/component/photo/edit/files.vue:30
+#: src/component/photo/edit/files.vue:30
 msgid "Preview"
 msgstr "预览"
 

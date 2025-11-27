@@ -626,7 +626,7 @@ export default {
         },
         {
           key: "preview",
-          title: this.$gettext(`Preview`),
+          title: this.$gettext(`Picture`),
           sortable: false,
           headerProps: { class: "col-preview" },
         },
@@ -646,7 +646,7 @@ export default {
         },
         {
           key: "preview",
-          title: this.$gettext(`Preview`),
+          title: this.$gettext(`Picture`),
           sortable: false,
           headerProps: { class: "col-preview" },
         },

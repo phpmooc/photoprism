@@ -2623,6 +2623,11 @@ msgstr "PhotoPrism+ Lidmaatskap"
 msgid "Photos"
 msgstr "Foto's"
 
+#: src/component/photo/batch-edit.vue:629
+#: src/component/photo/batch-edit.vue:649
+msgid "Picture"
+msgstr ""
+
 #: src/component/album/edit/dialog.vue:146 src/component/photo/toolbar.vue:414
 #: src/component/photo/toolbar.vue:425 src/component/photo/toolbar.vue:436
 msgid "Picture Title"
@@ -2718,8 +2723,7 @@ msgstr "Verhoed dat databasis- en albumrugsteun sowel as YAML-syspanlêers geske
 msgid "Prevent other apps from accessing PhotoPrism as a shared network drive."
 msgstr "Verhoed dat ander programme toegang tot PhotoPrism as 'n gedeelde netwerkaandrywer verkry."
 
-#: src/component/photo/batch-edit.vue:629
-#: src/component/photo/batch-edit.vue:649 src/component/photo/edit/files.vue:30
+#: src/component/photo/edit/files.vue:30
 msgid "Preview"
 msgstr "Voorskou"
 
