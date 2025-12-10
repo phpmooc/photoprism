@@ -335,7 +335,7 @@ services:
 
   ## Dummy WebDAV Server
   dummy-webdav:
-    image: photoprism/dummy-webdav:251124
+    image: photoprism/dummy-webdav:251210
     stop_grace_period: 10s
     environment:
       WEBDAV_USERNAME: admin
@@ -352,7 +352,7 @@ services:
 
   ## Dummy OIDC Identity Provider
   dummy-oidc:
-    image: photoprism/dummy-oidc:251124
+    image: photoprism/dummy-oidc:251210
     stop_grace_period: 5s
     labels:
       - "traefik.enable=true"
