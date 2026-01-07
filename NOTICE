@@ -9,7 +9,7 @@ The following 3rd-party software packages may be used by or distributed with
 PhotoPrism. Any information relevant to third-party vendors listed below are
 collected using common, reasonable means.
 
-Date generated: 2025-12-29
+Date generated: 2026-01-07
 
 ================================================================================
 
@@ -5353,8 +5353,8 @@ License: Apache-2.0 (https://github.com/prometheus/client_model/blob/v0.6.2/LICE
 --------------------------------------------------------------------------------
 
 Package: github.com/prometheus/common
-Version: v0.67.4
-License: Apache-2.0 (https://github.com/prometheus/common/blob/v0.67.4/LICENSE)
+Version: v0.67.5
+License: Apache-2.0 (https://github.com/prometheus/common/blob/v0.67.5/LICENSE)
 
                                  Apache License
                            Version 2.0, January 2004
@@ -8324,8 +8324,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 
 Package: golang.org/x/oauth2
-Version: v0.33.0
-License: BSD-3-Clause (https://cs.opensource.google/go/x/oauth2/+/v0.33.0:LICENSE)
+Version: v0.34.0
+License: BSD-3-Clause (https://cs.opensource.google/go/x/oauth2/+/v0.34.0:LICENSE)
 
 Copyright 2009 The Go Authors.
 
