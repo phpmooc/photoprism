@@ -32,8 +32,11 @@ This file tells automated coding agents (and humans) where to find the single so
   - Auto-generated configuration and command references live under `specs/generated/`. Agents MUST NOT read, analyse, or modify anything in this directory; refer humans to `specs/generated/README.md` if regeneration is required.
 - Regenerate `NOTICE` files with `make notice` when dependencies change (e.g., updates to `go.mod`, `go.sum`, `package-lock.json`, or other lockfiles). Do not edit `NOTICE` or `frontend/NOTICE` manually.
 - When writing CLI examples or scripts, place option flags before positional arguments unless the command requires a different order.
+- Use RFC 3339 UTC timestamps in request and response examples, and valid ID, UID and UUID examples in docs and tests.
 
 > Document headings must use **Title Case** (in APA or AP style) across Markdown files to keep generated navigation and changelogs consistent. Always spell the product name as `PhotoPrism`; this proper noun is an exception to generic naming rules.
+
+> Refresh the `**Last Updated:**` date at the top of documents whenever you make changes to their contents, using the format `January 20, 2026` (without time); leave it as-is for simple formatting or whitespace-only edits.
 
 ## Safety & Data
 
@@ -161,8 +164,6 @@ Note: Across our public documentation, official images, and in production, the c
 - Every Go package must contain a `<package>.go` file in its root (for example, `internal/auth/jwt/jwt.go`) with the standard license header and a short package description comment explaining its purpose.
 - JS/Vue: use the lint/format scripts in `frontend/package.json` (ESLint + Prettier)
 - All added code and tests **must** be formatted according to our standards.
-
-> Remember to update the `**Last Updated:**` line at the top whenever you edit these guidelines or other files containing a timestamp.
 
 ## Tests
 
