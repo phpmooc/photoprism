@@ -184,7 +184,7 @@ Note: Across our public documentation, official images, and in production, the c
   Use `playwright__browser_navigate` to open `/library/login`, sign in, and then call `playwright__browser_take_screenshot` to capture the page state.
 - **Viewport Defaults** — Desktop sessions open with a `1280×900` viewport by default.
   Use `playwright__browser_resize` if the viewport is not preconfigured or you need to adjust it mid-run.
-- **Mobile Workflows** — When testing responsive layouts, use the `playwright_mobile` server (for example, `playwright_mobile__browser_navigate`).  
+- **Mobile Workflows** — When testing responsive layouts, use the `playwright_mobile` server (for example, `playwright_mobile__browser_navigate`).
   It launches with a `375×667` viewport, matching a typical smartphone display, so you can capture mobile layouts without manual resizing.
 - **Authentication** — Default admin credentials are `admin` / `photoprism`:
   - If login fails, check your active Compose file or container environment for `PHOTOPRISM_ADMIN_USER` and `PHOTOPRISM_ADMIN_PASSWORD`.
