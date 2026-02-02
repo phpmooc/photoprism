@@ -9,7 +9,7 @@ The following 3rd-party software packages may be used by or distributed with
 PhotoPrism. Any information relevant to third-party vendors listed below are
 collected using common, reasonable means.
 
-Date generated: 2026-02-01
+Date generated: 2026-02-02
 
 ================================================================================
 
@@ -1122,8 +1122,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------------------
 
 Package: github.com/gabriel-vasile/mimetype
-Version: v1.4.12
-License: MIT (https://github.com/gabriel-vasile/mimetype/blob/v1.4.12/LICENSE)
+Version: v1.4.13
+License: MIT (https://github.com/gabriel-vasile/mimetype/blob/v1.4.13/LICENSE)
 
 MIT License
 
