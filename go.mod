@@ -92,7 +92,7 @@ require (
 	github.com/yalue/onnxruntime_go v1.25.0
 	github.com/zitadel/oidc/v3 v3.45.3
 	golang.org/x/mod v0.32.0
-	golang.org/x/sys v0.40.0
+	golang.org/x/sys v0.41.0
 	google.golang.org/protobuf v1.36.11
 )
 
