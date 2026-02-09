@@ -62,6 +62,31 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 
+// SetEnvForTest sets an environment variable and restores its original value after the test.
+func SetEnvForTest(t *testing.T, key, value string) {
+	t.Helper()
+
+	previous, hadPrevious := os.LookupEnv(key)
+
+	if err := os.Setenv(key, value); err != nil {
+		t.Fatalf("set env %s: %v", key, err)
+	}
+
+	t.Cleanup(func() {
+		var restoreErr error
+
+		if hadPrevious {
+			restoreErr = os.Setenv(key, previous)
+		} else {
+			restoreErr = os.Unsetenv(key)
+		}
+
+		if restoreErr != nil {
+			t.Errorf("restore env %s: %v", key, restoreErr)
+		}
+	})
+}
+
 // NewTestContext creates a new CLI test context with the flags and arguments provided.
 func NewTestContext(args []string) *cli.Context {
 	// Create new command-line test app.

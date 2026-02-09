@@ -174,6 +174,9 @@ func TestFolder_SetForm(t *testing.T) {
 		formValues := Folder{FolderTitle: "Beautiful beach"}
 
 		folderForm, err := form.NewFolder(formValues)
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		folder := NewFolder("oldRoot", "oldPath", time.Now().UTC())
 
