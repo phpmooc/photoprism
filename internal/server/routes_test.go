@@ -164,7 +164,7 @@ func TestWebAppRoutes(t *testing.T) {
 		for _, tc := range getCases {
 			t.Run(tc.name, func(t *testing.T) {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, tc.path, nil)
+				req := httptest.NewRequest(header.MethodGet, tc.path, nil)
 				swRouter.ServeHTTP(w, req)
 				assert.Equal(t, http.StatusOK, w.Code)
 				assert.Equal(t, tc.expected, w.Body.String())
@@ -186,7 +186,7 @@ func TestWebAppRoutes(t *testing.T) {
 		for _, tc := range headCases {
 			t.Run(tc.name, func(t *testing.T) {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodHead, tc.path, nil)
+				req := httptest.NewRequest(header.MethodHead, tc.path, nil)
 				swRouter.ServeHTTP(w, req)
 				assert.Equal(t, http.StatusOK, w.Code)
 				assert.Empty(t, w.Body.String())

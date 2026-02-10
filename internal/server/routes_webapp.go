@@ -14,7 +14,7 @@ import (
 )
 
 // MethodsGetHead enumerates the safe GET/HEAD methods used by web app routes.
-var MethodsGetHead = []string{http.MethodGet, http.MethodHead}
+var MethodsGetHead = []string{header.MethodGet, header.MethodHead}
 
 // registerWebAppRoutes adds routes for the web user interface.
 func registerWebAppRoutes(router *gin.Engine, conf *config.Config) {
@@ -63,7 +63,7 @@ func registerWebAppRoutes(router *gin.Engine, conf *config.Config) {
 		c.Header(header.CacheControl, header.CacheControlNoStore)
 
 		// Return if only headers are requested.
-		if c.Request.Method == http.MethodHead {
+		if c.Request.Method == header.MethodHead {
 			c.Header(header.ContentType, header.ContentTypeJavaScript)
 			return
 		}
@@ -93,7 +93,7 @@ func registerWebAppRoutes(router *gin.Engine, conf *config.Config) {
 		c.Header(header.CacheControl, header.CacheControlNoStore)
 
 		// Return if only headers are requested.
-		if c.Request.Method == http.MethodHead {
+		if c.Request.Method == header.MethodHead {
 			c.Header(header.ContentType, header.ContentTypeJavaScript)
 			return
 		}
@@ -150,7 +150,7 @@ func newWorkboxHandler(conf *config.Config) gin.HandlerFunc {
 		}
 
 		// Return if only headers are requested.
-		if c.Request.Method == http.MethodHead {
+		if c.Request.Method == header.MethodHead {
 			c.Header(header.ContentType, header.ContentTypeJavaScript)
 			return
 		}
