@@ -88,12 +88,14 @@ Testing
 - Vitest config: `frontend/vitest.config.js` (Vue plugin, alias map to `src/*`), `tests/vitest/**/*`
 - Run: `cd frontend && npm run test` (or `make test-js` from repo root)
 - Acceptance: TestCafe configs in `frontend/tests/acceptance`; run against a live server
+- Detailed test/lint guide (humans + agents): `frontend/tests/README.md`
 
 Build & Tooling
 - Webpack is used for bundling; scripts in `frontend/package.json`:
   - `npm run build` (prod), `npm run build-dev` (dev), `npm run watch`
   - Lint/format: `npm run lint` or `make lint-js`; repo root `make lint` runs both backend (golangci-lint via `.golangci.yml`) and frontend linters
   - Security scan: `npm run security:scan` (checks `--ignore-scripts` and forbids `v-html`)
+- ESLint v10 migration status and upgrade checklist are documented in `frontend/tests/README.md`.
 - Licensing: run `make notice` from the repo root to regenerate `NOTICE` files after dependency changes—never edit them manually.
 - Make targets (from repo root): `make build-js`, `make watch-js`, `make test-js`
 - Browser automation (Playwright MCP): workflows are documented in `AGENTS.md` under “Playwright MCP Usage”; use those directions when agents need to script UI checks or capture screenshots.
