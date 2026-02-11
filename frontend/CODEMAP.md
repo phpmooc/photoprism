@@ -1,6 +1,6 @@
 PhotoPrism — Frontend CODEMAP
 
-**Last Updated:** February 8, 2026
+**Last Updated:** February 11, 2026
 
 Purpose
 - Help agents and contributors navigate the Vue 3 + Vuetify 3 app quickly and make safe changes.
@@ -66,6 +66,14 @@ Models (REST)
 - Base class: `src/model/rest.js` provides `search`, `find`, `save`, `update`, `remove` for concrete models (`photo`, `album`, `label`, `subject`, etc.)
 - Collection helpers: `src/model/collection.js` adds shared behaviors (for example `setCover`) used by collection-types such as albums and labels.
 - Pagination headers used: `X-Count`, `X-Limit`, `X-Offset`
+
+Hidden Error Reasons
+- Hidden reason resolution is centralized in `src/model/photo.js` via `Photo.getHiddenReason()`, which prefers `FileError` from search results and falls back to `Files[*].Error` (primary file first).
+- Hidden errors are rendered in regular result views only:
+  - Cards: `src/component/photo/view/cards.vue`
+  - List: `src/component/photo/view/list.vue`
+  - Mosaic intentionally omits the error row because that layout has no metadata line for message text.
+- Edit Dialog file-level errors are shown in `src/component/photo/edit/files.vue` with an outlined alert (`mdi-alert-circle-outline`), so this visual style can differ from result-view metadata icons.
 
 Routing Conventions
 - Add pages under `src/page/<area>/...` and import them in `src/app/routes.js`
