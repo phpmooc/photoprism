@@ -180,9 +180,18 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"cluster-cidr", c.ClusterCIDR()},
 		{"cluster-uuid", c.ClusterUUID()},
 		{"portal-url", c.PortalUrl()},
-		{"portal-proxy", fmt.Sprintf("%t", c.PortalProxy())},
-		{"portal-config-path", c.PortalConfigPath()},
-		{"portal-theme-path", c.PortalThemePath()},
+	}...)
+
+	if c.Portal() {
+		rows = append(rows, [][]string{
+			{"portal-proxy", fmt.Sprintf("%t", c.PortalProxy())},
+			{"portal-proxy-prefix", c.PortalProxyPrefix()},
+			{"portal-config-path", c.PortalConfigPath()},
+			{"portal-theme-path", c.PortalThemePath()},
+		}...)
+	}
+
+	rows = append(rows, [][]string{
 		{"join-token", strings.Repeat("*", utf8.RuneCountInString(c.JoinToken()))},
 		{"node-name", c.NodeName()},
 		{"node-role", c.NodeRole()},
@@ -194,13 +203,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"jwt-scope", c.JWTAllowedScopes().String()},
 		{"jwt-leeway", fmt.Sprintf("%d", c.JWTLeeway())},
 		{"advertise-url", c.AdvertiseUrl()},
-	}...)
 
-	if c.Portal() {
-		rows = append(rows, []string{"portal-proxy-prefix", c.PortalProxyPrefix()})
-	}
-
-	rows = append(rows, [][]string{
 		// Proxy Servers.
 		{"https-proxy", c.HttpsProxy()},
 		{"https-proxy-insecure", fmt.Sprintf("%t", c.HttpsProxyInsecure())},

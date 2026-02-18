@@ -83,22 +83,50 @@ func TestConfig_ReportDatabaseSection(t *testing.T) {
 	})
 }
 
-func TestConfig_ReportPortalProxyPrefix(t *testing.T) {
-	conf := NewConfig(CliTestContext())
-	conf.options.NodeRole = cluster.RolePortal
-	conf.options.PortalProxyPrefix = "/tenant/"
+func TestConfig_ReportPortalSettingsVisibility(t *testing.T) {
+	collect := func(rows [][]string) map[string]string {
+		result := make(map[string]string, len(rows))
 
-	rows, _ := conf.Report()
+		for _, row := range rows {
+			if len(row) < 2 {
+				continue
+			}
 
-	found := false
-	for _, row := range rows {
-		if len(row) < 2 || row[0] != "portal-proxy-prefix" {
-			continue
+			result[row[0]] = row[1]
 		}
 
-		found = true
-		assert.Equal(t, "/tenant/", row[1])
+		return result
 	}
 
-	assert.True(t, found)
+	t.Run("NonPortalOmitsPortalSettings", func(t *testing.T) {
+		conf := NewConfig(CliTestContext())
+		conf.options.NodeRole = cluster.RoleApp
+
+		rows, _ := conf.Report()
+		values := collect(rows)
+
+		_, hasProxy := values["portal-proxy"]
+		_, hasPrefix := values["portal-proxy-prefix"]
+		_, hasConfigPath := values["portal-config-path"]
+		_, hasThemePath := values["portal-theme-path"]
+
+		assert.False(t, hasProxy)
+		assert.False(t, hasPrefix)
+		assert.False(t, hasConfigPath)
+		assert.False(t, hasThemePath)
+	})
+	t.Run("PortalIncludesPortalSettings", func(t *testing.T) {
+		conf := NewConfig(CliTestContext())
+		conf.options.NodeRole = cluster.RolePortal
+		conf.options.PortalProxy = true
+		conf.options.PortalProxyPrefix = "/tenant/"
+
+		rows, _ := conf.Report()
+		values := collect(rows)
+
+		assert.Equal(t, "true", values["portal-proxy"])
+		assert.Equal(t, "/tenant/", values["portal-proxy-prefix"])
+		assert.Equal(t, conf.PortalConfigPath(), values["portal-config-path"])
+		assert.Equal(t, conf.PortalThemePath(), values["portal-theme-path"])
+	})
 }
