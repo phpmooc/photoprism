@@ -6376,8 +6376,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------------------
 
 Package: github.com/yalue/onnxruntime_go
-Version: v1.25.0
-License: MIT (https://github.com/yalue/onnxruntime_go/blob/v1.25.0/LICENSE)
+Version: v1.26.0
+License: MIT (https://github.com/yalue/onnxruntime_go/blob/v1.26.0/LICENSE)
 
 Copyright (c) 2023 Nathan Otterness
 
