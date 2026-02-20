@@ -67,6 +67,7 @@ frontend/coverage/
 /TODO.md
 /DONE.md
 /REPOS.md
+/CLAUDE.md
 
 # Files created automatically by editors and/or operating systems:
 .DS_Store
@@ -80,6 +81,7 @@ Thumbs.db
 .glide
 .idea
 .codex
+.claude
 .config
 .local
 .project

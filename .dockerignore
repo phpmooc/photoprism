@@ -74,6 +74,7 @@ Thumbs.db
 .heartbeat
 .idea
 .codex
+.claude
 .config
 .local
 *~
@@ -87,3 +88,4 @@ Thumbs.db
 /TODO.md
 /DONE.md
 /REPOS.md
+/CLAUDE.md
