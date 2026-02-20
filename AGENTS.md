@@ -1,6 +1,6 @@
 # PhotoPrism® — Repository Guidelines
 
-**Last Updated:** February 14, 2026
+**Last Updated:** February 20, 2026
 
 ## Purpose
 
@@ -18,6 +18,12 @@ This file tells automated coding agents (and humans) where to find the single so
 - Packages: `README.md` files under `internal/`, `pkg/`, and `frontend/src/`, e.g. [`internal/photoprism/README.md`](internal/photoprism/README.md), [`internal/photoprism/batch/README.md`](internal/photoprism/batch/README.md), [`internal/config/README.md`](internal/config/README.md), [`internal/server/README.md`](internal/server/README.md), [`internal/api/README.md`](internal/api/README.md), [`internal/thumb/README.md`](internal/thumb/README.md), [`internal/ffmpeg/README.md`](internal/ffmpeg/README.md), and [`frontend/src/common/README.md`](frontend/src/common/README.md).
 - Face Detection & Embeddings: [`internal/ai/face/README.md`](internal/ai/face/README.md)
 - Vision Config & Engines: [`internal/ai/vision/README.md`](internal/ai/vision/README.md), [`internal/ai/vision/openai/README.md`](internal/ai/vision/openai/README.md), [`internal/ai/vision/ollama/README.md`](internal/ai/vision/ollama/README.md)
+
+### Local Agent Progress
+
+- Use a root-level `TODO.md` file to track local agent progress and handoff notes across sessions/environments.
+- `TODO.md` is ignored by Git and may not exist yet in a given local workspace.
+- Create or update it locally as needed, but do not treat it as a required artifact.
 
 > Quick Tip: to inspect GitHub issue details without leaving the terminal, run `curl -s https://api.github.com/repos/photoprism/photoprism/issues/<id>`.
 
