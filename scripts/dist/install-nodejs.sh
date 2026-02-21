@@ -47,7 +47,7 @@ sudo npm install -g --no-fund npm@latest n@latest
 echo "Installing npm-check-updates and license-report..."
 sudo npm install -g --ignore-scripts --no-fund --no-audit --no-update-notifier npm-check-updates@latest license-report@latest
 echo "Installing TestCafe..."
-sudo npm install -g --ignore-scripts --no-fund --no-audit --no-update-notifier testcafe@3.7.2
+sudo npm install -g --ignore-scripts --no-fund --no-audit --no-update-notifier testcafe@3.7.4
 echo "Installing Vitest..."
 sudo npm install -g --ignore-scripts --no-fund --no-audit --no-update-notifier vitest @vitest/browser @vitest/coverage-v8 @vitest/ui
 echo "Installing ESLint..."
