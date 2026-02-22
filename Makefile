@@ -153,6 +153,8 @@ gettext-merge:
 	./scripts/gettext-merge.sh
 gettext-extract:
 	./scripts/gettext-extract.sh
+gettext-compile:
+	$(MAKE) -C frontend gettext-compile
 gettext-clear-fuzzy:
 	./scripts/gettext-clear-fuzzy.sh
 clean:
