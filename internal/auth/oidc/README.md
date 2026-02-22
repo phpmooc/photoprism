@@ -1,6 +1,6 @@
 ## PhotoPrism — OIDC Integration
 
-**Last Updated:** November 27, 2025
+**Last Updated:** February 22, 2026
 
 ### Overview
 
@@ -40,7 +40,7 @@
 
 - `internal/server/routes.go` registers the OIDC auth and callback endpoints.
 - `pkg/authn` defines required scopes and shared auth helpers.
-- `internal/auth/acl` and (Pro) `pro/internal/auth/ldap` handle role/group mapping; the planned OIDC group parsing will mirror this logic.
+- `internal/auth/acl` and private extension LDAP packages (`pro/internal/auth/ldap`, `portal/internal/auth/ldap`) handle role/group mapping; the planned OIDC group parsing will mirror this logic.
 - `internal/config` provides OIDC options/flags (issuer, client ID/secret, scopes, insecure).
 - `internal/event` supplies the logger used for audit and error reporting.
 

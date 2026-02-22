@@ -1,6 +1,6 @@
 # PhotoPrism® — Repository Guidelines
 
-**Last Updated:** February 21, 2026
+**Last Updated:** February 22, 2026
 
 ## Purpose
 
@@ -77,7 +77,7 @@ This file tells automated coding agents (and humans) where to find the single so
 
 - HTML entrypoints live under `assets/templates/`; key files are `index.gohtml`, `app.gohtml`, `app.js.gohtml`, and `splash.gohtml`. The browser check logic resides in `assets/static/js/browser-check.js` and is included via `app.js.gohtml`; it performs capability checks (Promise, fetch, AbortController, `script.noModule`, etc.) before the main bundle executes.
 - To preserve the fallback messaging, keep the script order in `app.js.gohtml` so `browser-check.js` loads before the bundle script (`{{ .config.JsUri }}`). Do not add `defer` or `async` to the bundle tag unless you reintroduce a guarded loader.
-- The same loader partial is reused in private packages (`pro/assets/templates/index.gohtml`, `plus/assets/templates/index.gohtml`). Whenever you touch `app.js.gohtml` or change how we load the bundle, mirror the update by running commands such as `cd pro && sed -n '1,160p' assets/templates/index.gohtml` (and similarly for `plus`) to confirm they include the shared partial instead of hard-coding the bundle tag.
+- The same loader partial is reused in private packages (`pro/assets/templates/index.gohtml`, `plus/assets/templates/index.gohtml`, `portal/assets/templates/index.gohtml`). Whenever you touch `app.js.gohtml` or change how we load the bundle, mirror the update by running commands such as `cd pro && sed -n '1,160p' assets/templates/index.gohtml` (and similarly for `plus` and `portal`) to confirm they include the shared partial instead of hard-coding the bundle tag.
 - Splash styles are defined in `frontend/src/css/splash.css`. Add new splash elements (for example `.splash-warning`) there so both public and private editions remain visually consistent.
 - Browser baseline: PhotoPrism requires Safari 13 / iOS 13 or current Chrome, Edge, or Firefox. Update the message in `assets/templates/app.js.gohtml` (and the matching CSS) if support changes.
 
@@ -160,7 +160,7 @@ console.log(inContainer ? "container" : "host");
   - Admin Login: Local compose files set `PHOTOPRISM_ADMIN_USER=admin` and `PHOTOPRISM_ADMIN_PASSWORD=photoprism`; if the credentials differ, inspect `compose.yaml` (or the active environment) for these variables before logging in.
   - Do not use the Docker CLI inside the container; starting/stopping services requires host Docker access. If you need to manage compose while inside the dev container, switch to host mode (or ask a human) instead of running `docker compose` there.
 
-Note: Across our public documentation, official images, and in production, the command-line interface (CLI) name is `photoprism`. Other PhotoPrism binary names are only used in development builds for side-by-side comparisons of the Community Edition (CE) with PhotoPrism Plus (`photoprism-plus`) and PhotoPrism Pro (`photoprism-pro`).
+Note: Across our public documentation, official images, and in production, the command-line interface (CLI) name is `photoprism`. Other PhotoPrism binary names are only used in development builds for side-by-side comparisons of the Community Edition (CE) with PhotoPrism Plus (`photoprism-plus`), PhotoPrism Pro (`photoprism-pro`), and PhotoPrism Portal (`photoprism-portal`).
 
 ### Operating Systems & Architectures
 
