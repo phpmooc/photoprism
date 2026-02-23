@@ -3,7 +3,6 @@ package commands
 import (
 	"context"
 	"path/filepath"
-	"strings"
 	"time"
 
 	"github.com/dustin/go-humanize/english"
@@ -59,11 +58,10 @@ func indexAction(ctx *cli.Context) error {
 	defer conf.Shutdown()
 
 	// Use first argument to limit scope if set.
-	rawSubPath := strings.TrimSpace(ctx.Args().First())
-	subPath := clean.UserPath(rawSubPath)
+	subPath, err := sanitizeSubfolderArg(ctx.Args().First())
 
-	if rawSubPath != "" && subPath == "" {
-		return cli.Exit("invalid subfolder path", 2)
+	if err != nil {
+		return err
 	}
 
 	if subPath == "" {
