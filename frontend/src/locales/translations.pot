@@ -240,7 +240,7 @@ msgstr ""
 
 #: src/component/navigation.vue:196
 #: src/component/navigation.vue:413
-#: src/page/cluster.vue:52
+#: src/page/cluster.vue:69
 #: src/page/admin.vue:76
 #: src/locales.js:352
 msgid "Activity"
@@ -2267,6 +2267,9 @@ msgstr ""
 msgid "Information"
 msgstr ""
 
+#: src/model/cluster-node.js:7
+#: src/model/cluster-node.js:8
+#: src/model/cluster-node.js:9
 #: src/locales.js:364
 msgid "Instance"
 msgstr ""
@@ -2276,6 +2279,10 @@ msgstr ""
 msgid "Instance ID"
 msgstr ""
 
+#: src/component/navigation.vue:168
+#: src/component/navigation.vue:431
+#: src/component/navigation.vue:434
+#: src/page/cluster.vue:61
 #: src/locales.js:365
 msgid "Instances"
 msgstr ""
@@ -4358,19 +4365,6 @@ msgstr ""
 
 #: src/options/options.js:452
 msgid "Teal"
-msgstr ""
-
-#: src/model/cluster-node.js:7
-#: src/model/cluster-node.js:8
-#: src/model/cluster-node.js:9
-msgid "Tenant"
-msgstr ""
-
-#: src/component/navigation.vue:168
-#: src/component/navigation.vue:431
-#: src/component/navigation.vue:434
-#: src/page/cluster.vue:44
-msgid "Tenants"
 msgstr ""
 
 #: src/options/options.js:322

@@ -195,7 +195,7 @@ msgid "Activation Code"
 msgstr "Aktivačný kód"
 
 #: src/component/navigation.vue:196 src/component/navigation.vue:413
-#: src/page/cluster.vue:52 src/page/admin.vue:76 src/locales.js:352
+#: src/page/cluster.vue:69 src/page/admin.vue:76 src/locales.js:352
 msgid "Activity"
 msgstr "Aktivita"
 
@@ -1830,7 +1830,8 @@ msgstr "Indexovanie médií a pripojených súborov…"
 msgid "Information"
 msgstr "Informácie"
 
-#: src/locales.js:364
+#: src/model/cluster-node.js:7 src/model/cluster-node.js:8
+#: src/model/cluster-node.js:9 src/locales.js:364
 msgid "Instance"
 msgstr "Inštancia"
 
@@ -1838,7 +1839,8 @@ msgstr "Inštancia"
 msgid "Instance ID"
 msgstr "ID Inštancie"
 
-#: src/locales.js:365
+#: src/component/navigation.vue:168 src/component/navigation.vue:431
+#: src/component/navigation.vue:434 src/page/cluster.vue:61 src/locales.js:365
 msgid "Instances"
 msgstr "Inštancie"
 
@@ -3541,16 +3543,6 @@ msgstr "Zachytené"
 #: src/options/options.js:452
 msgid "Teal"
 msgstr "Modrozelený"
-
-#: src/model/cluster-node.js:7 src/model/cluster-node.js:8
-#: src/model/cluster-node.js:9
-msgid "Tenant"
-msgstr ""
-
-#: src/component/navigation.vue:168 src/component/navigation.vue:431
-#: src/component/navigation.vue:434 src/page/cluster.vue:44
-msgid "Tenants"
-msgstr ""
 
 #: src/options/options.js:322
 msgid "Terrain"
