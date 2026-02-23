@@ -14,7 +14,7 @@ const (
 	RoleViewer  Role = "viewer"
 	RoleGuest   Role = "guest"
 	RoleVisitor Role = "visitor"
-	RoleApp     Role = "app"
+	RoleTenant  Role = "tenant"
 	RoleService Role = "service"
 	RolePortal  Role = "portal"
 	RoleClient  Role = "client"

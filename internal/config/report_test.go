@@ -100,7 +100,7 @@ func TestConfig_ReportPortalSettingsVisibility(t *testing.T) {
 
 	t.Run("NonPortalOmitsPortalSettings", func(t *testing.T) {
 		conf := NewConfig(CliTestContext())
-		conf.options.NodeRole = cluster.RoleApp
+		conf.options.NodeRole = cluster.RoleTenant
 
 		rows, _ := conf.Report()
 		values := collect(rows)
@@ -162,7 +162,7 @@ func TestConfig_ReportThemeURLVisibility(t *testing.T) {
 	t.Run("CommunityOmitsThemeURL", func(t *testing.T) {
 		Features = Community
 		conf := NewConfig(CliTestContext())
-		conf.options.NodeRole = cluster.RoleApp
+		conf.options.NodeRole = cluster.RoleTenant
 		conf.SetThemeUrl("https://cdn.photoprism.app/theme.zip")
 
 		rows, _ := conf.Report()
@@ -191,7 +191,7 @@ func TestConfig_ReportThemeURLVisibility(t *testing.T) {
 	t.Run("ProIncludesThemeURL", func(t *testing.T) {
 		Features = Pro
 		conf := NewConfig(CliTestContext())
-		conf.options.NodeRole = cluster.RoleApp
+		conf.options.NodeRole = cluster.RoleTenant
 		conf.SetThemeUrl("https://cdn.photoprism.app/theme.zip")
 
 		rows, _ := conf.Report()

@@ -48,7 +48,7 @@ var Rules = ACL{
 		RoleAdmin:   GrantFullAccess,
 		RoleGuest:   GrantReactShared,
 		RoleVisitor: GrantViewShared,
-		RoleApp:     GrantUseOwn,
+		RoleTenant:  GrantUseOwn,
 		RoleService: GrantUseOwn,
 		RolePortal:  GrantUseOwn,
 		RoleClient:  GrantFullAccess,
@@ -87,7 +87,7 @@ var Rules = ACL{
 	ResourceUsers: Roles{
 		RoleAdmin:   GrantManageOwn,
 		RoleGuest:   GrantViewUpdateOwn,
-		RoleApp:     GrantViewOwn,
+		RoleTenant:  GrantViewOwn,
 		RoleService: GrantViewOwn,
 		RolePortal:  GrantFullAccess,
 		RoleClient:  GrantViewOwn,
@@ -123,14 +123,14 @@ var Rules = ACL{
 	},
 	ResourceVision: Roles{
 		RoleAdmin:   GrantFullAccess,
-		RoleApp:     GrantUseOwn,
+		RoleTenant:  GrantUseOwn,
 		RoleService: GrantUseOwn,
 		RolePortal:  GrantUseOwn,
 		RoleClient:  GrantUseOwn,
 	},
 	ResourceCluster: Roles{
 		RoleAdmin:   GrantFullAccess,
-		RoleApp:     GrantSearchDownloadUpdateOwn,
+		RoleTenant:  GrantSearchDownloadUpdateOwn,
 		RoleService: GrantSearchDownloadUpdateOwn,
 		RolePortal:  GrantFullAccess,
 		RoleClient:  GrantSearchDownloadUpdateOwn,
@@ -140,7 +140,7 @@ var Rules = ACL{
 	},
 	ResourceDefault: Roles{
 		RoleAdmin:   GrantFullAccess,
-		RoleApp:     GrantNone,
+		RoleTenant:  GrantNone,
 		RoleService: GrantNone,
 		RolePortal:  GrantNone,
 		RoleClient:  GrantNone,
