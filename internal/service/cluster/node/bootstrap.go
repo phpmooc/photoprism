@@ -205,7 +205,7 @@ func registerWithPortal(c *config.Config, portal *url.URL, token string) (*clust
 				}
 				primeJWKS(c, r.JWKSUrl)
 				if resp.StatusCode == http.StatusCreated {
-					log.Infof("config: successfully joined cluster as node %s (%d)", clean.LogQuote(r.Node.Name), resp.StatusCode)
+					log.Infof("config: successfully joined cluster as instance %s (%d)", clean.LogQuote(r.Node.Name), resp.StatusCode)
 				} else {
 					log.Infof("cluster: membership confirmed")
 				}
@@ -406,8 +406,8 @@ func primeJWKS(c *config.Config, url string) {
 	}
 }
 
-// syncNodeTheme downloads or refreshes the Portal-provided theme in the node-specific
-// theme directory when the local version is missing or differs from the portal version.
+// syncNodeTheme downloads or refreshes the Portal-provided theme in the instance-specific
+// theme directory (NodeThemePath) when the local version is missing or differs from the portal version.
 func syncNodeTheme(c *config.Config, portal *url.URL, registerResp *cluster.RegisterResponse) error {
 	themeDir := c.NodeThemePath()
 	localVersion := strings.TrimSpace(c.NodeThemeVersion())
@@ -473,7 +473,7 @@ func syncNodeTheme(c *config.Config, portal *url.URL, registerResp *cluster.Regi
 		}
 
 		if shouldRefresh {
-			log.Infof("config: refreshing node credentials for portal theme download")
+			log.Infof("config: refreshing instance credentials for portal theme download")
 		}
 		if shouldRefresh && refreshNodeCredentials(c, portal) {
 			if id, secret := strings.TrimSpace(c.NodeClientID()), strings.TrimSpace(c.NodeClientSecret()); id != "" && secret != "" {
@@ -549,8 +549,8 @@ func syncNodeTheme(c *config.Config, portal *url.URL, registerResp *cluster.Regi
 	}
 }
 
-// activateNodeThemeIfPresent switches the active theme path to the node-specific
-// directory when a valid cluster-managed theme bundle is available.
+// activateNodeThemeIfPresent switches the active theme path to the instance-specific
+// NodeThemePath directory when a valid cluster-managed theme bundle is available.
 func activateNodeThemeIfPresent(c *config.Config) {
 	if c == nil {
 		return
