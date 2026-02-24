@@ -285,6 +285,7 @@ Note: Across our public documentation, official images, and in production, the c
   - When importing the stdlib package, alias it to avoid collisions: `iofs "io/fs"` or `gofs "io/fs"`.
   - Our package is `github.com/photoprism/photoprism/pkg/fs` and provides the only approved permission constants for `os.MkdirAll`, `os.WriteFile`, `os.OpenFile`, and `os.Chmod`.
 - Prefer `filepath.Join` for filesystem paths; reserve `path.Join` for URL paths.
+- For slash-based logical paths stored in DB/config/API payloads (for example folder album paths), normalize with `clean.SlashPath(...)` instead of repeating ad-hoc `strings.ReplaceAll(..., "\\", "/")` + trim logic.
 
 ### File I/O — Overwrite Policy (force semantics)
 
@@ -304,6 +305,10 @@ Note: Across our public documentation, official images, and in production, the c
   - absolute paths (e.g., `/etc/passwd`).
   - Windows drive/volume paths (e.g., `C:\\…` or `C:/…`).
   - any entry that escapes the target directory after cleaning (path traversal via `..`).
+- ZIP entry names use slash semantics, not host OS semantics:
+  - Validate in ZIP-name space with `path.Clean` / `path.IsAbs`, reject backslashes (`\`), and use `path.Base` for hidden-name checks.
+  - Convert to OS paths only at write time with `filepath.FromSlash(...)`.
+  - Enforce destination containment with `filepath.Rel(...)` rather than string-prefix checks.
 - Enforce per-file and total size budgets to prevent resource exhaustion.
 - Skip OS metadata directories (e.g., `__MACOSX`) and reject suspicious names.
 - Where this lives: `pkg/fs/zip.go` (`Unzip`, `UnzipFile`, `safeJoin`).

@@ -1,6 +1,7 @@
 package entity
 
 import (
+	"strings"
 	"testing"
 	"time"
 
@@ -38,6 +39,14 @@ func TestNewFolder(t *testing.T) {
 	})
 	t.Run("Num2020Num05Num23", func(t *testing.T) {
 		folder := NewFolder(RootImport, "/2020/05/23/", time.Now().UTC())
+		assert.Equal(t, "2020/05/23", folder.Path)
+		assert.Equal(t, "May 23, 2020", folder.FolderTitle)
+		assert.Equal(t, 2020, folder.FolderYear)
+		assert.Equal(t, 5, folder.FolderMonth)
+		assert.Equal(t, UnknownID, folder.FolderCountry)
+	})
+	t.Run("NormalizesBackslashes", func(t *testing.T) {
+		folder := NewFolder(RootImport, `\2020\05\23\`, time.Now().UTC())
 		assert.Equal(t, "2020/05/23", folder.Path)
 		assert.Equal(t, "May 23, 2020", folder.FolderTitle)
 		assert.Equal(t, 2020, folder.FolderYear)
@@ -208,6 +217,27 @@ func TestFindFolder(t *testing.T) {
 		}
 
 		assert.NotNil(t, found.DeletedAt)
+	})
+	t.Run("NormalizesBackslashes", func(t *testing.T) {
+		folderPath := "find-folder-backslash-" + txt.Slug(time.Now().UTC().Format(time.RFC3339Nano))
+		folder := NewFolder(RootOriginals, folderPath, time.Now().UTC())
+
+		if err := folder.Create(); err != nil {
+			t.Fatal(err)
+		}
+
+		t.Cleanup(func() {
+			_ = UnscopedDb().Where("root = ? AND path = ?", RootOriginals, folderPath).Delete(Folder{}).Error
+			_ = UnscopedDb().Where("album_type = ? AND album_path = ?", AlbumFolder, folderPath).Delete(Album{}).Error
+		})
+
+		found := FindFolder(RootOriginals, strings.ReplaceAll(folderPath, "/", `\`))
+
+		if found == nil {
+			t.Fatal("expected folder lookup result")
+		}
+
+		assert.Equal(t, folderPath, found.Path)
 	})
 }
 
@@ -530,6 +560,67 @@ func TestFolder_Create(t *testing.T) {
 		}
 
 		reconciled, err := ReconcileOriginalsFolderAlbums(parentPath)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, 2, reconciled)
+
+		mirrorAlbum := FindFolderAlbum(pathMirror)
+
+		if mirrorAlbum == nil {
+			t.Fatal("expected mirror folder album")
+		}
+
+		wineAlbum := FindFolderAlbum(pathWine)
+
+		if wineAlbum == nil {
+			t.Fatal("expected wine folder album")
+		}
+
+		assert.Equal(t, folderMirror.Title(), mirrorAlbum.AlbumTitle)
+		assert.Equal(t, folderWine.Title(), wineAlbum.AlbumTitle)
+		assert.Equal(t, pathMirror, mirrorAlbum.AlbumPath)
+		assert.Equal(t, pathWine, wineAlbum.AlbumPath)
+	})
+	t.Run("SingleFolderRescanRepairsSiblingCollisionScope", func(t *testing.T) {
+		parentPath := "ins-single-" + txt.Slug(time.Now().UTC().Format(time.RFC3339Nano))
+		pathMirror := parentPath + "/🪞"
+		pathWine := parentPath + "/🍷"
+
+		folderMirror := NewFolder(RootOriginals, pathMirror, time.Now().UTC())
+		folderWine := NewFolder(RootOriginals, pathWine, time.Now().UTC())
+
+		if err := folderMirror.Create(); err != nil {
+			t.Fatal(err)
+		}
+
+		if err := folderWine.Create(); err != nil {
+			t.Fatal(err)
+		}
+
+		t.Cleanup(func() {
+			_ = UnscopedDb().Where("root = ? AND path IN (?)", RootOriginals, []string{pathMirror, pathWine}).Delete(Folder{}).Error
+			_ = UnscopedDb().Where("album_type = ? AND album_path IN (?)", AlbumFolder, []string{pathMirror, pathWine}).Delete(Album{}).Error
+		})
+
+		// Start from a stale collision state where only one sibling album row
+		// exists and points to the wrong folder metadata.
+		_ = UnscopedDb().Where("album_type = ? AND album_path IN (?)", AlbumFolder, []string{pathMirror, pathWine}).Delete(Album{}).Error
+
+		stale := NewFolderAlbum(folderWine.Title(), pathMirror, `path:"`+pathWine+`" public:true`)
+
+		if stale == nil {
+			t.Fatal("expected stale folder album")
+		}
+
+		if err := stale.Create(); err != nil {
+			t.Fatal(err)
+		}
+
+		// Reconcile a single missing sibling path. This should widen scope to
+		// the parent folder so both siblings get repaired together.
+		reconciled, err := ReconcileOriginalsFolderAlbums(pathWine)
 
 		if err != nil {
 			t.Fatal(err)

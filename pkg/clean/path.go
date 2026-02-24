@@ -48,3 +48,10 @@ func UserPath(dir string) string {
 
 	return dir
 }
+
+// SlashPath normalizes a slash-based relative path by converting backslashes
+// to slashes, trimming whitespace, and removing leading and trailing slashes.
+func SlashPath(dir string) string {
+	dir = strings.TrimSpace(strings.ReplaceAll(dir, "\\", "/"))
+	return strings.Trim(dir, "/")
+}

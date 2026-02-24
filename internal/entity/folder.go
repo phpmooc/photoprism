@@ -1,7 +1,6 @@
 package entity
 
 import (
-	"os"
 	"path"
 	"strings"
 	"sync"
@@ -65,7 +64,7 @@ func (m *Folder) BeforeCreate(scope *gorm.Scope) error {
 func NewFolder(root, dir string, modTime time.Time) Folder {
 	now := Now()
 
-	dir = strings.Trim(dir, string(os.PathSeparator))
+	dir = clean.SlashPath(dir)
 
 	if dir == RootPath {
 		dir = ""
@@ -176,7 +175,7 @@ func (m *Folder) Create() error {
 // ReconcileOriginalsFolderAlbums ensures existing originals folders have matching folder albums.
 // When rootPath is set, only that path and its descendants are synchronized.
 func ReconcileOriginalsFolderAlbums(rootPath string) (reconciled int, err error) {
-	rootPath = clean.UserPath(rootPath)
+	rootPath = originalsFolderAlbumReconcileScope(rootPath)
 
 	var folders Folders
 
@@ -199,6 +198,58 @@ func ReconcileOriginalsFolderAlbums(rootPath string) (reconciled int, err error)
 	}
 
 	return reconciled, nil
+}
+
+// originalsFolderAlbumReconcileScope returns the effective reconciliation scope for a path.
+// If a slug collision with a sibling folder album is detected, the scope is expanded to
+// include the parent folder path so related rows can be repaired together.
+func originalsFolderAlbumReconcileScope(rootPath string) string {
+	rootPath = clean.UserPath(rootPath)
+
+	if rootPath == "" || !hasOriginalsFolderPath(rootPath) || !hasOriginalsFolderAlbumSlugCollision(rootPath) {
+		return rootPath
+	}
+
+	parentPath := path.Dir(rootPath)
+
+	if parentPath == "/" || parentPath == "." {
+		return rootPath
+	}
+
+	return parentPath
+}
+
+// hasOriginalsFolderPath reports whether an active originals folder row exists for rootPath.
+func hasOriginalsFolderPath(rootPath string) bool {
+	var count int
+
+	if err := Db().Model(&Folder{}).Where("root = ? AND path = ?", RootOriginals, rootPath).Count(&count).Error; err != nil {
+		log.Debugf("folder: %s (check folder path %s)", err, clean.LogQuote(rootPath))
+		return false
+	}
+
+	return count > 0
+}
+
+// hasOriginalsFolderAlbumSlugCollision reports whether rootPath collides with another
+// active folder album that shares the same slug but stores a different non-empty path.
+func hasOriginalsFolderAlbumSlugCollision(rootPath string) bool {
+	albumSlug := txt.Slug(rootPath)
+
+	if albumSlug == "" {
+		return false
+	}
+
+	var collisions int
+
+	if err := Db().Model(&Album{}).
+		Where("album_type = ? AND album_slug = ? AND album_path <> '' AND album_path <> ?", AlbumFolder, albumSlug, rootPath).
+		Count(&collisions).Error; err != nil {
+		log.Debugf("folder: %s (check album slug collision for %s)", err, clean.LogQuote(rootPath))
+		return false
+	}
+
+	return collisions > 0
 }
 
 // syncOriginalsAlbum ensures an originals folder has a matching folder album.
@@ -235,7 +286,7 @@ func (m *Folder) syncOriginalsAlbum() {
 // FindFolder returns an existing folder, including soft-deleted rows.
 // This function is primarily used for create/index conflict resolution.
 func FindFolder(root, dir string) *Folder {
-	dir = strings.Trim(dir, string(os.PathSeparator))
+	dir = clean.SlashPath(dir)
 
 	if dir == RootPath {
 		dir = ""
