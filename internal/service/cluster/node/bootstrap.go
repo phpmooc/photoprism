@@ -313,9 +313,8 @@ func buildRegisterPayload(c *config.Config) cluster.RegisterRequest {
 	return payload
 }
 
-// persistRegistration merges registration responses into options.yml and, when
-// necessary, reloads the in-memory configuration so future bootstrap steps use
-// the updated values.
+// persistRegistration stores registration responses through the config package
+// so cluster option writes and secret-file persistence stay in one place.
 func persistRegistration(c *config.Config, r *cluster.RegisterResponse, wantRotateDatabase bool) error {
 	updates := cluster.OptionsUpdate{}
 
@@ -373,19 +372,14 @@ func persistRegistration(c *config.Config, r *cluster.RegisterResponse, wantRota
 		return nil
 	}
 
-	wrote, err := ApplyOptionsUpdate(c, updates)
+	wrote, err := c.SaveClusterOptionsUpdate(updates)
 
 	if err != nil {
 		return err
 	}
 
-	if wrote {
-		// Reload into memory so later code paths see updated values during this run.
-		_ = c.Options().Load(c.OptionsYaml())
-
-		if updates.HasDatabaseUpdate() {
-			log.Infof("config: applied portal database settings; restart required to connect with new credentials")
-		}
+	if wrote && updates.HasDatabaseUpdate() {
+		log.Infof("config: applied portal database settings; restart required to connect with new credentials")
 	}
 
 	return nil
@@ -684,15 +678,11 @@ func refreshNodeCredentials(c *config.Config, portal *url.URL) bool {
 		updates.SetNodeUUID(nodeUUID)
 	}
 
-	if wrote, err := ApplyOptionsUpdate(c, updates); err != nil {
+	if _, err := c.SaveClusterOptionsUpdate(updates); err != nil {
 		log.Warnf("cluster: failed to persist refreshed credentials (%s)", clean.Error(err))
-	} else if wrote {
-		if loadErr := c.Options().Load(c.OptionsYaml()); loadErr != nil {
-			log.Warnf("cluster: failed to reload options.yml after credential refresh (%s)", clean.Error(loadErr))
-		}
 	}
 
-	// Keep inline secret empty after reload so NodeClientSecret() reads the fresh secret file.
+	// Keep inline secret empty so NodeClientSecret() always prefers the secret file.
 	c.Options().NodeClientSecret = ""
 
 	return true
