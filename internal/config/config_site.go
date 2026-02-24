@@ -25,13 +25,22 @@ func (c *Config) BaseUri(res string) string {
 		return res
 	}
 
+	return c.BasePath() + res
+}
+
+// BasePath returns the site's base path name.
+func (c *Config) BasePath() string {
+	if c.SiteUrl() == "" {
+		return ""
+	}
+
 	u, err := url.Parse(c.SiteUrl())
 
 	if err != nil {
-		return res
+		return ""
 	}
 
-	return strings.TrimRight(u.EscapedPath(), "/") + res
+	return strings.TrimRight(u.EscapedPath(), "/")
 }
 
 // StorageNamespace returns a hashed namespace key for client-side storage.

@@ -45,6 +45,82 @@ func TestStaticRoutes(t *testing.T) {
 	})
 }
 
+func TestStaticRoutesWebOverlay(t *testing.T) {
+	t.Run("RootRedirectWithoutIndex", func(t *testing.T) {
+		conf := config.NewMinimalTestConfig(t.TempDir())
+		require.NoError(t, os.MkdirAll(conf.WebStoragePath(), fs.ModeDir))
+
+		r := gin.New()
+		r.LoadHTMLFiles(conf.TemplateFiles()...)
+		registerStaticRoutes(r, conf)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(header.MethodGet, "/", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		assert.Equal(t, conf.LoginUri(), w.Header().Get(header.Location))
+
+		w = httptest.NewRecorder()
+		req = httptest.NewRequest(header.MethodHead, "/", nil)
+		r.ServeHTTP(w, req)
+
+		assert.Equal(t, http.StatusTemporaryRedirect, w.Code)
+		assert.Equal(t, conf.LoginUri(), w.Header().Get(header.Location))
+	})
+	t.Run("ServeOverlayFileAndDirectoryIndex", func(t *testing.T) {
+		conf := config.NewMinimalTestConfig(t.TempDir())
+		webDir := conf.WebStoragePath()
+		require.NoError(t, os.MkdirAll(filepath.Join(webDir, "docs"), fs.ModeDir))
+		require.NoError(t, os.WriteFile(filepath.Join(webDir, "hello.txt"), []byte("hello"), fs.ModeFile))
+		require.NoError(t, os.WriteFile(filepath.Join(webDir, "docs", IndexHtml), []byte("docs"), fs.ModeFile))
+
+		r := gin.New()
+		r.LoadHTMLFiles(conf.TemplateFiles()...)
+		registerStaticRoutes(r, conf)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(header.MethodGet, "/hello.txt", nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "hello", w.Body.String())
+
+		w = httptest.NewRecorder()
+		req = httptest.NewRequest(header.MethodGet, "/docs", nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "docs", w.Body.String())
+
+		w = httptest.NewRecorder()
+		req = httptest.NewRequest(header.MethodHead, "/hello.txt", nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Empty(t, w.Body.String())
+	})
+	t.Run("BasePathOverlayMapping", func(t *testing.T) {
+		conf := config.NewMinimalTestConfig(t.TempDir())
+		conf.Options().SiteUrl = "https://example.com/i/acme/"
+		webDir := conf.WebStoragePath()
+		require.NoError(t, os.MkdirAll(filepath.Join(webDir, "assets"), fs.ModeDir))
+		require.NoError(t, os.WriteFile(filepath.Join(webDir, "assets", "app.js"), []byte("asset"), fs.ModeFile))
+
+		r := gin.New()
+		r.LoadHTMLFiles(conf.TemplateFiles()...)
+		registerStaticRoutes(r, conf)
+
+		w := httptest.NewRecorder()
+		req := httptest.NewRequest(header.MethodGet, conf.BaseUri("/assets/app.js"), nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusOK, w.Code)
+		assert.Equal(t, "asset", w.Body.String())
+
+		w = httptest.NewRecorder()
+		req = httptest.NewRequest(header.MethodGet, "/assets/app.js", nil)
+		r.ServeHTTP(w, req)
+		assert.Equal(t, http.StatusNotFound, w.Code)
+	})
+}
+
 func TestWebAppRoutes(t *testing.T) {
 	// Create router.
 	r := gin.Default()

@@ -474,6 +474,11 @@ func (c *Config) UserUploadPath(userUid, token string) (string, error) {
 	return dir, nil
 }
 
+// WebStoragePath returns the path used for serving web content.
+func (c *Config) WebStoragePath() string {
+	return filepath.Join(c.StoragePath(), fs.WebDir)
+}
+
 // TempPath returns the cached temporary directory name e.g. for uploads and downloads.
 func (c *Config) TempPath() string {
 	// Return cached value?
