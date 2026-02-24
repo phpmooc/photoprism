@@ -180,6 +180,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 
 		// URIs.
 		{"base-uri", c.BaseUri("/")},
+		{"frontend-uri", c.FrontendUri("")},
 		{"api-uri", c.ApiUri()},
 		{"static-uri", c.StaticUri()},
 		{"content-uri", c.ContentUri()},

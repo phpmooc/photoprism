@@ -13,6 +13,18 @@ func TestConfig_Report(t *testing.T) {
 	m := NewConfig(CliTestContext())
 	r, _ := m.Report()
 	assert.GreaterOrEqual(t, len(r), 1)
+
+	values := make(map[string]string, len(r))
+
+	for _, row := range r {
+		if len(row) < 2 {
+			continue
+		}
+
+		values[row[0]] = row[1]
+	}
+
+	assert.Equal(t, m.FrontendUri(""), values["frontend-uri"])
 }
 
 func TestConfig_ReportDatabaseSection(t *testing.T) {

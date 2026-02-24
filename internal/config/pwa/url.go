@@ -1,5 +1,7 @@
 package pwa
 
+import "strings"
+
 // Url represents a URL with a name.
 type Url struct {
 	Name string `json:"name"`
@@ -9,25 +11,30 @@ type Url struct {
 // Urls represents a set of URLs.
 type Urls []Url
 
+// shortcutUrl joins a route with the frontend base URI used by the SPA.
+func shortcutUrl(frontendUri string, route string) string {
+	return strings.TrimRight(frontendUri, "/") + "/" + strings.TrimLeft(route, "/")
+}
+
 // Shortcuts specifies links to key tasks or pages within the web application,
 // see https://developer.mozilla.org/en-US/docs/Web/Manifest/Reference/shortcuts.
-func Shortcuts(baseUri string) Urls {
+func Shortcuts(frontendUri string) Urls {
 	return Urls{
 		{
 			Name: "Search",
-			Url:  baseUri + "library/browse",
+			Url:  shortcutUrl(frontendUri, "browse"),
 		},
 		{
 			Name: "Albums",
-			Url:  baseUri + "library/albums",
+			Url:  shortcutUrl(frontendUri, "albums"),
 		},
 		{
 			Name: "Places",
-			Url:  baseUri + "library/places",
+			Url:  shortcutUrl(frontendUri, "places"),
 		},
 		{
 			Name: "Settings",
-			Url:  baseUri + "library/settings",
+			Url:  shortcutUrl(frontendUri, "settings"),
 		},
 	}
 }

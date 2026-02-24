@@ -54,9 +54,35 @@ func (c *Config) ApiUri() string {
 	return c.BaseUri(ApiUri)
 }
 
-// LibraryUri returns the user interface URI for the given resource.
-func (c *Config) LibraryUri(res string) string {
-	return c.BaseUri(LibraryUri + res)
+// FrontendPath returns the normalized frontend base path without a trailing slash.
+func (c *Config) FrontendPath() string {
+	frontendPath := normalizeFrontendPath(c.options.FrontendUri)
+
+	if frontendPath != "" {
+		return frontendPath
+	}
+
+	frontendPath = normalizeFrontendPath(FrontendUri)
+
+	if frontendPath != "" {
+		return frontendPath
+	}
+
+	return DefaultFrontendUri
+}
+
+// normalizeFrontendPath sanitizes and normalizes a configured frontend base path.
+func normalizeFrontendPath(value string) string {
+	if value = clean.UserPath(value); value == "" {
+		return ""
+	}
+
+	return "/" + value
+}
+
+// FrontendUri returns the user interface URI for the given resource.
+func (c *Config) FrontendUri(res string) string {
+	return c.BaseUri(c.FrontendPath() + res)
 }
 
 // ContentUri returns the content delivery URI based on the CdnUrl and the ApiUri.
@@ -208,7 +234,11 @@ func (c *Config) LegalUrl() string {
 func (c *Config) RobotsTxt() ([]byte, error) {
 	if c.Demo() && c.Public() {
 		// Allow public demo instances to be indexed.
-		return fmt.Appendf(nil, "User-agent: *\nDisallow: /\nAllow: %s/\nAllow: %s/\nAllow: .js\nAllow: .css", LibraryUri, StaticUri), nil
+		return fmt.Appendf(nil,
+			"User-agent: *\nDisallow: /\nAllow: %s/\nAllow: %s/\nAllow: .js\nAllow: .css",
+			c.BaseUri(c.FrontendPath()),
+			c.BaseUri(StaticUri),
+		), nil
 	} else if c.Public() {
 		// Do not allow other instances to be indexed when public mode is enabled.
 		return robotsTxt, nil

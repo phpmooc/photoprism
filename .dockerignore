@@ -94,3 +94,5 @@ Thumbs.db
 /AGENTS_*
 /REPOS.md
 /CLAUDE.md
+join_token
+client_secret

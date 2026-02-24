@@ -566,7 +566,7 @@ var Flags = CliFlags{
 			Usage:   "download `URL` for installing a custom theme if none is installed",
 			EnvVars: EnvVars("THEME_URL"),
 			Hidden:  true,
-		}, Tags: []string{Pro}}, {
+		}, Tags: []string{Portal, Pro}}, {
 		Flag: &cli.StringFlag{
 			Name:    "places-locale",
 			Usage:   "location details language `CODE`, e.g. en, de, or local",

@@ -70,6 +70,8 @@ frontend/coverage/
 /REPOS.md
 /CLAUDE.md
 /TODO.md
+join_token
+client_secret
 
 # Files created automatically by editors and/or operating systems:
 .DS_Store

@@ -35,7 +35,7 @@ Startup Templates & Splash Screen
 
 Runtime & Plugins
 - Vue 3 + Vuetify 3 (`createVuetify`) with MDI icons; themes from `src/options/themes.js`
-- Router: Vue Router 4, history base at `$config.baseUri + "/library/"`
+- Router: Vue Router 4, history base at `$config.frontendUri` (default `/library`)
 - I18n: `vue3-gettext` via `common/gettext.js`; canonical extraction via root `make gettext-extract` (scans `frontend/src` plus available overlays in `plus/frontend`, `pro/frontend`, and `portal/frontend`), compile with `npm run gettext-compile`
 - HTML sanitization: `vue-3-sanitize` + `vue-sanitize-directive`
 - Tooltips: `floating-vue`

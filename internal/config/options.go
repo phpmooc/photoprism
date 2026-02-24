@@ -30,12 +30,12 @@ type Options struct {
 	NoHub                     bool          `yaml:"-" json:"-" flag:"no-hub"`
 	AdminUser                 string        `yaml:"AdminUser" json:"-" flag:"admin-user"`
 	AdminPassword             string        `yaml:"AdminPassword" json:"-" flag:"admin-password"`
-	AdminScope                string        `yaml:"AdminScope" json:"-" flag:"admin-scope" tags:"pro"`
+	AdminScope                string        `yaml:"AdminScope" json:"-" flag:"admin-scope" tags:"portal,pro"`
 	PasswordLength            int           `yaml:"PasswordLength" json:"-" flag:"password-length"`
-	PasswordResetUri          string        `yaml:"PasswordResetUri" json:"-" flag:"password-reset-uri" tags:"plus,pro"`
-	RegisterUri               string        `yaml:"RegisterUri" json:"-" flag:"register-uri" tags:"pro"`
+	PasswordResetUri          string        `yaml:"PasswordResetUri" json:"-" flag:"password-reset-uri" tags:"plus,portal,pro"`
+	RegisterUri               string        `yaml:"RegisterUri" json:"-" flag:"register-uri" tags:"portal,pro"`
 	LoginUri                  string        `yaml:"-" json:"-" flag:"login-uri"`
-	LoginInfo                 string        `yaml:"LoginInfo" json:"-" flag:"login-info" tags:"plus,pro"`
+	LoginInfo                 string        `yaml:"LoginInfo" json:"-" flag:"login-info" tags:"plus,portal,pro"`
 	OIDCUri                   string        `yaml:"OIDCUri" json:"-" flag:"oidc-uri"`
 	OIDCClient                string        `yaml:"OIDCClient" json:"-" flag:"oidc-client"`
 	OIDCSecret                string        `yaml:"OIDCSecret" json:"-" flag:"oidc-secret"`
@@ -45,11 +45,11 @@ type Options struct {
 	OIDCRedirect              bool          `yaml:"OIDCRedirect" json:"OIDCRedirect" flag:"oidc-redirect"`
 	OIDCRegister              bool          `yaml:"OIDCRegister" json:"OIDCRegister" flag:"oidc-register"`
 	OIDCUsername              string        `yaml:"OIDCUsername" json:"-" flag:"oidc-username"`
-	OIDCGroupClaim            string        `yaml:"OIDCGroupClaim" json:"-" flag:"oidc-group-claim" tags:"pro"`
-	OIDCGroup                 []string      `yaml:"OIDCGroup" json:"-" flag:"oidc-group" tags:"pro"`
-	OIDCGroupRole             []string      `yaml:"OIDCGroupRole" json:"-" flag:"oidc-group-role" tags:"pro"`
-	OIDCDomain                string        `yaml:"-" json:"-" flag:"oidc-domain" tags:"pro"`
-	OIDCRole                  string        `yaml:"-" json:"-" flag:"oidc-role" tags:"pro"`
+	OIDCGroupClaim            string        `yaml:"OIDCGroupClaim" json:"-" flag:"oidc-group-claim" tags:"portal,pro"`
+	OIDCGroup                 []string      `yaml:"OIDCGroup" json:"-" flag:"oidc-group" tags:"portal,pro"`
+	OIDCGroupRole             []string      `yaml:"OIDCGroupRole" json:"-" flag:"oidc-group-role" tags:"portal,pro"`
+	OIDCDomain                string        `yaml:"-" json:"-" flag:"oidc-domain" tags:"portal,pro"`
+	OIDCRole                  string        `yaml:"-" json:"-" flag:"oidc-role" tags:"portal,pro"`
 	OIDCWebDAV                bool          `yaml:"OIDCWebDAV" json:"-" flag:"oidc-webdav"`
 	DisableOIDC               bool          `yaml:"DisableOIDC" json:"DisableOIDC" flag:"disable-oidc"`
 	SessionMaxAge             int64         `yaml:"SessionMaxAge" json:"-" flag:"session-maxage"`
@@ -81,14 +81,14 @@ type Options struct {
 	CachePath                 string        `yaml:"CachePath" json:"-" flag:"cache-path"`
 	TempPath                  string        `yaml:"TempPath" json:"-" flag:"temp-path"`
 	AssetsPath                string        `yaml:"AssetsPath" json:"-" flag:"assets-path"`
-	CustomAssetsPath          string        `yaml:"-" json:"-" flag:"custom-assets-path" tags:"plus,pro"`
+	CustomAssetsPath          string        `yaml:"-" json:"-" flag:"custom-assets-path" tags:"plus,portal,pro"`
 	CustomThemePath           string        `yaml:"-" json:"-" flag:"theme-path"`
 	ModelsPath                string        `yaml:"ModelsPath" json:"-" flag:"models-path"`
 	SidecarPath               string        `yaml:"SidecarPath" json:"-" flag:"sidecar-path"`
 	SidecarYaml               bool          `yaml:"SidecarYaml" json:"SidecarYaml" flag:"sidecar-yaml" default:"true"`
 	UsageInfo                 bool          `yaml:"UsageInfo" json:"UsageInfo" flag:"usage-info"`
 	FilesQuota                uint64        `yaml:"FilesQuota" json:"-" flag:"files-quota"`
-	UsersQuota                int           `yaml:"UsersQuota" json:"-" flag:"users-quota" tags:"pro"`
+	UsersQuota                int           `yaml:"UsersQuota" json:"-" flag:"users-quota" tags:"portal,pro"`
 	BackupPath                string        `yaml:"BackupPath" json:"-" flag:"backup-path"`
 	BackupSchedule            string        `yaml:"BackupSchedule" json:"BackupSchedule" flag:"backup-schedule"`
 	BackupRetain              int           `yaml:"BackupRetain" json:"BackupRetain" flag:"backup-retain"`
@@ -126,7 +126,7 @@ type Options struct {
 	DefaultLocale             string        `yaml:"DefaultLocale" json:"DefaultLocale" flag:"default-locale"`
 	DefaultTimezone           string        `yaml:"DefaultTimezone" json:"DefaultTimezone" flag:"default-timezone"`
 	DefaultTheme              string        `yaml:"DefaultTheme" json:"DefaultTheme" flag:"default-theme"`
-	ThemeUrl                  string        `yaml:"-" json:"-" flag:"theme-url" tags:"pro"`
+	ThemeUrl                  string        `yaml:"-" json:"-" flag:"theme-url" tags:"portal,pro"`
 	PlacesLocale              string        `yaml:"PlacesLocale" json:"PlacesLocale" flag:"places-locale"`
 	AppName                   string        `yaml:"AppName" json:"AppName" flag:"app-name"`
 	AppMode                   string        `yaml:"AppMode" json:"AppMode" flag:"app-mode"`
@@ -136,6 +136,7 @@ type Options struct {
 	LegalUrl                  string        `yaml:"LegalUrl" json:"LegalUrl" flag:"legal-url"`
 	WallpaperUri              string        `yaml:"WallpaperUri" json:"WallpaperUri" flag:"wallpaper-uri"`
 	SiteUrl                   string        `yaml:"SiteUrl" json:"SiteUrl" flag:"site-url"`
+	FrontendUri               string        `yaml:"FrontendUri" json:"-" flag:"frontend-uri" tags:"portal,pro"`
 	SiteAuthor                string        `yaml:"SiteAuthor" json:"SiteAuthor" flag:"site-author"`
 	SiteTitle                 string        `yaml:"SiteTitle" json:"SiteTitle" flag:"site-title"`
 	SiteCaption               string        `yaml:"SiteCaption" json:"SiteCaption" flag:"site-caption"`

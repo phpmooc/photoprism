@@ -49,8 +49,8 @@ func NewManifest(c Config) (m *Manifest) {
 		ThemeColor:      clean.Color(c.Color),
 		BackgroundColor: clean.Color(c.Color),
 		Scope:           c.BaseUri,
-		StartUrl:        c.BaseUri + "library/",
-		Shortcuts:       Shortcuts(c.BaseUri),
+		StartUrl:        c.FrontendUri,
+		Shortcuts:       Shortcuts(c.FrontendUri),
 		Serviceworker: Serviceworker{
 			Src:      fs.SwJsFile,
 			Scope:    c.BaseUri,

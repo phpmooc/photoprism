@@ -35,7 +35,7 @@ func TestStaticRoutes(t *testing.T) {
 		req, _ := http.NewRequest("GET", "/", nil)
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 307, w.Code)
-		assert.Equal(t, "<a href=\"/library/\">Temporary Redirect</a>.\n\n", w.Body.String())
+		assert.Equal(t, "<a href=\""+conf.FrontendUri("/")+"\">Temporary Redirect</a>.\n\n", w.Body.String())
 	})
 	t.Run("HeadRoot", func(t *testing.T) {
 		w := httptest.NewRecorder()
@@ -137,28 +137,28 @@ func TestWebAppRoutes(t *testing.T) {
 	// Bootstrapping.
 	t.Run("GetLibrary", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", conf.LibraryUri("/"), nil)
+		req, _ := http.NewRequest("GET", conf.FrontendUri("/"), nil)
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
 		assert.NotEmpty(t, w.Body)
 	})
 	t.Run("HeadLibrary", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("HEAD", conf.LibraryUri("/"), nil)
+		req, _ := http.NewRequest("HEAD", conf.FrontendUri("/"), nil)
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
 		assert.NotEmpty(t, w.Body)
 	})
 	t.Run("GetLibraryBrowse", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("GET", conf.LibraryUri("/browse"), nil)
+		req, _ := http.NewRequest("GET", conf.FrontendUri("/browse"), nil)
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
 		assert.NotEmpty(t, w.Body)
 	})
 	t.Run("HeadLibraryBrowse", func(t *testing.T) {
 		w := httptest.NewRecorder()
-		req, _ := http.NewRequest("HEAD", conf.LibraryUri("/browse"), nil)
+		req, _ := http.NewRequest("HEAD", conf.FrontendUri("/browse"), nil)
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
 	})
@@ -171,7 +171,7 @@ func TestWebAppRoutes(t *testing.T) {
 		manifest := w.Body.String()
 		t.Logf("PWA Manifest: %s", manifest)
 		assert.True(t, strings.Contains(manifest, `"scope": "/",`))
-		assert.True(t, strings.Contains(manifest, `"start_url": "/library/",`))
+		assert.True(t, strings.Contains(manifest, `"start_url": "`+conf.FrontendUri(``)+`",`))
 		assert.True(t, strings.Contains(manifest, "/static/icons/logo/128.png"))
 	})
 	t.Run("GetServiceWorker", func(t *testing.T) {
