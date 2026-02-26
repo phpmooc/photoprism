@@ -6741,7 +6741,7 @@
                 "operationId": "ClusterNodesRegister",
                 "parameters": [
                     {
-                        "description": "registration payload (NodeName required; optional: NodeRole, Labels, AdvertiseUrl, SiteUrl, AppName, AppVersion, Theme; for existing-node UUID changes and credential rotation include matching ClientID+ClientSecret; rotation: RotateDatabase, RotateSecret)",
+                        "description": "registration payload (NodeName required; optional: NodeRole, Labels, AdvertiseUrl, SiteUrl, AppName, AppVersion, Theme, NodeUUID, RotateDatabase, RotateSecret). New-node joins require the Bearer join token. Existing-node mutations require a Bearer OAuth access token that belongs to the same node client.",
                         "in": "body",
                         "name": "request",
                         "required": true,
