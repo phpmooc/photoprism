@@ -27,6 +27,31 @@ func TestConfig_Report(t *testing.T) {
 	assert.Equal(t, m.FrontendUri(""), values["frontend-uri"])
 }
 
+func TestConfig_ReportServicesCIDROrder(t *testing.T) {
+	conf := NewConfig(CliTestContext())
+	rows, _ := conf.Report()
+
+	indexOf := func(name string) int {
+		for i := range rows {
+			if len(rows[i]) > 0 && rows[i][0] == name {
+				return i
+			}
+		}
+
+		return -1
+	}
+
+	proxyProtoHTTPS := indexOf("proxy-proto-https")
+	servicesCIDR := indexOf("services-cidr")
+	disableTLS := indexOf("disable-tls")
+
+	assert.Greater(t, proxyProtoHTTPS, -1)
+	assert.Greater(t, servicesCIDR, -1)
+	assert.Greater(t, disableTLS, -1)
+	assert.Greater(t, servicesCIDR, proxyProtoHTTPS)
+	assert.Less(t, servicesCIDR, disableTLS)
+}
+
 func TestConfig_ReportDatabaseSection(t *testing.T) {
 	collect := func(rows [][]string) map[string]string {
 		result := make(map[string]string, len(rows))

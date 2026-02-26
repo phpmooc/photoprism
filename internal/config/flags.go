@@ -696,11 +696,6 @@ var Flags = CliFlags{
 			Value:   header.DefaultAccessControlAllowMethods,
 		}}, {
 		Flag: &cli.StringFlag{
-			Name:    "services-cidr",
-			Usage:   "comma-separated `CIDR` ranges or IPs allowed for outbound service connections (e.g., 172.18.0.0/16,192.168.1.0/24)",
-			EnvVars: EnvVars("SERVICES_CIDR"),
-		}}, {
-		Flag: &cli.StringFlag{
 			Name:    "cluster-domain",
 			Usage:   "cluster `DOMAIN` (lowercase DNS name; 1–63 chars)",
 			EnvVars: EnvVars("CLUSTER_DOMAIN"),
@@ -824,6 +819,11 @@ var Flags = CliFlags{
 			Usage:   "forwarded HTTPS protocol `NAME`",
 			Value:   cli.NewStringSlice(scheme.Https),
 			EnvVars: EnvVars("PROXY_PROTO_HTTPS"),
+		}}, {
+		Flag: &cli.StringFlag{
+			Name:    "services-cidr",
+			Usage:   "comma-separated `CIDR` ranges or IPs allowed for outbound service connections (e.g., 172.18.0.0/16,192.168.1.0/24)",
+			EnvVars: EnvVars("SERVICES_CIDR"),
 		}}, {
 		Flag: &cli.BoolFlag{
 			Name:    "disable-tls",

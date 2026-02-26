@@ -148,7 +148,6 @@ type Options struct {
 	CORSOrigin                string        `yaml:"CORSOrigin" json:"-" flag:"cors-origin"`
 	CORSHeaders               string        `yaml:"CORSHeaders" json:"-" flag:"cors-headers"`
 	CORSMethods               string        `yaml:"CORSMethods" json:"-" flag:"cors-methods"`
-	ServicesCIDR              string        `yaml:"ServicesCIDR" json:"-" flag:"services-cidr"`
 	ClusterDomain             string        `yaml:"ClusterDomain" json:"-" flag:"cluster-domain"`
 	ClusterCIDR               string        `yaml:"ClusterCIDR" json:"-" flag:"cluster-cidr"`
 	ClusterUUID               string        `yaml:"ClusterUUID" json:"-" flag:"cluster-uuid"`
@@ -173,6 +172,7 @@ type Options struct {
 	ProxyClientHeaders        []string      `yaml:"ProxyClientHeaders" json:"-" flag:"proxy-client-header"`
 	ProxyProtoHeaders         []string      `yaml:"ProxyProtoHeaders" json:"-" flag:"proxy-proto-header"`
 	ProxyProtoHttps           []string      `yaml:"ProxyProtoHttps" json:"-" flag:"proxy-proto-https"`
+	ServicesCIDR              string        `yaml:"ServicesCIDR" json:"-" flag:"services-cidr"`
 	DisableTLS                bool          `yaml:"DisableTLS" json:"DisableTLS" flag:"disable-tls"`
 	DefaultTLS                bool          `yaml:"DefaultTLS" json:"DefaultTLS" flag:"default-tls"`
 	TLSEmail                  string        `yaml:"TLSEmail" json:"TLSEmail" flag:"tls-email"`
