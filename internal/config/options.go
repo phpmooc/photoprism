@@ -148,6 +148,7 @@ type Options struct {
 	CORSOrigin                string        `yaml:"CORSOrigin" json:"-" flag:"cors-origin"`
 	CORSHeaders               string        `yaml:"CORSHeaders" json:"-" flag:"cors-headers"`
 	CORSMethods               string        `yaml:"CORSMethods" json:"-" flag:"cors-methods"`
+	ServicesCIDR              string        `yaml:"ServicesCIDR" json:"-" flag:"services-cidr"`
 	ClusterDomain             string        `yaml:"ClusterDomain" json:"-" flag:"cluster-domain"`
 	ClusterCIDR               string        `yaml:"ClusterCIDR" json:"-" flag:"cluster-cidr"`
 	ClusterUUID               string        `yaml:"ClusterUUID" json:"-" flag:"cluster-uuid"`

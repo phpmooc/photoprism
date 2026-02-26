@@ -34,6 +34,10 @@ This file tells automated coding agents (and humans) where to find the single so
 - Default suggested commit message format is `Topic: Description`.
 - Keep suggested commit messages to a maximum of 75 characters unless a user requests a different format or length.
 
+### Issue Writing
+
+- Start GitHub issue descriptions with a one-sentence user story in the format: `As a <role>, I want <goal>, so that <outcome>.`
+
 ### Specifications, Versioning, & Writing Style
 
 - In the main repo, `specs/` and other directories may appear to be ignored because they are nested Git repositories; if so, change directories before staging or committing updates.

@@ -177,6 +177,7 @@ func (c *Config) Report() (rows [][]string, cols []string) {
 		{"cors-origin", c.CORSOrigin()},
 		{"cors-headers", c.CORSHeaders()},
 		{"cors-methods", c.CORSMethods()},
+		{"services-cidr", c.ServicesCIDR()},
 
 		// URIs.
 		{"base-uri", c.BaseUri("/")},
