@@ -2709,29 +2709,6 @@
             },
             "type": "object"
         },
-        "form.Feedback": {
-            "properties": {
-                "Category": {
-                    "type": "string"
-                },
-                "Message": {
-                    "type": "string"
-                },
-                "UserAgent": {
-                    "type": "string"
-                },
-                "UserEmail": {
-                    "type": "string"
-                },
-                "UserLocales": {
-                    "type": "string"
-                },
-                "UserName": {
-                    "type": "string"
-                }
-            },
-            "type": "object"
-        },
         "form.File": {
             "properties": {
                 "Orientation": {
@@ -7599,44 +7576,6 @@
                 "summary": "updates face properties",
                 "tags": [
                     "Faces"
-                ]
-            }
-        },
-        "/api/v1/feedback": {
-            "post": {
-                "operationId": "SendFeedback",
-                "produces": [
-                    "application/json"
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {
-                            "$ref": "#/definitions/form.Feedback"
-                        }
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "$ref": "#/definitions/i18n.Response"
-                        }
-                    },
-                    "401": {
-                        "description": "Unauthorized",
-                        "schema": {
-                            "$ref": "#/definitions/i18n.Response"
-                        }
-                    },
-                    "403": {
-                        "description": "Forbidden",
-                        "schema": {
-                            "$ref": "#/definitions/i18n.Response"
-                        }
-                    }
-                },
-                "summary": "allows members to submit a feedback message to the PhotoPrism team",
-                "tags": [
-                    "Internal"
                 ]
             }
         },
