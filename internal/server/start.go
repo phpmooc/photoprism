@@ -48,14 +48,8 @@ func Start(ctx context.Context, conf *config.Config) {
 	// Create new router engine without standard middleware.
 	router := gin.New()
 
-	// Set proxy from which headers related to the client and protocol can be trusted?
-	if trustedProxies := conf.TrustedProxies(); len(trustedProxies) > 0 {
-		if err := router.SetTrustedProxies(trustedProxies); err != nil {
-			log.Warnf("server: %s", err)
-		}
-
-		router.RemoteIPHeaders = conf.ProxyClientHeaders()
-	}
+	// Configure trusted proxy ranges and forwarded client IP headers.
+	configureTrustedProxySettings(router, conf)
 
 	// Set trusted platform client IP address header name?
 	if trustedPlatform := conf.TrustedPlatform(); trustedPlatform != "" {
@@ -237,6 +231,26 @@ func Start(ctx context.Context, conf *config.Config) {
 	err := server.Close()
 	if err != nil {
 		log.Errorf("server: shutdown failed (%s)", err)
+	}
+}
+
+// configureTrustedProxySettings configures trusted proxy ranges for client IP resolution.
+func configureTrustedProxySettings(router *gin.Engine, conf *config.Config) {
+	if router == nil || conf == nil {
+		return
+	}
+
+	if trustedProxies := conf.TrustedProxies(); len(trustedProxies) > 0 {
+		if err := router.SetTrustedProxies(trustedProxies); err != nil {
+			log.Warnf("server: %s (trusted proxy), falling back to direct client IP", err)
+			if fallbackErr := router.SetTrustedProxies(nil); fallbackErr != nil {
+				log.Warnf("server: %s (trusted proxy fallback)", fallbackErr)
+			}
+		} else {
+			router.RemoteIPHeaders = conf.ProxyClientHeaders()
+		}
+	} else if err := router.SetTrustedProxies(nil); err != nil {
+		log.Warnf("server: %s", err)
 	}
 }
 
