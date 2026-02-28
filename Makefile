@@ -307,6 +307,25 @@ dep-codex:
 	else \
 	  npm install -g --location=global --no-fund --no-audit "@openai/codex@latest"; \
 	fi
+gh: dep-gh gh-version
+gh-version:
+	@echo "🐙 Installed $$(gh --version | head -n 1)."
+dep-gh:
+	@echo "Installing GitHub CLI..."
+	@if command -v apt-get >/dev/null 2>&1; then \
+	  ./scripts/dist/install-gh.sh; \
+	elif command -v dnf >/dev/null 2>&1; then \
+	  if command -v sudo >/dev/null 2>&1; then \
+	    sudo dnf install -y gh; \
+	  else \
+	    dnf install -y gh; \
+	  fi; \
+	elif command -v brew >/dev/null 2>&1; then \
+	  brew install gh; \
+	else \
+	  echo "ERROR: Could not install gh automatically. See https://cli.github.com/"; \
+	  exit 1; \
+	fi
 claude:
 	@echo "Installing Claude Code..."
 	@[ -n "$(HOME)" ] && [ "$(HOME)" != "/" ] || (echo "ERROR: Unsafe HOME path '$(HOME)'"; exit 1)

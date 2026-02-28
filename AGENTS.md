@@ -61,6 +61,8 @@ Descriptions MUST conclude with a checklist of **Acceptance Criteria**:
 
 Additional details MAY be included as needed, such as related issues, references, screenshots, or external resources.
 
+> Agents MUST create, edit, close, reopen, relabel, or otherwise modify GitHub issues only when explicitly requested by the user.
+
 ### Specifications & Documentation
 
 - Document headings must use **Title Case** (in APA or AP style) across Markdown files to keep generated navigation and changelogs consistent. Always spell the product name as `PhotoPrism`; this proper noun is an exception to generic naming rules.

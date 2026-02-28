@@ -143,6 +143,8 @@ services:
       TF_CPP_MIN_LOG_LEVEL: 1
       GOCACHE: "/go/src/github.com/photoprism/photoprism/.local/gocache"
       CODEX_HOME: "/go/src/github.com/photoprism/photoprism/.local/codex"
+      GH_CONFIG_DIR: "/go/src/github.com/photoprism/photoprism/.local/gh"
+      GH_REPO: "photoprism/photoprism"
     ## Shared devices for video hardware transcoding (optional):
     # devices:
     #  - "/dev/dri:/dev/dri"                         # Required Intel QSV or VAAPI hardware transcoding
