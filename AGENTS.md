@@ -29,12 +29,15 @@ This file tells automated coding agents (and humans) where to find the single so
 
 ### Commit Messages
 
-Favor concise, imperative subjects with a scope prefix and a maximum of 75 characters, e.g.:
+Use concise, imperative subjects with a one-word prefix indicating the scope or topic:
 
 - `Config: Add tests for "darktable-cli" path detection`
-- `Docker: Use two stage build to reduce image size`
 
-If the commit belongs to specific issues or a pull request, include their IDs (e.g., `#123 #5632`) at the end of the message.
+If the commit relates to specific issues or pull requests, reference their IDs in the message:
+
+- `Docker: Use two stage build to reduce image size #123 #5632`
+
+Commit messages must not exceed 80 characters in length.
 
 ### GitHub Issues
 
