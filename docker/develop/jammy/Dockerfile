@@ -42,6 +42,7 @@ ENV PHOTOPRISM_ARCH=$TARGETARCH \
     S6_VERBOSITY=0 \
     S6_LOGGING=0 \
     CODEX_HOME="/go/src/github.com/photoprism/photoprism/.local/codex" \
+    CLAUDE_CONFIG_DIR="/go/src/github.com/photoprism/photoprism/.local/claude" \
     GH_CONFIG_DIR="/go/src/github.com/photoprism/photoprism/.local/gh" \
     GH_REPO="photoprism/photoprism"
 

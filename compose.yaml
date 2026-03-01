@@ -139,10 +139,11 @@ services:
       PHOTOPRISM_VISION_KEY: ""                      # client: service access token (for authentication)
       OLLAMA_BASE_URL: "http://ollama:11434"         # use "https://ollama.com" for Ollama Cloud
       OLLAMA_API_KEY: ""                             # API key required to access Ollama (optional)
-      ## External dependencies and tools:
+      ## Additional dependencies and tools:
       TF_CPP_MIN_LOG_LEVEL: 1
       GOCACHE: "/go/src/github.com/photoprism/photoprism/.local/gocache"
       CODEX_HOME: "/go/src/github.com/photoprism/photoprism/.local/codex"
+      CLAUDE_CONFIG_DIR: "/go/src/github.com/photoprism/photoprism/.local/claude"
       GH_CONFIG_DIR: "/go/src/github.com/photoprism/photoprism/.local/gh"
       GH_REPO: "photoprism/photoprism"
     ## Shared devices for video hardware transcoding (optional):
