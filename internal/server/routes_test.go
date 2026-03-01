@@ -314,10 +314,12 @@ func TestWebAppRoutes(t *testing.T) {
 		r.ServeHTTP(w, req)
 		assert.Equal(t, 200, w.Code)
 		assert.NotEmpty(t, w.Body.String())
+		assert.Equal(t, header.ContentTypeManifest, w.Header().Get(header.ContentType))
 		manifest := w.Body.String()
 		t.Logf("PWA Manifest: %s", manifest)
 		assert.True(t, strings.Contains(manifest, `"scope": "/",`))
 		assert.True(t, strings.Contains(manifest, `"start_url": "`+pwa.StartUrl(conf.BaseUri("/"), conf.FrontendUri(``))+`",`))
+		assert.True(t, strings.Contains(manifest, `"url": "library/browse"`))
 		assert.True(t, strings.Contains(manifest, "/static/icons/logo/128.png"))
 	})
 	t.Run("GetServiceWorker", func(t *testing.T) {
@@ -464,7 +466,7 @@ func TestWebAppManifestRouteWithBasePath(t *testing.T) {
 
 	r := gin.New()
 	conf := config.NewMinimalTestConfig(t.TempDir())
-	conf.Options().SiteUrl = "https://portal.example.com/i/acme/"
+	conf.Options().SiteUrl = "https://app.localssl.dev/instance/pro-1/"
 
 	registerWebAppRoutes(r, conf)
 
@@ -473,7 +475,8 @@ func TestWebAppManifestRouteWithBasePath(t *testing.T) {
 	r.ServeHTTP(w, req)
 
 	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Contains(t, w.Body.String(), `"scope": "/i/acme/",`)
-	assert.Contains(t, w.Body.String(), `"start_url": "library",`)
-	assert.Contains(t, w.Body.String(), `"url": "/i/acme/library/browse"`)
+	assert.Equal(t, header.ContentTypeManifest, w.Header().Get(header.ContentType))
+	assert.Contains(t, w.Body.String(), `"scope": "/instance/pro-1/",`)
+	assert.Contains(t, w.Body.String(), `"start_url": "./library",`)
+	assert.Contains(t, w.Body.String(), `"url": "library/browse"`)
 }
