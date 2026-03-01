@@ -12,6 +12,21 @@ func TestShortcutUrl(t *testing.T) {
 	assert.Equal(t, "/browse", shortcutUrl("", "browse"))
 }
 
+func TestStartUrl(t *testing.T) {
+	t.Run("RootScope", func(t *testing.T) {
+		assert.Equal(t, "library", StartUrl("/", "/library"))
+		assert.Equal(t, "portal/admin", StartUrl("/", "/portal/admin"))
+	})
+	t.Run("PathScope", func(t *testing.T) {
+		assert.Equal(t, "library", StartUrl("/i/pro-1/", "/i/pro-1/library"))
+		assert.Equal(t, "portal/admin", StartUrl("/foo/", "/foo/portal/admin"))
+	})
+	t.Run("OutOfScopeFallback", func(t *testing.T) {
+		assert.Equal(t, "/library", StartUrl("/i/pro-1/", "/library"))
+		assert.Equal(t, "https://example.com/library", StartUrl("/i/pro-1/", "https://example.com/library"))
+	})
+}
+
 func TestShortcuts(t *testing.T) {
 	result := Shortcuts("/portal/admin/")
 

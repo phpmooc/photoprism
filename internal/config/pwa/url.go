@@ -11,6 +11,43 @@ type Url struct {
 // Urls represents a set of URLs.
 type Urls []Url
 
+// StartUrl returns the manifest start_url relative to the app scope when possible.
+func StartUrl(scope string, frontendUri string) string {
+	if frontendUri = strings.TrimSpace(frontendUri); frontendUri == "" {
+		return ""
+	}
+
+	if strings.HasPrefix(frontendUri, "//") || strings.Contains(frontendUri, "://") {
+		return frontendUri
+	}
+
+	if !strings.HasPrefix(frontendUri, "/") {
+		frontendUri = "/" + frontendUri
+	}
+
+	if scope = strings.TrimSpace(scope); scope == "" {
+		scope = "/"
+	}
+
+	if !strings.HasPrefix(scope, "/") {
+		scope = "/" + scope
+	}
+
+	if !strings.HasSuffix(scope, "/") {
+		scope += "/"
+	}
+
+	if scope == "/" {
+		return strings.TrimPrefix(frontendUri, "/")
+	}
+
+	if strings.HasPrefix(frontendUri, scope) {
+		return strings.TrimPrefix(frontendUri, scope)
+	}
+
+	return frontendUri
+}
+
 // shortcutUrl joins a route with the frontend base URI used by the SPA.
 func shortcutUrl(frontendUri string, route string) string {
 	return strings.TrimRight(frontendUri, "/") + "/" + strings.TrimLeft(route, "/")

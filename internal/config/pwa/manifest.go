@@ -49,7 +49,7 @@ func NewManifest(c Config) (m *Manifest) {
 		ThemeColor:      clean.Color(c.Color),
 		BackgroundColor: clean.Color(c.Color),
 		Scope:           c.BaseUri,
-		StartUrl:        c.FrontendUri,
+		StartUrl:        StartUrl(c.BaseUri, c.FrontendUri),
 		Shortcuts:       Shortcuts(c.FrontendUri),
 		Serviceworker: Serviceworker{
 			Src:      fs.SwJsFile,
