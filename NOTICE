@@ -9,7 +9,7 @@ The following 3rd-party software packages may be used by or distributed with
 PhotoPrism. Any information relevant to third-party vendors listed below are
 collected using common, reasonable means.
 
-Date generated: 2026-03-03
+Date generated: 2026-03-06
 
 ================================================================================
 
@@ -6376,8 +6376,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 --------------------------------------------------------------------------------
 
 Package: github.com/yalue/onnxruntime_go
-Version: v1.26.0
-License: MIT (https://github.com/yalue/onnxruntime_go/blob/v1.26.0/LICENSE)
+Version: v1.27.0
+License: MIT (https://github.com/yalue/onnxruntime_go/blob/v1.27.0/LICENSE)
 
 Copyright (c) 2023 Nathan Otterness
 
