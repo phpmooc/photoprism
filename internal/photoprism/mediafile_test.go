@@ -17,6 +17,8 @@ import (
 	"github.com/photoprism/photoprism/pkg/media"
 )
 
+var testExamplesPath = fs.Abs("../../assets/examples")
+
 func TestMediaFileOk(t *testing.T) {
 	c := config.TestConfig()
 	cases := []struct {
@@ -812,6 +814,14 @@ func TestMediaFile_MimeType(t *testing.T) {
 			assert.Equal(t, "image/x-icon", f.MimeType())
 		}
 	})
+	t.Run("PhotoshopStandardSmallPsd", func(t *testing.T) {
+		if f, err := NewMediaFile(filepath.Join(testExamplesPath, "photoshop-standard-small.psd")); err != nil {
+			t.Fatal(err)
+		} else {
+			assert.Equal(t, header.ContentTypePsd, f.MimeType())
+			assert.True(t, f.IsPsd())
+		}
+	})
 }
 
 func TestMediaFile_Exists(t *testing.T) {
@@ -1148,6 +1158,20 @@ func TestMediaFile_IsTiff(t *testing.T) {
 	})
 }
 
+func TestMediaFile_IsPsd(t *testing.T) {
+	t.Run("PhotoshopStandardSmallPsd", func(t *testing.T) {
+		mediaFile, err := NewMediaFile(filepath.Join(testExamplesPath, "photoshop-standard-small.psd"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.Equal(t, fs.ImagePsd, mediaFile.FileType())
+		assert.Equal(t, header.ContentTypePsd, mediaFile.MimeType())
+		assert.True(t, mediaFile.IsPsd())
+		assert.True(t, mediaFile.ExifSupported())
+		assert.False(t, mediaFile.IsImageOther())
+	})
+}
+
 func TestMediaFile_IsImageOther(t *testing.T) {
 	c := config.TestConfig()
 	t.Run("IphoneSevenJson", func(t *testing.T) {
@@ -1163,6 +1187,15 @@ func TestMediaFile_IsImageOther(t *testing.T) {
 			t.Fatal(err)
 		}
 		assert.True(t, mediaFile.IsImageOther())
+	})
+	t.Run("PhotoshopStandardSmallPsd", func(t *testing.T) {
+		mediaFile, err := NewMediaFile(filepath.Join(testExamplesPath, "photoshop-standard-small.psd"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		assert.True(t, mediaFile.IsPsd())
+		assert.False(t, mediaFile.IsImageOther())
+		assert.False(t, mediaFile.IsImageNative())
 	})
 	t.Run("TweethogPng", func(t *testing.T) {
 		mediaFile, err := NewMediaFile(c.ExamplesPath() + "/tweethog.png")
@@ -1247,6 +1280,13 @@ func TestMediaFile_CheckType(t *testing.T) {
 	})
 	t.Run("PNG", func(t *testing.T) {
 		if f, err := NewMediaFile("testdata/orientation.png"); err != nil {
+			t.Fatal(err)
+		} else {
+			assert.NoError(t, f.CheckType())
+		}
+	})
+	t.Run("PSD", func(t *testing.T) {
+		if f, err := NewMediaFile(filepath.Join(testExamplesPath, "photoshop-standard-small.psd")); err != nil {
 			t.Fatal(err)
 		} else {
 			assert.NoError(t, f.CheckType())
@@ -1852,6 +1892,20 @@ func TestMediaFile_decodeDimension(t *testing.T) {
 
 		assert.Equal(t, 1080, mediaFile.Width())
 		assert.Equal(t, 1920, mediaFile.Height())
+	})
+	t.Run("Layered16BitTiffFallsBackToMetadata", func(t *testing.T) {
+		mediaFile, err := NewMediaFile(filepath.Join(testExamplesPath, "layered-16bit-small.tif"))
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if err = mediaFile.decodeDimensions(); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.Positive(t, mediaFile.Width())
+		assert.Positive(t, mediaFile.Height())
 	})
 }
 
