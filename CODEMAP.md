@@ -1,6 +1,6 @@
 PhotoPrism — Backend CODEMAP
 
-**Last Updated:** February 25, 2026
+**Last Updated:** March 7, 2026
 
 Purpose
 - Give agents and contributors a fast, reliable map of where things live and how they fit together, so you can add features, fix bugs, and write tests without spelunking.
@@ -40,6 +40,11 @@ High-Level Package Map (Go)
 - `internal/workers` — background schedulers (index, vision, sync, meta, backup)
 - `internal/auth` — ACL, sessions, OIDC
 - `internal/service` — cluster/portal, maps, hub, webdav
+  - WebDAV client docs: `internal/service/webdav/README.md`
+  - Key WebDAV client behavior:
+    - Recursive directory discovery prefers `PROPFIND Depth: infinity` and falls back to iterative `Depth: 1` traversal for incompatible servers.
+    - Hidden dotfiles and entries inside hidden dot-directories are excluded from listings and fallback traversal because they often represent lock files, partial uploads, or provider metadata.
+    - Service timeouts apply to control operations (`Files`, `Directories`, `Mkdir`, `Delete`), while `Upload` and `Download` avoid total request deadlines and instead use connection-level safeguards.
 - `internal/event` — logging, pub/sub, audit; canonical outcome tokens live in `pkg/log/status` (use helpers like `status.Error(err)` when the sanitized message should be the outcome). Docs: `internal/event/README.md`.
 - `internal/ffmpeg`, `internal/thumb`, `internal/meta`, `internal/form`, `internal/mutex` — media, thumbs, metadata, forms, coordination. Docs: `internal/ffmpeg/README.md`, `internal/meta/README.md`.
 - `pkg/*` — reusable utilities (must never import from `internal/*`), e.g. `pkg/clean`, `pkg/enum`, `pkg/fs`, `pkg/txt`, `pkg/http/header`
