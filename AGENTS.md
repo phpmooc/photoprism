@@ -404,6 +404,7 @@ Note: Across our public documentation, official images, and in production, the c
 - Mixed roots: when testing related files, keep `SamplesPath()/ImportPath()/OriginalsPath()` consistent so `RelatedFiles` and `AllowExt` behave as expected.
 - `IndexOptions*` helpers now require a `*config.Config`; pass the active config (or `config.NewMinimalTestConfig(t.TempDir())` in unit tests) so face/label/NSFW scheduling matches the current run.
 - Folder albums use path-first lookup/update (`album_path`) to avoid slug collisions for emoji child paths; re-indexing can repair stale collision titles when a child folder incorrectly shows the parent name, while preserving user-custom titles.
+- Label and label-search logic should reuse `entity.FindLabels(...)`, `entity.FindLabelIDs(...)`, and `entity.LabelSlugs(...)` so homophone-aware exact-name matching stays aligned across `internal/entity` and `internal/entity/search`; avoid adding ad-hoc slug SQL in search code.
 
 ### CLI Usage & Assertions
 
