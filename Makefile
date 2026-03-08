@@ -995,13 +995,16 @@ docker-dummy-oidc:
 packer-digitalocean:
 	$(info Buildinng DigitalOcean marketplace image...)
 	(cd ./setup/docker/cloud && packer build digitalocean.json)
-lint: lint-js lint-go
+lint: lint-js lint-go check-api-request-limits
 lint-js:
 	$(info Linting JS code...)
 	$(MAKE) -C frontend lint
 lint-go:
 	$(info Linting Go code...)
 	golangci-lint run --issues-exit-code 0 ./pkg/... ./internal/... ./.../internal/...
+check-api-request-limits:
+	$(info Checking API request-body limits...)
+	bash ./scripts/check-api-request-limits.sh
 fmt-js:
 	(cd frontend &&	npm run fmt)
 fmt-go:
