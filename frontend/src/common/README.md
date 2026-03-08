@@ -18,12 +18,15 @@ When integrating third-party clients such as native mobile apps that embed the P
 - Session restore requires both `session.token` and `session.id`. A token-only write does not create an authenticated session state during startup.
 - Optional session metadata keys are `session.provider`, `session.user`, `session.scope`, `session.data`, and `session.error`.
 - The storage preference flag is always stored in namespaced `localStorage` under `session`. A value of `"true"` tells the app to use namespaced `sessionStorage` for the active session; any other value falls back to namespaced `localStorage`.
-- The OIDC callback template clears both legacy global keys and namespaced keys from `localStorage` and `sessionStorage`, then writes the callback result only to the preferred store selected by that `session` flag.
+- `Session` must resolve `storageNamespace` from the actual client config shape used at runtime. In production, that value may be present on `config.values.storageNamespace` even when a direct `config.storageNamespace` property is absent.
+- The OIDC callback template clears legacy global auth/session payload keys and namespaced session data keys from `localStorage` and `sessionStorage`, but preserves the `session` storage-preference flag so OIDC flows using ephemeral `sessionStorage` remain logged in after redirect.
 - During migration, the OIDC callback also honors the legacy unnamespaced `localStorage["session"] === "true"` preference when choosing the preferred write target before rewriting the session into namespaced storage.
 - Legacy compatibility keys (`authToken`, `sessionId`, `sessionData`, `user`, and `provider`) are only migrated by the startup bridge when both the legacy token and legacy session id are present. New integrations should not rely on those keys.
 - Malformed JSON stored in `session.user` or `session.data` is discarded during startup instead of being reused.
 - In the standard login UI, this preference is exposed through the `Stay signed in on this device` toggle. Checked means persistent namespaced `localStorage`; unchecked means ephemeral namespaced `sessionStorage`.
 - The login page initializes that toggle from the current session storage mode when available, and otherwise falls back to the stored namespaced `session` preference flag.
+- Logout and session reset clear the current app namespace from both `localStorage` and `sessionStorage`, and also remove deprecated raw legacy auth keys from both stores, without touching other namespaced instances on the same origin.
+- Regression tests for session restore should exercise both preferred `sessionStorage` and a real `Config`-shaped object so namespace resolution bugs cannot silently fall back to `pp:root:`.
 
 Preferred integration contract for new native or web view clients:
 

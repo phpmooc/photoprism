@@ -22,8 +22,7 @@
     const namespaceKey = rawNamespace && rawNamespace !== "null" && rawNamespace !== "undefined" ? String(rawNamespace) : "root";
     const prefix = `pp:${namespaceKey}:`;
     const namespacedKey = (key) => `${prefix}${key}`;
-    const legacyKeys = [
-      "session",
+    const sessionDataKeys = [
       "session.token",
       "session.id",
       "session.data",
@@ -40,8 +39,10 @@
         : localStorage;
     const clearSessionData = () => {
       storages.forEach((storage) => {
-        legacyKeys.forEach((key) => storage.removeItem(key));
-        legacyKeys.forEach((key) => storage.removeItem(namespacedKey(key)));
+        // Preserve the storage-mode preference so the login page keeps using
+        // sessionStorage when "Stay signed in on this device" is disabled.
+        sessionDataKeys.forEach((key) => storage.removeItem(key));
+        sessionDataKeys.forEach((key) => storage.removeItem(namespacedKey(key)));
       });
     };
     const setItem = (key, value) => {
