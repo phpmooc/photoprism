@@ -12,7 +12,11 @@ import (
 
 const (
 	maxSessionRequestBytes       int64 = 64 * 1024
+	maxAlbumRequestBytes         int64 = 256 * 1024
+	maxSettingsRequestBytes      int64 = 256 * 1024
+	maxClusterRegisterBytes      int64 = 256 * 1024
 	maxUploadOptionsRequestBytes int64 = 256 * 1024
+	maxBatchPhotosEditBytes      int64 = 1024 * 1024
 	maxMultipartOverheadBytes    int64 = 1024 * 1024
 	maxAvatarUploadBytes         int64 = 20000000 + maxMultipartOverheadBytes
 )

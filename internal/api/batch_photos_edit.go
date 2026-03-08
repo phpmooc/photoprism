@@ -54,7 +54,14 @@ func BatchPhotosEdit(router *gin.RouterGroup) {
 		var frm batch.PhotosRequest
 
 		// Assign and validate request form values.
+		limitRequestBodyBytes(c, maxBatchPhotosEditBytes)
+
 		if err := c.BindJSON(&frm); err != nil {
+			if isRequestBodyTooLarge(err) {
+				abortRequestTooLarge(c, i18n.ErrBadRequest)
+				return
+			}
+
 			AbortBadRequest(c, err)
 			return
 		}
