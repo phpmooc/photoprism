@@ -41,7 +41,9 @@ func (w *Faces) Cluster(opt FacesOptions) (added entity.Faces, err error) {
 		var c alg.HardClusterer
 
 		// See https://dl.photoprism.app/research/ for research on face clustering algorithms.
-		if c, err = alg.DBSCAN(face.ClusterCore, face.ClusterDist, w.conf.IndexWorkers(), alg.EuclideanDist); err != nil {
+		if c, err = alg.DBSCANWithProgress(face.ClusterCore, face.ClusterDist, w.conf.IndexWorkers(), alg.EuclideanDist, 15*time.Minute, func(done, total int) {
+			log.Infof("cluster: processing %d of %d", done, total)
+		}); err != nil {
 			return added, err
 		} else if err = c.Learn(embeddings.Float64()); err != nil {
 			return added, err
