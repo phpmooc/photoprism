@@ -29,7 +29,7 @@ func Png(srcFile, pngFile string, orientation int) (img image.Image, err error) 
 	}
 
 	// Open source image.
-	img, err = imaging.Open(srcFile)
+	img, _, err = fs.DecodeImageFile(srcFile)
 
 	// Failed?
 	if err != nil {

@@ -15,6 +15,8 @@ import (
 
 	"github.com/disintegration/imaging"
 	onnxruntime "github.com/yalue/onnxruntime_go"
+
+	"github.com/photoprism/photoprism/pkg/fs"
 )
 
 // ONNXOptions configures how the ONNX runtime-backed detector is initialized.
@@ -309,17 +311,7 @@ func (o *onnxEngine) Close() error {
 
 // Detect identifies faces in the provided image using the ONNX runtime session.
 func (o *onnxEngine) Detect(fileName string, findLandmarks bool, minSize int) (Faces, error) {
-	file, err := os.Open(fileName) //nolint:gosec // fileName provided by caller; reading local images is required for detection
-	if err != nil {
-		return Faces{}, err
-	}
-	defer func() {
-		if closeErr := file.Close(); closeErr != nil {
-			log.Debugf("faces: %s (close image file)", closeErr)
-		}
-	}()
-
-	img, _, err := image.Decode(file)
+	img, _, err := fs.DecodeImageFile(fileName)
 	if err != nil {
 		return Faces{}, err
 	}
