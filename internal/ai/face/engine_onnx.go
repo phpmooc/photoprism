@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/draw"
 	_ "image/jpeg" // register JPEG decoder for ONNX engine input
 	"math"
 	"os"
@@ -13,8 +14,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/disintegration/imaging"
 	onnxruntime "github.com/yalue/onnxruntime_go"
+	xdraw "golang.org/x/image/draw"
 
 	"github.com/photoprism/photoprism/pkg/fs"
 )
@@ -55,7 +56,6 @@ type onnxEngine struct {
 	inputHeight    int
 	featStrides    []int
 	numAnchors     int
-	useKps         bool
 	batched        bool
 	scoreThreshold float32
 	nmsThreshold   float32
@@ -224,7 +224,7 @@ func NewONNXEngine(opts ONNXOptions) (DetectionEngine, error) {
 		outputNames[i] = out.Name
 	}
 
-	fmc, numAnchors, useKps, batched, err := deriveONNXLayout(outputInfos)
+	fmc, numAnchors, _, batched, err := deriveONNXLayout(outputInfos)
 	if err != nil {
 		return nil, err
 	}
@@ -244,7 +244,6 @@ func NewONNXEngine(opts ONNXOptions) (DetectionEngine, error) {
 		inputHeight:    height,
 		featStrides:    featStrides,
 		numAnchors:     numAnchors,
-		useKps:         useKps,
 		batched:        batched,
 		scoreThreshold: opts.ScoreThreshold,
 		nmsThreshold:   opts.NMSThreshold,
@@ -310,7 +309,7 @@ func (o *onnxEngine) Close() error {
 }
 
 // Detect identifies faces in the provided image using the ONNX runtime session.
-func (o *onnxEngine) Detect(fileName string, findLandmarks bool, minSize int) (Faces, error) {
+func (o *onnxEngine) Detect(fileName string, minSize int) (Faces, error) {
 	img, _, err := fs.DecodeImageFile(fileName)
 	if err != nil {
 		return Faces{}, err
@@ -432,7 +431,7 @@ func (o *onnxEngine) buildBlob(img image.Image) ([]float32, float32, error) {
 		newHeight = 1
 	}
 
-	resized := imaging.Resize(img, newWidth, newHeight, imaging.Linear)
+	resized := resizeLinearImage(img, newWidth, newHeight)
 
 	planeSize := inputWidth * inputHeight
 	blob := make([]float32, planeSize*3)
@@ -457,6 +456,13 @@ func (o *onnxEngine) buildBlob(img image.Image) ([]float32, float32, error) {
 	detScale := float32(newHeight) / float32(height)
 
 	return blob, detScale, nil
+}
+
+// resizeLinearImage rescales an image with a lightweight linear filter for ONNX preprocessing.
+func resizeLinearImage(img image.Image, width, height int) image.Image {
+	dst := image.NewNRGBA(image.Rect(0, 0, width, height))
+	xdraw.ApproxBiLinear.Scale(dst, dst.Bounds(), img, img.Bounds(), draw.Src, nil)
+	return dst
 }
 
 // parseDetections decodes model outputs into bounding boxes in the original image space.

@@ -1,11 +1,8 @@
 package tensorflow
 
 import (
-	"bytes"
 	"fmt"
 	"image"
-	_ "image/jpeg" // register JPEG decoder
-	_ "image/png"  // register PNG decoder
 	"math"
 	"runtime/debug"
 
@@ -31,7 +28,7 @@ func ImageFromFile(fileName string, input *PhotoInput) (*tf.Tensor, error) {
 	}
 }
 
-// OpenImage opens an image file and decodes it using the registered decoders.
+// OpenImage opens a natively supported image file and decodes it with PhotoPrism's direct dispatch helpers.
 func OpenImage(fileName string) (image.Image, error) {
 	img, _, err := fs.DecodeImageFile(fileName)
 	return img, err
@@ -39,7 +36,7 @@ func OpenImage(fileName string) (image.Image, error) {
 
 // ImageFromBytes converts raw image bytes into a tensor using the provided input definition.
 func ImageFromBytes(b []byte, input *PhotoInput, builder *ImageTensorBuilder) (*tf.Tensor, error) {
-	img, _, imgErr := image.Decode(bytes.NewReader(b))
+	img, _, imgErr := fs.DecodeImageData(b)
 
 	if imgErr != nil {
 		return nil, imgErr

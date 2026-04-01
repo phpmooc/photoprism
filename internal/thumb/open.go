@@ -7,7 +7,7 @@ import (
 	"github.com/photoprism/photoprism/pkg/fs"
 )
 
-// Open loads an image from disk, rotates it, and converts the color profile if necessary.
+// Open loads a natively supported image file from disk, rotates it, and converts the color profile if necessary.
 func Open(fileName string, orientation int) (result image.Image, err error) {
 	// Filename missing?
 	if fileName == "" {

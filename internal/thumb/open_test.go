@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/photoprism/photoprism/pkg/fs"
@@ -60,6 +61,20 @@ func TestOpen(t *testing.T) {
 		if img == nil {
 			t.Error("img must not be nil")
 		}
+	})
+	t.Run("Layered16BitTiff", func(t *testing.T) {
+		img, err := Open(fs.Abs("../../assets/samples/layered-16bit-small.tif"), 0)
+		require.NoError(t, err)
+		require.NotNil(t, img)
+		assert.Equal(t, 236, img.Bounds().Dx())
+		assert.Equal(t, 158, img.Bounds().Dy())
+	})
+	t.Run("TiffExplicitOrientation", func(t *testing.T) {
+		img, err := Open(fs.Abs("../photoprism/testdata/rotate/6.tiff"), OrientationRotate90)
+		require.NoError(t, err)
+		require.NotNil(t, img)
+		assert.Equal(t, 43, img.Bounds().Dx())
+		assert.Equal(t, 65, img.Bounds().Dy())
 	})
 	t.Run("MalformedTiffIfdOffset", func(t *testing.T) {
 		fileName := filepath.Join(t.TempDir(), "evil.tiff")
