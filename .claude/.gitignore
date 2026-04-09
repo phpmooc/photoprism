@@ -1,3 +1,5 @@
 *
 !.gitignore
 !CLAUDE.md
+!rules
+!rules/*.md
