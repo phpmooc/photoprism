@@ -1,3 +1,7 @@
+## Go Test Coverage
+
+- Every new Go function, including unexported helpers, must have focused test coverage in the corresponding `*_test.go` file; update existing tests or add new ones as needed.
+
 ## Go Testing Patterns
 
 - Go tests live next to their sources (`path/to/pkg/<file>_test.go`); group related cases as `t.Run(...)` sub-tests to keep table-driven coverage readable. Use **PascalCase** for subtest names (e.g., `t.Run("Success", ...)`).
@@ -28,7 +32,7 @@
 - `PhotoFixtures.Get()` and similar helpers return value copies; when a test needs the database-backed row, re-query by UID/ID using helpers like `entity.FindPhoto(fixture)`.
 - When adding persistent fixtures, always obtain new IDs via `rnd.GenerateUID(...)` with the matching prefix (`entity.PhotoUID`, `entity.FileUID`, `entity.LabelUID`, …).
 - For database updates, prefer the `entity.Values` type alias over raw `map[string]interface{}`.
-- Generate identifiers with `rnd.GenerateUID(entity.ClientUID)` for OAuth client IDs and `rnd.UUIDv7()` for node UUIDs.
+- Generate identifiers with `rnd.GenerateUID(entity.ClientUID)` for OAuth client IDs and `rnd.UUIDv7()` for node UUIDs; treat `node.uuid` as required in responses.
 - When you need illustrative credentials (join tokens, client IDs/secrets, etc.), reuse the shared `Example*` constants (see `internal/service/cluster/examples.go`).
 
 ### CLI Testing Gotchas

@@ -41,4 +41,4 @@ Harness env vars (supported by our tests):
 - Pipe method: PhotoPrism remux (ffmpeg) always embeds title/description/created.
 - File method: yt-dlp writes files; we pass `--postprocessor-args 'ffmpeg:-metadata creation_time=<RFC3339>'` so imports get `Created` even without local remux.
 - Default remux policy: `auto`; use `always` for the most complete metadata.
-- CLI defaults: `photoprism dl` now defaults to `--method pipe` and `--impersonate firefox`.
+- CLI defaults: `photoprism dl` now defaults to `--method pipe` and `--impersonate firefox`; pass `-i none` to disable impersonation.
