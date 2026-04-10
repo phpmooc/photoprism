@@ -8,6 +8,9 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// truncationWarningTemplate is the warning emitted when matches were truncated.
+const truncationWarningTemplate = "results truncated to %d of %d matches; raise the limit parameter (max %d) to retrieve more"
+
 var allowedSearchFilterTypes = map[string]struct{}{
 	"all":       {},
 	"decimal":   {},
@@ -31,6 +34,7 @@ type FindSearchFiltersOutput struct {
 	Truncated    bool                `json:"truncated"`
 	QueryApplied string              `json:"query_applied,omitempty"`
 	TypeApplied  string              `json:"type_applied"`
+	Warnings     []string            `json:"warnings,omitempty"`
 }
 
 // SearchFilterMatch represents a single search filter match.
@@ -81,13 +85,19 @@ func findSearchFilters(_ context.Context, _ *sdkmcp.CallToolRequest, input FindS
 		}
 	}
 
-	return nil, FindSearchFiltersOutput{
+	result := FindSearchFiltersOutput{
 		Matches:      matches,
 		TotalMatches: total,
 		Truncated:    total > len(matches),
 		QueryApplied: strings.TrimSpace(input.Query),
 		TypeApplied:  filterType,
-	}, nil
+	}
+
+	if result.Truncated {
+		result.Warnings = append(result.Warnings, fmt.Sprintf(truncationWarningTemplate, len(matches), total, maxResultLimit))
+	}
+
+	return nil, result, nil
 }
 
 // validateSearchFilterType validates and normalizes the optional filter type.

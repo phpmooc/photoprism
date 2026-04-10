@@ -302,6 +302,67 @@ func TestFindSearchFiltersValidation(t *testing.T) {
 		require.NoError(t, json.Unmarshal(raw, &out))
 		require.NotEmpty(t, out.Matches)
 	})
+
+	t.Run("UnicodeQuery", func(t *testing.T) {
+		res, err := session.CallTool(ctx, &sdkmcp.CallToolParams{
+			Name: "find_search_filters",
+			Arguments: map[string]any{
+				"query": "日本語",
+			},
+		})
+		require.NoError(t, err)
+		require.False(t, res.IsError)
+	})
+
+	t.Run("NegativeLimit", func(t *testing.T) {
+		res, err := session.CallTool(ctx, &sdkmcp.CallToolParams{
+			Name: "find_search_filters",
+			Arguments: map[string]any{
+				"limit": -1,
+			},
+		})
+		require.NoError(t, err)
+		require.True(t, res.IsError)
+	})
+
+	t.Run("LimitCappedAtMax", func(t *testing.T) {
+		res, err := session.CallTool(ctx, &sdkmcp.CallToolParams{
+			Name: "find_search_filters",
+			Arguments: map[string]any{
+				"limit": maxResultLimit + 10,
+			},
+		})
+		require.NoError(t, err)
+		require.False(t, res.IsError)
+
+		raw, err := json.Marshal(res.StructuredContent)
+		require.NoError(t, err)
+
+		var out FindSearchFiltersOutput
+		require.NoError(t, json.Unmarshal(raw, &out))
+		require.LessOrEqual(t, len(out.Matches), maxResultLimit)
+	})
+
+	t.Run("LimitOne", func(t *testing.T) {
+		res, err := session.CallTool(ctx, &sdkmcp.CallToolParams{
+			Name: "find_search_filters",
+			Arguments: map[string]any{
+				"limit": 1,
+			},
+		})
+		require.NoError(t, err)
+		require.False(t, res.IsError)
+
+		raw, err := json.Marshal(res.StructuredContent)
+		require.NoError(t, err)
+
+		var out FindSearchFiltersOutput
+		require.NoError(t, json.Unmarshal(raw, &out))
+		require.Len(t, out.Matches, 1)
+		require.True(t, out.Truncated, "limit=1 should truncate the full result set")
+		require.NotEmpty(t, out.Warnings, "truncated results should surface a warning")
+		require.Contains(t, out.Warnings[0], "results truncated to 1")
+	})
 }
 
 // TestFindSearchFiltersTool exercises search filter lookup behavior.
@@ -327,6 +388,8 @@ func TestFindSearchFiltersTool(t *testing.T) {
 		require.NoError(t, json.Unmarshal(raw, &out))
 		require.NotEmpty(t, out.Matches)
 		require.Equal(t, "all", out.TypeApplied)
+		require.False(t, out.Truncated, "Berlin query should fit in limit=5")
+		require.Empty(t, out.Warnings, "non-truncated results should not emit warnings")
 	})
 
 	t.Run("FilterByType", func(t *testing.T) {

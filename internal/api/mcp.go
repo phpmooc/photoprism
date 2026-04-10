@@ -49,10 +49,17 @@ func ServeMCP(router *gin.RouterGroup) {
 	)
 
 	mcpHandler := func(c *gin.Context) {
+		// Reject MCP requests in public mode regardless of role.
+		if conf.Public() {
+			AbortForbidden(c)
+			return
+		}
+
+		// Authenticate and authorize the request; Abort writes the matching
+		// 401/403/429 response if the session is invalid.
 		s := Auth(c, acl.ResourceMCP, acl.ActionView)
 
-		if s.Invalid() || conf.Public() {
-			AbortForbidden(c)
+		if s.Abort(c) {
 			return
 		}
 

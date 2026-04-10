@@ -63,13 +63,13 @@ func TestServeMCP(t *testing.T) {
 		r := PerformRequest(app, http.MethodPost, "/api/v1/mcp")
 		assert.Equal(t, http.StatusForbidden, r.Code)
 	})
-	t.Run("ForbiddenUnauthenticated", func(t *testing.T) {
+	t.Run("UnauthorizedAnonymous", func(t *testing.T) {
 		app, router, _ := NewApiTest()
 		prepareMCPTest(t)
 		ServeMCP(router)
 
 		r := mcpPost(app, `{"jsonrpc":"2.0","id":1,"method":"initialize"}`, "", "")
-		assert.Equal(t, http.StatusForbidden, r.Code)
+		assert.Equal(t, http.StatusUnauthorized, r.Code)
 	})
 	t.Run("ForbiddenNonAdmin", func(t *testing.T) {
 		app, router, _ := NewApiTest()

@@ -1,6 +1,8 @@
 ## PhotoPrism MCP Prototype
 
-**Last Updated:** April 7, 2026
+**Last Updated:** April 10, 2026
+
+> See `specs/platform/mcp.md` for the canonical specification, including the rationale for the user-access policy and the role/grant matrix per edition.
 
 ### Current capabilities
 
@@ -175,9 +177,30 @@ The HTTP endpoint uses PhotoPrism's existing ACL system:
   - All other roles (`user`, `viewer`, `guest`, `visitor`, `contributor`, default) are denied.
 - **Why `GrantSearchAll` for non-admins?** It includes `AccessAll`, `ActionView`, and `ActionSearch` — exactly what the read-only tools need — but excludes `ActionManage`/`ActionUpdate`/`ActionDelete`/`ActionCreate`. Any future write-capable MCP tool gated on those permissions will automatically be admin-only without needing per-tool checks.
 - **Client tokens:** API client sessions must also include the `mcp` resource (or a wildcard) in their session scope; the ACL grant alone is not sufficient.
-- **Auth model:** Request-level (every HTTP request runs through `Auth()`)
-- **Public mode:** Blocked (returns 403)
+- **Auth model:** request-level. The handler short-circuits with 403 in public mode, then runs `Auth(c, acl.ResourceMCP, acl.ActionView)` followed by `s.Abort(c)`. `Abort` writes the matching status code (`401` unauthenticated, `403` ACL deny, `429` rate-limited) and returns `true` so the handler can `return` early.
+- **Public mode:** Blocked (returns 403).
 - **Experimental gate:** the route only registers when `--experimental` is enabled; otherwise `/api/v1/mcp` returns 404.
+
+### Rate Limiting
+
+The MCP handler does not install a custom rate limiter — there is no per-endpoint bucket. Coverage depends on the edition:
+
+| Build  | Generic per-IP HTTP limiter? | Notes                                                                                                                                  |
+|--------|------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| CE     | no                           | Only the experimental gate, public-mode short-circuit, and admin/client auth check protect the endpoint.                               |
+| Plus   | no                           | Same as CE. The IPS middleware exists but only consumes tokens on known scanner/exploit paths, so it does not throttle MCP traffic.    |
+| Pro    | yes                          | `pro/internal/server/register.go` calls `router.Use(limiter.Middleware(limiter.NewLimit(rate.Every(secOpt.RequestInterval), secOpt.RequestLimit)))` when both options are set. The limiter is per client IP and applies to every API endpoint, MCP included. |
+| Portal | yes                          | Same wiring as Pro in `portal/internal/server/register.go`.                                                                            |
+
+A per-endpoint limiter (via `limiter.Auth` / `limiter.Login` / `limiter.AbortJSON`) is only worth adding when MCP grows write-capable tools or endpoints that warrant stricter throttling than the generic IP limiter — for example, anything that mutates state or that triggers expensive backend work.
+
+### Scope Plumbing
+
+`mcp` is the canonical scope token for `ResourceMCP`. The relevant pieces:
+
+- **Sanitization:** `pkg/clean.Scope` lowercases the input and parses it through `pkg/list.ParseAttr`. There is no allowlist of valid scope tokens, so `--scope mcp`, `--scope "mcp metrics"`, and `--scope "*"` are all accepted by `clients add` and `auth add` without any registry update.
+- **Authorization:** `internal/auth/acl.ScopePermits` checks the parsed attribute list against the resource string. Because `acl.ResourceMCP.String() == "mcp"`, the existing `attr.Contains(...)` path matches a session that holds the `mcp` token. See `TestScopePermits/MCPScope` in `internal/auth/acl/scope_test.go` for the canonical assertions (admin token, mixed scopes, case-insensitivity, deny on unrelated scopes).
+- **Cluster JWTs:** instance-side validation runs through `Config.JWTAllowedScopes()` (`internal/api/api_auth_jwt.go`). The default allowlist is `DefaultJWTAllowedScopes = "config cluster vision metrics mcp"` in `internal/config/config_cluster.go`, so portal-issued JWTs with `scope=mcp` are accepted out of the box. Operators that override the list via `--jwt-scope` / `PHOTOPRISM_JWT_SCOPE` need to include `mcp` themselves.
 
 ### How Users Get Access
 
@@ -201,6 +224,6 @@ To revoke access without disabling the user account, the administrator runs:
 ./photoprism clients remove <client-id>
 ```
 
-> **Heads up:** `photoprism auth add --scope mcp <username>` creates an *app password* tied to a user account, but it currently does **not** grant MCP access — `RoleUser` is not in the `ResourceMCP` ACL. Use `photoprism clients add` for MCP integrations until that policy changes.
+> **Heads up:** `photoprism auth add --scope mcp <username>` creates an *app password* tied to a user account, but it currently does **not** grant MCP access — `RoleUser` is not in the `ResourceMCP` ACL. Use `photoprism clients add` for MCP integrations until that policy changes. The reasoning is documented in `specs/platform/mcp.md` under *User Access Model* (deliberate hold, not an oversight).
 
 When MCP eventually grows tools that need user-scoped data (e.g. "list my albums"), the team will revisit the policy and likely add `RoleUser → GrantSearchAll` so the app-password path lights up. Until then, every MCP integration is an admin-provisioned client token tied to a named application.
