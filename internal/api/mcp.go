@@ -10,7 +10,7 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 
 	"github.com/photoprism/photoprism/internal/auth/acl"
-	internalmcp "github.com/photoprism/photoprism/internal/mcp"
+	"github.com/photoprism/photoprism/internal/mcp"
 	"github.com/photoprism/photoprism/internal/photoprism/get"
 )
 
@@ -35,7 +35,7 @@ func ServeMCP(router *gin.RouterGroup) {
 		return
 	}
 
-	mcpServer := internalmcp.NewServer(&sdkmcp.Implementation{
+	mcpServer := mcp.NewServer(&sdkmcp.Implementation{
 		Name:    "photoprism-mcp",
 		Version: conf.Version(),
 	}, conf.Edition())

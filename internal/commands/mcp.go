@@ -8,7 +8,7 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/urfave/cli/v2"
 
-	internalmcp "github.com/photoprism/photoprism/internal/mcp"
+	"github.com/photoprism/photoprism/internal/mcp"
 )
 
 // MCPCommands configures the Model Context Protocol (MCP) command group.
@@ -39,7 +39,7 @@ func mcpServeAction(ctx *cli.Context) error {
 
 	edition := mcpAppMetadata(ctx, "Edition", "unknown")
 
-	return internalmcp.NewServer(implementation, edition).Run(context.Background(), &sdkmcp.StdioTransport{})
+	return mcp.NewServer(implementation, edition).Run(context.Background(), &sdkmcp.StdioTransport{})
 }
 
 // mcpAppMetadata returns the named string entry from the CLI app metadata,
