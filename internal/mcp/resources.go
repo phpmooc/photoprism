@@ -7,9 +7,13 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// jsonMIMEType is the MIME type advertised for every MCP resource this
+// package registers. All resources serialize to JSON.
 const jsonMIMEType = "application/json"
 
-// registerResources adds the static read-only resources to the server.
+// registerResources registers every read-only resource exposed by the
+// server against the shared *Dataset. The order matches ResourceURIs so
+// the startup log and the SDK's resources/list response stay in sync.
 func registerResources(server *sdkmcp.Server, data *Dataset) {
 	server.AddResource(&sdkmcp.Resource{
 		URI:         configOptionsURI,
@@ -38,7 +42,9 @@ func registerResources(server *sdkmcp.Server, data *Dataset) {
 	})
 }
 
-// newResourceResult marshals a JSON payload into an MCP read-resource response.
+// newResourceResult marshals payload to indented JSON and wraps it in an
+// MCP ReadResourceResult with the given URI and the shared jsonMIMEType.
+// Returns an error if JSON marshalling fails.
 func newResourceResult(uri string, payload any) (*sdkmcp.ReadResourceResult, error) {
 	body, err := json.MarshalIndent(payload, "", "  ")
 	if err != nil {

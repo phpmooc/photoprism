@@ -27,18 +27,25 @@ var MCPServeCommand = &cli.Command{
 	Action: mcpServeAction,
 }
 
-// mcpServeAction starts the MCP server using the stdio transport.
+// mcpServeAction starts the MCP server over the stdio transport,
+// writing a startup line to stderr so the JSON-RPC stream on stdout
+// stays clean for the MCP client.
 func mcpServeAction(ctx *cli.Context) error {
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
-	logger.Info("starting mcp server", "transport", "stdio", "tools", 2, "resources", 2)
+	logger.Info("starting mcp server",
+		"transport", "stdio",
+		"tools", len(mcp.ToolNames),
+		"resources", len(mcp.ResourceURIs),
+	)
 
 	return runMCPServer(context.Background(), ctx, &sdkmcp.StdioTransport{})
 }
 
-// runMCPServer builds an MCP server from the CLI metadata and runs it over the
-// given transport until the context is cancelled or the transport closes. The
-// transport is a parameter so tests can substitute an in-memory transport for
-// the stdio one the CLI Action uses in production.
+// runMCPServer builds an MCP server from the CLI app metadata (Version,
+// Edition) and runs it over the given transport until ctx is cancelled or
+// the transport closes. The transport is a parameter so tests can
+// substitute an in-memory transport for the stdio one mcpServeAction uses
+// in production.
 func runMCPServer(ctx context.Context, appCtx *cli.Context, transport sdkmcp.Transport) error {
 	implementation := &sdkmcp.Implementation{
 		Name:    "photoprism-mcp",
@@ -50,7 +57,8 @@ func runMCPServer(ctx context.Context, appCtx *cli.Context, transport sdkmcp.Tra
 }
 
 // mcpAppMetadata returns the named string entry from the CLI app metadata,
-// falling back to the supplied default if it is missing or not a string.
+// falling back to the supplied default if the key is missing, the value is
+// not a string, or the value is an empty string.
 func mcpAppMetadata(ctx *cli.Context, key, fallback string) string {
 	if value, ok := ctx.App.Metadata[key].(string); ok && value != "" {
 		return value

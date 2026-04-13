@@ -85,8 +85,9 @@ func TestRunMCPServerOverInMemoryTransport(t *testing.T) {
 	}
 }
 
-// TestMCPAppMetadata covers the four ways mcpAppMetadata may fall back to the
-// caller-supplied default and the single happy path.
+// TestMCPAppMetadata covers the happy path and every fallback branch of
+// mcpAppMetadata: missing key, non-string value, empty-string value, and
+// nil metadata map.
 func TestMCPAppMetadata(t *testing.T) {
 	cases := []struct {
 		name     string

@@ -53,6 +53,10 @@ func mcpPost(app http.Handler, body, authToken, sessionID string) *httptest.Resp
 	return w
 }
 
+// TestServeMCP exercises the HTTP handler installed by ServeMCP: the
+// public-mode anonymous path, unauthenticated and non-admin denial, the
+// experimental-off 404 short-circuit, and the full admin round-trip
+// through initialize, notifications/initialized, and tools/call.
 func TestServeMCP(t *testing.T) {
 	t.Run("AllowedPublicMode", func(t *testing.T) {
 		// In public mode, Session() returns the default public session and

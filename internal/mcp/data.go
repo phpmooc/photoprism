@@ -8,8 +8,15 @@ import (
 	"github.com/photoprism/photoprism/internal/form"
 )
 
+// Resource URIs advertised to MCP clients. Each one maps to a JSON
+// payload built from internal PhotoPrism reference data and registered
+// in resources.go.
 const (
+	// configOptionsURI is the URI of the "config-options" resource,
+	// which mirrors the `photoprism show config-options` CLI report.
 	configOptionsURI = "photoprism://config-options"
+	// searchFiltersURI is the URI of the "search-filters" resource,
+	// which mirrors the `photoprism show search-filters` CLI report.
 	searchFiltersURI = "photoprism://search-filters"
 )
 
@@ -59,9 +66,16 @@ func NewDataset(currentEdition string) *Dataset {
 	}
 }
 
-// buildConfigOptions returns config options with section titles attached.
+// buildConfigOptions walks config.Flags and returns one ConfigOption per
+// non-hidden flag, with the originating section title attached. Section
+// titles come from config.OptionsReportSections; each section declares one
+// or more "start" env vars that mark where the section begins in the flag
+// list. Flags encountered before the first known start env var inherit an
+// empty section, matching the layout of the `photoprism show config-*`
+// CLI reports.
 func buildConfigOptions() []ConfigOption {
-	// Build a map from section start env vars to section titles.
+	// Index section start env vars by the exact env var name for O(1)
+	// lookup while iterating flags below.
 	sectionStarts := make(map[string]string)
 
 	for _, section := range config.OptionsReportSections {
@@ -80,6 +94,7 @@ func buildConfigOptions() []ConfigOption {
 
 		envVar := flag.EnvVar()
 
+		// Update the section title whenever we cross a section boundary.
 		if title, ok := sectionStarts[envVar]; ok {
 			currentSection = title
 		}
@@ -97,7 +112,10 @@ func buildConfigOptions() []ConfigOption {
 	return items
 }
 
-// buildSearchFilters returns search filters sorted like the existing CLI report.
+// buildSearchFilters runs the existing search-filter report against
+// form.SearchPhotos and returns the rows sorted by (type, filter) for
+// deterministic MCP output. Rows with fewer than four columns are
+// dropped defensively in case the report shape ever changes.
 func buildSearchFilters() []SearchFilter {
 	rows, _ := form.Report(&form.SearchPhotos{})
 

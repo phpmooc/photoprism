@@ -6,6 +6,9 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// TestBuildConfigOptions asserts that every non-hidden config flag
+// surfaced by buildConfigOptions carries a section title, environment
+// variable, and CLI flag.
 func TestBuildConfigOptions(t *testing.T) {
 	items := buildConfigOptions()
 	require.NotEmpty(t, items, "buildConfigOptions must return items")
@@ -17,6 +20,8 @@ func TestBuildConfigOptions(t *testing.T) {
 	}
 }
 
+// TestBuildSearchFilters asserts that every search filter row surfaced
+// by buildSearchFilters carries a filter name and type.
 func TestBuildSearchFilters(t *testing.T) {
 	items := buildSearchFilters()
 	require.NotEmpty(t, items, "buildSearchFilters must return items")
@@ -27,6 +32,8 @@ func TestBuildSearchFilters(t *testing.T) {
 	}
 }
 
+// TestNormalizeEdition covers trimming, case-folding, and the empty-input
+// fallback to "unknown" in normalizeEdition.
 func TestNormalizeEdition(t *testing.T) {
 	tests := []struct {
 		input    string
@@ -47,6 +54,10 @@ func TestNormalizeEdition(t *testing.T) {
 	}
 }
 
+// TestEditionSupportFor exercises the tag-to-edition mapping that drives
+// the edition_support hint returned by list_config_keys, including the
+// "unknown" short-circuit and the priority order (portal > pro > plus >
+// essentials > all).
 func TestEditionSupportFor(t *testing.T) {
 	tests := []struct {
 		name           string

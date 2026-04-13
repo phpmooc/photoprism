@@ -32,16 +32,19 @@ func connectTestClient(t *testing.T) *sdkmcp.ClientSession {
 	return session
 }
 
-// TestNewServerResources lists and reads the registered MCP resources.
+// TestNewServerResources lists and reads the registered MCP resources,
+// asserting that every URI advertised in ResourceURIs is exposed in the
+// declared order and returns a non-empty JSON payload.
 func TestNewServerResources(t *testing.T) {
 	ctx := context.Background()
 	session := connectTestClient(t)
 
 	resources, err := session.ListResources(ctx, nil)
 	require.NoError(t, err)
-	require.Len(t, resources.Resources, 2)
-	require.Equal(t, configOptionsURI, resources.Resources[0].URI)
-	require.Equal(t, searchFiltersURI, resources.Resources[1].URI)
+	require.Len(t, resources.Resources, len(ResourceURIs))
+	for i, uri := range ResourceURIs {
+		require.Equal(t, uri, resources.Resources[i].URI)
+	}
 
 	configResource, err := session.ReadResource(ctx, &sdkmcp.ReadResourceParams{URI: configOptionsURI})
 	require.NoError(t, err)
@@ -62,21 +65,23 @@ func TestNewServerResources(t *testing.T) {
 	require.Equal(t, "ce", filterPayload.Edition)
 }
 
-// TestNewServerToolList exposes the expected list_config_keys tool.
+// TestNewServerToolList asserts that the server advertises exactly the
+// tools listed in ToolNames and that every tool carries a JSON schema.
 func TestNewServerToolList(t *testing.T) {
 	ctx := context.Background()
 	session := connectTestClient(t)
 
 	tools, err := session.ListTools(ctx, nil)
 	require.NoError(t, err)
-	require.Len(t, tools.Tools, 2)
+	require.Len(t, tools.Tools, len(ToolNames))
 
-	names := []string{tools.Tools[0].Name, tools.Tools[1].Name}
-	require.Contains(t, names, "list_config_keys")
-	require.Contains(t, names, "find_search_filters")
-
+	names := make([]string, 0, len(tools.Tools))
 	for _, tool := range tools.Tools {
+		names = append(names, tool.Name)
 		require.NotNil(t, tool.InputSchema)
+	}
+	for _, expected := range ToolNames {
+		require.Contains(t, names, expected)
 	}
 }
 

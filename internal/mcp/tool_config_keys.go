@@ -8,12 +8,24 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
+// Result and input limits shared by every MCP tool registered on the server.
+// They keep responses compact enough for LLM clients and prevent input-size
+// abuse on substring-based matching.
 const (
+	// defaultResultLimit is the number of matches returned when a tool
+	// call does not specify an explicit "limit" argument.
 	defaultResultLimit = 20
-	maxResultLimit     = 50
-	maxQueryLength     = 200
+	// maxResultLimit is the hard upper bound applied to any "limit"
+	// argument larger than this value.
+	maxResultLimit = 50
+	// maxQueryLength is the maximum length of any free-text input
+	// ("query", "section", …) accepted by a tool.
+	maxQueryLength = 200
 )
 
+// allowedEditions is the closed allowlist of values accepted by the
+// "edition" argument of list_config_keys. An empty edition defaults to
+// "all"; anything outside this set is rejected with a validation error.
 var allowedEditions = map[string]struct{}{
 	"all":    {},
 	"ce":     {},
@@ -51,7 +63,9 @@ type ConfigKeyMatch struct {
 	EditionSupport string `json:"edition_support"`
 }
 
-// registerTools adds the read-only config lookup tool to the server.
+// registerTools registers every read-only tool exposed by the server
+// against the shared *Dataset. The order matches ToolNames so the
+// startup log and the SDK's tools/list response stay in sync.
 func registerTools(server *sdkmcp.Server, data *Dataset) {
 	sdkmcp.AddTool(server, &sdkmcp.Tool{
 		Name:        "list_config_keys",
@@ -68,7 +82,11 @@ func registerTools(server *sdkmcp.Server, data *Dataset) {
 	})
 }
 
-// listConfigKeys validates the request and returns compact config matches.
+// listConfigKeys validates the caller's input, applies the section/query
+// filters over data.ConfigOptions, and returns at most `limit` matches
+// alongside the total match count. When an explicit edition filter is
+// supplied and differs from the current build, an advisory warning is
+// attached to the response.
 func listConfigKeys(_ context.Context, _ *sdkmcp.CallToolRequest, input ListConfigKeysInput, data *Dataset) (*sdkmcp.CallToolResult, ListConfigKeysOutput, error) {
 	edition, err := validateEdition(input.Edition)
 	if err != nil {
@@ -133,7 +151,9 @@ func listConfigKeys(_ context.Context, _ *sdkmcp.CallToolRequest, input ListConf
 	return nil, result, nil
 }
 
-// validateEdition validates and normalizes the requested edition.
+// validateEdition normalizes the requested edition and checks it against
+// allowedEditions. An empty input defaults to "all"; any value outside
+// the allowlist yields a validation error surfaced to the caller.
 func validateEdition(edition string) (string, error) {
 	if strings.TrimSpace(edition) == "" {
 		return "all", nil
@@ -148,7 +168,9 @@ func validateEdition(edition string) (string, error) {
 	return normalized, nil
 }
 
-// validateLimit validates and normalizes the requested result limit.
+// validateLimit normalizes the requested result limit: zero becomes
+// defaultResultLimit, values above maxResultLimit are clamped, and
+// negative values are rejected with a validation error.
 func validateLimit(limit int) (int, error) {
 	if limit == 0 {
 		return defaultResultLimit, nil
@@ -208,7 +230,12 @@ func matchesQuery(option ConfigOption, query string) bool {
 	return false
 }
 
-// editionSupportFor returns an edition annotation based on a config option's tags.
+// editionSupportFor returns a conservative edition hint for a config
+// option based on its flag tags. Returns "unknown" if the current build
+// edition is unknown, the first matching tag in priority order
+// (portal > pro > plus > essentials) when one is present, and "all"
+// otherwise. The hint is advisory and reflects the tag metadata only,
+// not runtime capability detection.
 func editionSupportFor(option ConfigOption, currentEdition string) string {
 	if currentEdition == "unknown" {
 		return "unknown"

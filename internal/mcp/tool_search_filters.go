@@ -8,9 +8,15 @@ import (
 	sdkmcp "github.com/modelcontextprotocol/go-sdk/mcp"
 )
 
-// truncationWarningTemplate is the warning emitted when matches were truncated.
+// truncationWarningTemplate is the fmt.Sprintf template used to populate
+// the "warnings" field of a tool response when the number of matches
+// exceeds the caller's limit. Arguments are: returned count, total count,
+// hard upper bound (maxResultLimit).
 const truncationWarningTemplate = "results truncated to %d of %d matches; raise the limit parameter (max %d) to retrieve more"
 
+// allowedSearchFilterTypes is the closed allowlist of values accepted by
+// the "type" argument of find_search_filters. An empty type defaults to
+// "all"; anything outside this set is rejected with a validation error.
 var allowedSearchFilterTypes = map[string]struct{}{
 	"all":       {},
 	"decimal":   {},
@@ -45,7 +51,11 @@ type SearchFilterMatch struct {
 	Notes    string `json:"notes"`
 }
 
-// findSearchFilters validates the request and returns matching filters.
+// findSearchFilters validates the caller's input, applies the type and
+// query filters over data.SearchFilters, and returns at most `limit`
+// matches alongside the total match count. When the result is truncated,
+// an actionable warning is attached to the response via
+// truncationWarningTemplate.
 func findSearchFilters(_ context.Context, _ *sdkmcp.CallToolRequest, input FindSearchFiltersInput, data *Dataset) (*sdkmcp.CallToolResult, FindSearchFiltersOutput, error) {
 	filterType, err := validateSearchFilterType(input.Type)
 	if err != nil {
@@ -100,7 +110,10 @@ func findSearchFilters(_ context.Context, _ *sdkmcp.CallToolRequest, input FindS
 	return nil, result, nil
 }
 
-// validateSearchFilterType validates and normalizes the optional filter type.
+// validateSearchFilterType normalizes the requested filter type and
+// checks it against allowedSearchFilterTypes. An empty input defaults to
+// "all"; any value outside the allowlist yields a validation error
+// surfaced to the caller.
 func validateSearchFilterType(filterType string) (string, error) {
 	if strings.TrimSpace(filterType) == "" {
 		return "all", nil
