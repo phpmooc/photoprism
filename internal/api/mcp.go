@@ -53,7 +53,7 @@ func ServeMCP(router *gin.RouterGroup) {
 		// 401/403/429 response if the session is invalid. In public mode,
 		// Session() returns the default public session so the currently
 		// registered read-only tools are reachable without a token — this
-		// is intentional so the prototype can be showcased on
+		// is intentional so the MCP server can be showcased on
 		// demo.photoprism.app. Any future tool that touches per-user state,
 		// the database, or mutates anything MUST NOT be registered on this
 		// server without an additional per-tool check (see internal/mcp

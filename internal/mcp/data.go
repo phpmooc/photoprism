@@ -13,7 +13,7 @@ const (
 	searchFiltersURI = "photoprism://search-filters"
 )
 
-// Dataset caches the static MCP prototype data returned by resources and tools.
+// Dataset caches the static MCP data returned by resources and tools.
 type Dataset struct {
 	CurrentEdition string
 	ConfigOptions  []ConfigOption
@@ -50,7 +50,7 @@ type SearchFiltersResource struct {
 	Items   []SearchFilter `json:"items"`
 }
 
-// NewDataset builds the static MCP prototype dataset for the current build.
+// NewDataset builds the static MCP dataset for the current build.
 func NewDataset(currentEdition string) *Dataset {
 	return &Dataset{
 		CurrentEdition: normalizeEdition(currentEdition),

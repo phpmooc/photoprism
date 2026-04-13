@@ -1,5 +1,7 @@
 /*
-Package mcp provides a small read-only MCP prototype for internal evaluation.
+Package mcp implements the PhotoPrism Model Context Protocol (MCP) server,
+which exposes read-only reference data (config options and search filters)
+to MCP-aware clients over both stdio and authenticated Streamable HTTP.
 
 Copyright (c) 2018 - 2026 PhotoPrism UG. All rights reserved.
 

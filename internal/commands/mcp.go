@@ -11,19 +11,19 @@ import (
 	internalmcp "github.com/photoprism/photoprism/internal/mcp"
 )
 
-// MCPCommands configures the MCP prototype command group.
+// MCPCommands configures the Model Context Protocol (MCP) command group.
 var MCPCommands = &cli.Command{
 	Name:  "mcp",
-	Usage: "Runs the internal read-only MCP prototype",
+	Usage: "Shows the Model Context Protocol (MCP) server subcommands",
 	Subcommands: []*cli.Command{
 		MCPServeCommand,
 	},
 }
 
-// MCPServeCommand starts the MCP prototype over stdio.
+// MCPServeCommand starts the MCP server over the stdio transport.
 var MCPServeCommand = &cli.Command{
 	Name:   "serve",
-	Usage:  "Starts the internal read-only MCP prototype over stdio",
+	Usage:  "Starts the internal MCP server via stdio for development and testing",
 	Action: mcpServeAction,
 }
 
@@ -35,7 +35,7 @@ func mcpServeAction(ctx *cli.Context) error {
 	}
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{Level: slog.LevelInfo}))
 
-	logger.Info("starting mcp prototype", "transport", "stdio", "tools", 2, "resources", 2)
+	logger.Info("starting mcp server", "transport", "stdio", "tools", 2, "resources", 2)
 
 	edition := mcpAppMetadata(ctx, "Edition", "unknown")
 

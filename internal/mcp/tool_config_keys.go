@@ -126,7 +126,7 @@ func listConfigKeys(_ context.Context, _ *sdkmcp.CallToolRequest, input ListConf
 
 	if edition != "all" && edition != data.CurrentEdition {
 		result.Warnings = []string{
-			fmt.Sprintf("edition filtering is advisory in this prototype; results come from the current %s build metadata", data.CurrentEdition),
+			fmt.Sprintf("edition filtering is advisory; results come from the current %s build metadata", data.CurrentEdition),
 		}
 	}
 

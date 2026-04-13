@@ -1,16 +1,16 @@
-## PhotoPrism MCP Prototype
+## PhotoPrism MCP Server
 
 **Last Updated:** April 13, 2026
 
 > See `specs/platform/mcp.md` for the canonical specification, including the rationale for the user-access policy and the role/grant matrix per edition.
 
-### Current capabilities
+### Current Capabilities
 
 - **Transports:**
-  - CLI: `photoprism mcp serve` (stdio, no auth)
+  - CLI: `photoprism mcp serve` (stdio, no auth; development and testing)
   - HTTP: `POST/GET/DELETE /api/v1/mcp` (Streamable HTTP, authenticated)
-- **Authentication:** HTTP endpoint requires admin role via `ResourceMCP` ACL
-- **Feature gate:** HTTP endpoint requires `--experimental` flag
+- **Authorization:** HTTP endpoint enforces the `ResourceMCP` ACL (admin plus the API client roles in every edition, manager in Pro/Portal); anonymous access is permitted in public mode for the currently registered read-only tools.
+- **Feature gate:** HTTP endpoint requires the `--experimental` flag; absent that flag `/api/v1/mcp` returns 404.
 - Read-only resources:
   - `photoprism://config-options`
   - `photoprism://search-filters`
@@ -27,21 +27,20 @@
 | `internal/commands/mcp.go` | CLI command (`photoprism mcp serve`) using stdio transport                                                                                                                           |
 | `internal/auth/acl/`       | `ResourceMCP` constant and ACL grant rules (`GrantFullAccess` for admin; `GrantSearchAll` for manager in Pro/Portal and for the API client roles: client, instance, service, portal) |
 
-### Goals and non-goals
+### Scope
 
-Goals:
+In scope for the current server:
 
-- Prove the MCP model works end-to-end inside the PhotoPrism codebase
-- Reuse internal reference data instead of maintaining a separate copy
-- Keep outputs concise enough for LLM use
-- Provide authenticated remote access via Streamable HTTP transport
+- Reuse existing internal reference data (`config.Flags`, `config.OptionsReportSections`, `form.Report(&form.SearchPhotos{})`) instead of maintaining a parallel dataset.
+- Keep outputs compact enough for LLM consumption.
+- Authenticated remote access via the Streamable HTTP transport, plus a stdio transport for local development and testing.
 
-Non-Goals:
+Out of scope for the current server (must not regress without additional per-tool gates):
 
-- No write-capable tools
-- No direct database access
-- No live PhotoPrism instance or API queries
-- No non-admin access
+- Write-capable tools.
+- Direct database access.
+- Live PhotoPrism instance or API queries.
+- Per-user state (albums, photos, sessions, settings).
 
 ### Internal data sources
 
@@ -221,7 +220,7 @@ Whichever path you pick, **add a test in `internal/mcp/server_test.go` that fail
 
 ### How Users Get Access
 
-Regular user accounts (`RoleUser`, `RoleViewer`, etc.) are intentionally **not** in the `ResourceMCP` ACL. Regular users typically don't have shell access to the server, so they can't run the CLI commands themselves — and the prototype's tools only return static reference data, so there's no per-user information to authorize against. Access is therefore granted through admin-issued client tokens.
+Regular user accounts (`RoleUser`, `RoleViewer`, etc.) are intentionally **not** in the `ResourceMCP` ACL. Regular users typically don't have shell access to the server, so they can't run the CLI commands themselves — and the currently registered tools only return static reference data, so there's no per-user information to authorize against. Access is therefore granted through admin-issued client tokens.
 
 To onboard a user (or a CI job, IDE, etc.), an administrator runs the following on the PhotoPrism server:
 

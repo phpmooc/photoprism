@@ -205,7 +205,7 @@ func registerRoutes(router *gin.Engine, conf *config.Config) {
 	api.ClusterMetrics(APIv1)
 	api.ClusterHealth(APIv1)
 
-	// MCP Prototype.
+	// Model Context Protocol (MCP).
 	api.ServeMCP(APIv1)
 
 	// Technical Endpoints.

@@ -59,7 +59,7 @@ func TestServeMCP(t *testing.T) {
 		// the currently registered MCP tools only surface static reference
 		// data. Anonymous callers must therefore be able to initialize an
 		// MCP session and call both tools without a token — this is what
-		// lets the prototype run on demo.photoprism.app. Guard the policy
+		// lets the MCP server run on demo.photoprism.app. Guard the policy
 		// here so it regresses loudly if a future change tightens it.
 		app, router, _ := NewApiTest()
 		conf := prepareMCPTest(t)
