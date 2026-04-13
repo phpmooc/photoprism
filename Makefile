@@ -326,11 +326,34 @@ dep-gh:
 	  echo "ERROR: Could not install gh automatically. See https://cli.github.com/"; \
 	  exit 1; \
 	fi
-claude:
-	@echo "Installing Claude Code..."
+claude: claude-skills
 	@[ -n "$(HOME)" ] && [ "$(HOME)" != "/" ] && install -d -m 755 -- "$(HOME)/.local/bin" || true
 	@[ -n "$(CLAUDE_CONFIG_DIR)" ] && [ "$(CLAUDE_CONFIG_DIR)" != "/" ] && install -d -m 755 -- "$(CLAUDE_CONFIG_DIR)" || true
-	curl -fsSL https://claude.ai/install.sh | bash
+	@if command -v claude >/dev/null 2>&1; then \
+	  echo "Updating Claude Code..."; \
+	  claude update; \
+	else \
+	  echo "Installing Claude Code..."; \
+	  curl -fsSL https://claude.ai/install.sh | bash; \
+	fi
+claude-skills:
+	@if [ -d "specs/.claude/skills" ]; then \
+	  echo "Linking Claude Code skills from specs/.claude/skills..."; \
+	  install -d -m 755 -- ".claude/skills"; \
+	  for src in specs/.claude/skills/*/; do \
+	    [ -d "$$src" ] || continue; \
+	    name=$$(basename "$$src"); \
+	    link=".claude/skills/$$name"; \
+	    target="../../specs/.claude/skills/$$name"; \
+	    if [ -L "$$link" ] || [ ! -e "$$link" ]; then \
+	      ln -sfn "$$target" "$$link"; \
+	    else \
+	      echo "WARNING: $$link exists and is not a symlink, skipping"; \
+	    fi; \
+	  done; \
+	else \
+	  echo "No specs/.claude/skills directory found, skipping."; \
+	fi
 dep-go:
 	go build -v ./...
 dep-upgrade:
