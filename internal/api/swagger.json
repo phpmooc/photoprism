@@ -9040,6 +9040,143 @@
                 ]
             }
         },
+        "/api/v1/photos/view": {
+            "get": {
+                "description": "Returns search results formatted for the photo viewer (lightbox) in the web UI,\nincluding resolved content URLs and preview/download tokens.\nFor more information see:\n- https://docs.photoprism.app/developer-guide/api/search/#get-apiv1photos",
+                "operationId": "SearchPhotosView",
+                "parameters": [
+                    {
+                        "description": "maximum number of files",
+                        "in": "query",
+                        "maximum": 100000,
+                        "minimum": 1,
+                        "name": "count",
+                        "required": true,
+                        "type": "integer"
+                    },
+                    {
+                        "description": "file offset",
+                        "in": "query",
+                        "maximum": 100000,
+                        "minimum": 0,
+                        "name": "offset",
+                        "type": "integer"
+                    },
+                    {
+                        "description": "sort order",
+                        "enum": [
+                            "name",
+                            "title",
+                            "added",
+                            "edited",
+                            "newest",
+                            "oldest",
+                            "size",
+                            "random",
+                            "duration",
+                            "relevance"
+                        ],
+                        "in": "query",
+                        "name": "order",
+                        "type": "string"
+                    },
+                    {
+                        "description": "groups consecutive files that belong to the same photo",
+                        "in": "query",
+                        "name": "merged",
+                        "type": "boolean"
+                    },
+                    {
+                        "description": "excludes private pictures",
+                        "in": "query",
+                        "name": "public",
+                        "type": "boolean"
+                    },
+                    {
+                        "description": "minimum quality score (1-7)",
+                        "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                        ],
+                        "in": "query",
+                        "name": "quality",
+                        "type": "integer"
+                    },
+                    {
+                        "description": "search query",
+                        "in": "query",
+                        "name": "q",
+                        "type": "string"
+                    },
+                    {
+                        "description": "album uid",
+                        "in": "query",
+                        "name": "s",
+                        "type": "string"
+                    },
+                    {
+                        "description": "photo path",
+                        "in": "query",
+                        "name": "path",
+                        "type": "string"
+                    },
+                    {
+                        "description": "is type video",
+                        "in": "query",
+                        "name": "video",
+                        "type": "boolean"
+                    }
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "items": {
+                                "$ref": "#/definitions/search.Photo"
+                            },
+                            "type": "array"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.Response"
+                        }
+                    }
+                },
+                "summary": "finds pictures and returns a viewer-formatted JSON result for the lightbox",
+                "tags": [
+                    "Photos"
+                ]
+            }
+        },
         "/api/v1/photos/{uid}": {
             "get": {
                 "operationId": "GetPhoto",
