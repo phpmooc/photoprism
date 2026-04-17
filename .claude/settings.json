@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "additionalDirectories": ["/go", "/tmp", "/home"],
+    "allow": [
+      "Bash(make:*)",
+      "Bash(go:*)",
+      "Bash(npx --yes markdown-table-formatter:*)",
+      "WebSearch"
+    ]
+  },
+  "awaySummaryEnabled": false
+}
