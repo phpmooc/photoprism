@@ -38,6 +38,14 @@ func ServeMCP(router *gin.RouterGroup) {
 		return
 	}
 
+	// Skip registration when the MCP endpoint has been disabled via
+	// --disable-mcp / PHOTOPRISM_DISABLE_MCP / DisableMCP, so requests
+	// to /api/v1/mcp return the standard 404 response.
+	if conf.DisableMCP() {
+		log.Info("mcp: disabled")
+		return
+	}
+
 	// One server instance is shared across all HTTP requests. The SDK
 	// isolates concurrent callers through its own session bookkeeping,
 	// keyed by the Mcp-Session-Id response header.

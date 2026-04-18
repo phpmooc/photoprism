@@ -88,6 +88,18 @@ func TestServeMCP(t *testing.T) {
 		assert.Equal(t, http.StatusOK, w4.Code)
 		assert.Contains(t, w4.Body.String(), "matches")
 	})
+	t.Run("DisabledViaConfig", func(t *testing.T) {
+		// When DisableMCP is set, ServeMCP must skip route registration so
+		// the endpoint responds with the standard 404 — mirroring how the
+		// other Disable* flags short-circuit route setup.
+		app, router, _ := NewApiTest()
+		conf := prepareMCPTest(t)
+		conf.Options().DisableMCP = true
+		ServeMCP(router)
+
+		r := mcpPost(app, `{"jsonrpc":"2.0","id":1,"method":"initialize"}`, "", "")
+		assert.Equal(t, http.StatusNotFound, r.Code)
+	})
 	t.Run("UnauthorizedAnonymous", func(t *testing.T) {
 		app, router, _ := NewApiTest()
 		prepareMCPTest(t)

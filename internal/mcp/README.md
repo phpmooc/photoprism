@@ -8,7 +8,7 @@
 
 - **Transports:**
   - CLI: `photoprism mcp serve` (stdio, no auth; development and testing)
-  - HTTP: `POST/GET/DELETE /api/v1/mcp` (Streamable HTTP, authenticated)
+  - HTTP: `POST/GET/DELETE /api/v1/mcp` (Streamable HTTP, authenticated). Can be disabled via `--disable-mcp` / `PHOTOPRISM_DISABLE_MCP` / `DisableMCP` so the route responds with the standard 404 when an operator does not want the endpoint exposed.
 - **Authorization:** HTTP endpoint enforces the `ResourceMCP` ACL (admin plus the API client roles in every edition, manager in Pro/Portal); anonymous access is permitted in public mode for the currently registered read-only tools.
 - Read-only resources:
   - `photoprism://config-options`
