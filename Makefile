@@ -313,6 +313,7 @@ dep-codex:
 	  npm install -g --location=global --ignore-scripts --no-fund --no-audit --no-update-notifier "@openai/codex@latest"; \
 	fi
 	@codex features disable general_analytics || true
+agents-skills: codex-skills
 codex-skills:
 	@if [ -d "specs/.agents/skills" ]; then \
 	  echo "Linking Codex skills from specs/.agents/skills..."; \
