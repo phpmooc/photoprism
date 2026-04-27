@@ -1,15 +1,19 @@
 import { describe, it, expect, vi } from "vitest";
 import "../fixtures";
-import ModelCache from "model/model-cache";
+import ModelCache, { ModelCacheStaleFetchError } from "model/model-cache";
 
 // Minimal model-shaped object the tests can use without pulling in any
-// real subclass. Snapshots store only `values`; hydrate returns a wrapper
-// so callers can still distinguish "snapshot" from "hydrated instance".
+// real subclass. The snapshot is intentionally idempotent — it accepts
+// either a fakeModel ({ values: {...} }) or already-snapshotted plain
+// values — so the fixture mirrors Photo's "instanceof check, otherwise
+// pass through" callback. Set() now routes through snapshot, so a non-
+// idempotent callback would break every test that pre-snapshots raw
+// values inline.
 function buildCache(overrides = {}) {
   return new ModelCache({
     max: 3,
     ttl: 0,
-    snapshot: (model) => ({ ...model.values }),
+    snapshot: (model) => (model && typeof model === "object" && Object.prototype.hasOwnProperty.call(model, "values") ? { ...model.values } : { ...model }),
     hydrate: (values) => ({ hydrated: true, values }),
     ...overrides,
   });
@@ -46,6 +50,47 @@ describe("model/model-cache", () => {
       const b = new ModelCache({ ttl: -100, snapshot: (m) => m, hydrate: (v) => v });
       expect(a.ttl).toBe(0);
       expect(b.ttl).toBe(0);
+    });
+  });
+
+  describe("snapshot routing", () => {
+    // Pin the contract that set() always runs its argument through
+    // the configured snapshot() callback — so direct callers passing
+    // a model instance (Photo, anything with getValues()) end up with
+    // the same normalized cache shape that fetch() would have stored.
+    // Without this, a future call site like
+    //   Photo._cache.set(uid, photoInstance)
+    // would store the live instance and leak refs through hydrate().
+    it("routes set() through the snapshot callback", () => {
+      const snapshotCalls = [];
+      const cache = new ModelCache({
+        max: 3,
+        snapshot: (model) => {
+          snapshotCalls.push(model);
+          return { ...model.values, _snapshotted: true };
+        },
+        hydrate: (values) => values,
+      });
+      cache.set("a", { values: { UID: "a", Title: "Loaded" } });
+      expect(snapshotCalls).toHaveLength(1);
+      const stored = cache.get("a");
+      expect(stored.UID).toBe("a");
+      expect(stored.Title).toBe("Loaded");
+      expect(stored._snapshotted).toBe(true);
+    });
+
+    it("routes refreshIfPresent() through the snapshot callback", () => {
+      const cache = new ModelCache({
+        max: 3,
+        snapshot: (model) => ({ ...model.values, _snapshotted: true }),
+        hydrate: (values) => values,
+      });
+      cache.set("a", { values: { UID: "a", Title: "Old" } });
+      const ok = cache.refreshIfPresent("a", { values: { UID: "a", Title: "New" } });
+      expect(ok).toBe(true);
+      const stored = cache.get("a");
+      expect(stored.Title).toBe("New");
+      expect(stored._snapshotted).toBe(true);
     });
   });
 
@@ -154,6 +199,64 @@ describe("model/model-cache", () => {
       cache.set("a", { UID: "a", Title: "Forever" });
       now += 1_000_000_000;
       expect(cache.get("a").values.Title).toBe("Forever");
+    });
+
+    // Lazy-prune contract: has() removes the expired entry on probe so
+    // size() / refreshIfPresent() / oldest-eviction don't keep
+    // accounting for entries no reader can retrieve.
+    it("has() lazy-prunes an expired entry and reports it as absent", () => {
+      let now = 1000;
+      const cache = buildCache({ ttl: 500, now: () => now });
+      cache.set("a", { UID: "a" });
+      cache.set("b", { UID: "b" });
+      now += 600;
+      expect(cache.has("a")).toBe(false);
+      expect(cache.items.has("a")).toBe(false);
+      // The other entry is also expired and gets pruned on its own probe.
+      expect(cache.has("b")).toBe(false);
+      expect(cache.size()).toBe(0);
+    });
+
+    // refreshIfPresent must not silently revive an expired entry under
+    // a fresh expiry window — that would let a background event handler
+    // resurrect data the user can no longer retrieve.
+    it("refreshIfPresent() returns false for an expired entry instead of reviving it", () => {
+      let now = 1000;
+      const cache = buildCache({ ttl: 500, now: () => now });
+      cache.set("a", { UID: "a", Title: "Old" });
+      now += 600;
+      const ok = cache.refreshIfPresent("a", { UID: "a", Title: "New" });
+      expect(ok).toBe(false);
+      // The expired entry should be gone — the probe pruned it.
+      expect(cache.has("a")).toBe(false);
+      expect(cache.size()).toBe(0);
+    });
+
+    // Without overflow-time pruning, an expired ghost (here "a", whose
+    // LRU position got pushed past fresher entries by get() promotion)
+    // would hold a slot through eviction churn — and under non-uniform
+    // LRU promotion a fresh entry could even be evicted ahead of stale
+    // ones. set() must reclaim every expired slot before considering
+    // an oldest-eviction.
+    it("set() reclaims every expired slot before evicting on overflow", () => {
+      let now = 1000;
+      const cache = buildCache({ max: 3, ttl: 500, now: () => now });
+      cache.set("a", { UID: "a" }); // expires at 1500
+      cache.set("b", { UID: "b" }); // expires at 1500
+      cache.set("c", { UID: "c" }); // expires at 1500
+      // Promote "a" to most-recent so the natural oldest-eviction
+      // would drop "b", not "a", on the next overflow.
+      cache.get("a");
+      now = 1700; // a, b, c are all expired
+      cache.set("d", { UID: "d" }); // fresh insert at the cap
+      // Without the prune pass we'd evict a single "oldest" ghost ("b")
+      // and leave "c" + "a" sitting in the LRU as expired ghosts. With
+      // it, only the newly-inserted "d" survives.
+      expect(cache.size()).toBe(1);
+      expect(cache.has("d")).toBe(true);
+      expect(cache.has("a")).toBe(false);
+      expect(cache.has("b")).toBe(false);
+      expect(cache.has("c")).toBe(false);
     });
   });
 
@@ -280,12 +383,14 @@ describe("model/model-cache", () => {
       expect(cache.pending.size).toBe(0);
     });
 
-    it("does NOT abort in-flight loader Promises (documented behavior; Open Question #1)", async () => {
-      // A loader resolving after clear() repopulates the cache under its
-      // own key. This is the same race the original Photo cache had and
-      // is preserved deliberately so the extraction does not regress
-      // current behavior. Tracked in
-      // specs/frontend/model-lru-cache.md "Open Questions".
+    it("rejects in-flight fetches that resolve after clear() bumps the epoch", async () => {
+      // Fetches whose epoch no longer matches must REJECT, not resolve.
+      // Two guarantees flow from this: (1) the cache stays empty so
+      // a future read can't serve role-A data; (2) the original
+      // waiter's .then never fires, so a caller chaining
+      // "Photo.findCached(uid).then(p => this.photo = p)" can't
+      // route role-A data into UI mounted under role B during the
+      // post-logout window before the route-change unmount.
       const cache = buildCache();
       let resolveLoader;
       const loader = () => new Promise((res) => (resolveLoader = res));
@@ -294,10 +399,55 @@ describe("model/model-cache", () => {
       cache.clear();
       expect(cache.size()).toBe(0);
       resolveLoader(fakeModel("a", { Title: "Late" }));
-      await inFlight;
-      // The cache repopulates because the loader's .then chain still ran.
+      await expect(inFlight).rejects.toBeInstanceOf(ModelCacheStaleFetchError);
+      expect(cache.has("a")).toBe(false);
+      expect(cache.size()).toBe(0);
+    });
+
+    it("a fresh fetch after clear() runs under the new epoch and re-seeds normally", async () => {
+      const cache = buildCache();
+      let resolveStale;
+      const staleLoader = () => new Promise((res) => (resolveStale = res));
+      const stale = cache.fetch("a", staleLoader);
+      await flushMicrotasks();
+      cache.clear();
+      // Start a second fetch on the same key after clear(). It runs
+      // under the new epoch, so its result MUST land in the cache.
+      const freshLoader = vi.fn().mockResolvedValue(fakeModel("a", { Title: "Fresh" }));
+      const fresh = cache.fetch("a", freshLoader);
+      // Resolve the stale loader after the new fetch is in flight.
+      // The stale promise rejects (epoch mismatch); the fresh one runs
+      // under the new epoch and resolves cleanly.
+      resolveStale(fakeModel("a", { Title: "Stale" }));
+      await expect(stale).rejects.toBeInstanceOf(ModelCacheStaleFetchError);
+      const result = await fresh;
+      expect(result.values.Title).toBe("Fresh");
       expect(cache.has("a")).toBe(true);
-      expect(cache.get("a").values.Title).toBe("Late");
+      expect(cache.get("a").values.Title).toBe("Fresh");
+    });
+
+    it("rejected in-flight fetches still drop their pending entry across clear()", async () => {
+      const cache = buildCache();
+      let rejectLoader;
+      const loader = () => new Promise((_res, rej) => (rejectLoader = rej));
+      const inFlight = cache.fetch("a", loader);
+      await flushMicrotasks();
+      cache.clear();
+      rejectLoader(new Error("offline"));
+      await expect(inFlight).rejects.toThrow("offline");
+      // The stale fetch's pending slot must not linger after clear().
+      expect(cache.pending.has("a")).toBe(false);
+    });
+  });
+
+  describe("epoch", () => {
+    it("starts at 0 and increments on each clear()", () => {
+      const cache = buildCache();
+      expect(cache._epoch).toBe(0);
+      cache.clear();
+      expect(cache._epoch).toBe(1);
+      cache.clear();
+      expect(cache._epoch).toBe(2);
     });
   });
 
