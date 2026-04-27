@@ -1278,7 +1278,7 @@ export class Photo extends RestModel {
   // Module-level Photo cache. Per-subclass scoping (rather than a shared
   // static on Rest) keeps Photo's size budget and invalidation surface
   // independent from other model caches — see
-  // specs/proposals/frontend-model-lru-cache.md. Snapshot via getValues so
+  // specs/frontend/model-lru-cache.md. Snapshot via getValues so
   // type coercion through getDefaults() is applied; hydrate by constructing
   // a fresh Photo from the cached values.
   static _cache = new ModelCache({

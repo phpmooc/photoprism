@@ -285,7 +285,7 @@ describe("model/model-cache", () => {
       // own key. This is the same race the original Photo cache had and
       // is preserved deliberately so the extraction does not regress
       // current behavior. Tracked in
-      // specs/proposals/frontend-model-lru-cache.md "Open Questions".
+      // specs/frontend/model-lru-cache.md "Open Questions".
       const cache = buildCache();
       let resolveLoader;
       const loader = () => new Promise((res) => (resolveLoader = res));
