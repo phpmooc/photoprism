@@ -1880,16 +1880,14 @@ export default {
         });
     },
     // Preloads the next photo's full metadata when the sidebar is visible.
+    // Navigation policy lives on Photo so the lightbox only decides "when"
+    // to prefetch; "what to prefetch" is owned by the model. See
+    // Photo.prefetchAround in model/photo.js.
     preloadNextPhoto() {
       if (!this.info || !this.models.length || this.$session.isSidebarRestricted()) {
         return;
       }
-
-      const next = this.index + 1;
-
-      if (next < this.models.length && this.models[next]?.UID) {
-        Photo.findCached(this.models[next].UID);
-      }
+      Photo.prefetchAround(this.models, this.index, { before: 0, after: 1 });
     },
     // Called when the user clicks on the PhotoSwipe lightbox background,
     // see https://photoswipe.com/click-and-tap-actions.
