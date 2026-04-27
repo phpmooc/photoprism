@@ -109,6 +109,9 @@ RUN echo 'APT::Acquire::Retries "3";' > /etc/apt/apt.conf.d/80retries && \
     cp -r /etc/skel/.config /root/.config && \
     /scripts/install-go.sh && \
     /scripts/install-go-tools.sh && \
+    /scripts/install-hadolint.sh && \
+    /scripts/install-osv-scanner.sh && \
+    /scripts/install-gitleaks.sh && \
     echo 'alias go=richgo ll="ls -alh"' >> /etc/skel/.bashrc && \
     echo 'export PS1="\u@$DOCKER_TAG:\w\$ "' >> /etc/skel/.bashrc && \
     echo 'export PATH="$PATH:$HOME/.local/bin"' >> /etc/skel/.bashrc && \
