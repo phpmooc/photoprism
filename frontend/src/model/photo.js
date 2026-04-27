@@ -1,5 +1,6 @@
 import memoizeOne from "memoize-one";
 import RestModel from "model/rest";
+import ModelCache from "model/model-cache";
 import File from "model/file";
 import Marker from "model/marker";
 import { DateTime } from "luxon";
@@ -1274,64 +1275,24 @@ export class Photo extends RestModel {
     return $gettext("Photo");
   }
 
-  static _cache = new Map();
-  static _pending = new Map();
-  static LRU_MAX = 50;
+  // Module-level Photo cache. Per-subclass scoping (rather than a shared
+  // static on Rest) keeps Photo's size budget and invalidation surface
+  // independent from other model caches — see
+  // specs/proposals/frontend-model-lru-cache.md. Snapshot via getValues so
+  // type coercion through getDefaults() is applied; hydrate by constructing
+  // a fresh Photo from the cached values.
+  static _cache = new ModelCache({
+    max: 50,
+    ttl: 0,
+    snapshot: (photo) => (photo instanceof Photo ? photo.getValues(false) : photo),
+    hydrate: (values) => new Photo(values),
+  });
 
-  // Stores or refreshes a cache entry, enforcing LRU ordering and the size
-  // cap. A deep copy of `values` is kept so later cache hits stay isolated
-  // from the caller that produced them.
-  static _storeCache(uid, values) {
-    if (!uid || !values) {
-      return;
-    }
-    if (Photo._cache.has(uid)) {
-      Photo._cache.delete(uid);
-    } else if (Photo._cache.size >= Photo.LRU_MAX) {
-      const oldest = Photo._cache.keys().next().value;
-      Photo._cache.delete(oldest);
-    }
-    Photo._cache.set(uid, JSON.parse(JSON.stringify(values)));
-  }
-
-  // Returns an isolated Photo clone built from the cached values, fetching
-  // from the API on cache miss. Each caller receives its own instance so that
-  // local edits (e.g. inline v-model bindings) cannot pollute the cache.
-  static findCached(uid) {
-    const cached = Photo._cache.get(uid);
-    if (cached !== undefined) {
-      // LRU: move entry to the most-recent slot.
-      Photo._cache.delete(uid);
-      Photo._cache.set(uid, cached);
-      return Promise.resolve(new Photo(JSON.parse(JSON.stringify(cached))));
-    }
-
-    // Piggy-back on an in-flight fetch, but hand each waiter an isolated clone.
-    if (Photo._pending.has(uid)) {
-      return Photo._pending.get(uid).then(() => {
-        const values = Photo._cache.get(uid);
-        if (!values) return Promise.reject();
-        return new Photo(JSON.parse(JSON.stringify(values)));
-      });
-    }
-
-    const request = new Photo()
-      .find(uid)
-      .then((photo) => {
-        // `freshValues` is a new top-level object from getValues(); its nested
-        // refs are owned by `photo`, which goes out of scope after this .then,
-        // so handing them to the originating caller is safe. _storeCache keeps
-        // its own deep copy so later hits remain isolated from that first caller.
-        const freshValues = photo.getValues(false);
-        Photo._storeCache(uid, freshValues);
-        return new Photo(freshValues);
-      })
-      .finally(() => {
-        Photo._pending.delete(uid);
-      });
-
-    Photo._pending.set(uid, request);
-    return request;
+  // getCache exposes the ModelCache so the inherited Rest.findCached and
+  // Rest.prefetch helpers can route through it. Subclasses that don't want
+  // caching simply don't override Rest.getCache() (default: null).
+  static getCache() {
+    return Photo._cache;
   }
 
   // Removes a photo from the LRU cache. Mutating methods on this model no
@@ -1341,15 +1302,38 @@ export class Photo extends RestModel {
   // an escape hatch for code that mutates a photo outside of this model.
   static evictCache(uid) {
     if (uid) {
-      Photo._cache.delete(uid);
+      Photo._cache.evict(uid);
     }
   }
 
   // Drops every cached photo and any in-flight request. Called on session
   // reset so metadata fetched under one role cannot be served to another.
+  // Note: in-flight loader Promises are not aborted (see Open Question #1
+  // in the cache proposal); a fetch resolving after clearCache() may still
+  // re-seed the cache under its own key.
   static clearCache() {
     Photo._cache.clear();
-    Photo._pending.clear();
+  }
+
+  // Warms the cache for the slides around `index` so the next/previous
+  // sidebar open hits a cached entity. Defaults match the lightbox's
+  // current policy (one slide forward, none back). Each prefetch is
+  // fire-and-forget; rejections are absorbed via Promise.allSettled.
+  static prefetchAround(models, index, { before = 0, after = 1 } = {}) {
+    if (!Array.isArray(models) || typeof index !== "number" || index < 0) {
+      return Promise.resolve([]);
+    }
+    const tasks = [];
+    const start = Math.max(0, index - before);
+    const end = Math.min(models.length - 1, index + after);
+    for (let i = start; i <= end; i++) {
+      if (i === index) continue;
+      const uid = models[i]?.UID;
+      if (uid) {
+        tasks.push(Photo.prefetch(uid));
+      }
+    }
+    return Promise.allSettled(tasks);
   }
 
   static mergeResponse(results, response) {
@@ -1370,18 +1354,27 @@ export class Photo extends RestModel {
   }
 }
 
-// Refresh cached entries when the backend reports a photo change. The
-// websocket payload (see internal/api/api_event.go) carries the full updated
-// entity, so we can write it straight back into the LRU. Background events
-// for photos the user has not browsed are ignored — the cache only follows
-// what is already in it, never grows from server traffic alone.
+// Evict cached entries when the backend reports a photo change. The
+// websocket payload (see PublishPhotoEvent in internal/api/api_event.go)
+// is a search.Photos result, NOT a full /photos/:uid entity — it flattens
+// nested fields like Details into top-level columns (DetailsKeywords,
+// DetailsSubject, ...) and would silently drop the nested Details object
+// if written back via refreshIfPresent. Hydrating from that snapshot
+// would leave Photo.Details === undefined, which collapses the sidebar's
+// isEditable computed and disables editing on the next cache hit.
+//
+// So the WS update channel is consumed as an EVICT signal: the next read
+// goes back to find() and gets the field-complete entity. The local
+// Photo instance held by lightbox.vue is unaffected by this eviction —
+// it was already populated from the field-complete PUT response — so
+// there is no visible flash on the currently-displayed slide.
 $event.subscribe("photos.updated", (_ev, data) => {
   if (!data || !Array.isArray(data.entities)) {
     return;
   }
   data.entities.forEach((entity) => {
-    if (entity && entity.UID && Photo._cache.has(entity.UID)) {
-      Photo._storeCache(entity.UID, entity);
+    if (entity && entity.UID) {
+      Photo._cache.evict(entity.UID);
     }
   });
 });
@@ -1393,7 +1386,7 @@ $event.subscribe("photos.deleted", (_ev, data) => {
   }
   data.entities.forEach((entity) => {
     if (entity && entity.UID) {
-      Photo._cache.delete(entity.UID);
+      Photo._cache.evict(entity.UID);
     }
   });
 });
