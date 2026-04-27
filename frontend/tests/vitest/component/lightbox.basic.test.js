@@ -151,4 +151,60 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     expect(spy).toHaveBeenCalledWith("ps6sg6be2lvl0yh7");
     spy.mockRestore();
   });
+
+  // Symmetric to the fetchPhoto bypass above: prefetch must also skip
+  // network for restricted sessions, otherwise share-link visitors and
+  // sidebar-restricted users would issue extra GET /photos/:uid calls
+  // for slides whose data they aren't allowed to see in full.
+  it("preloadNextPhoto skips Photo.prefetchAround for restricted roles", () => {
+    const spy = vi.spyOn(Photo, "prefetchAround");
+    const wrapper = mountLightbox();
+    const ctx = {
+      ...wrapper.vm,
+      info: true,
+      models: [{ UID: "uid-curr" }, { UID: "uid-next" }],
+      index: 0,
+      $session: { isSidebarRestricted: () => true },
+    };
+
+    wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("preloadNextPhoto skips Photo.prefetchAround when the sidebar is hidden", () => {
+    const spy = vi.spyOn(Photo, "prefetchAround");
+    const wrapper = mountLightbox();
+    const ctx = {
+      ...wrapper.vm,
+      info: false,
+      models: [{ UID: "uid-curr" }, { UID: "uid-next" }],
+      index: 0,
+      $session: { isSidebarRestricted: () => false },
+    };
+
+    wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
+
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("preloadNextPhoto delegates to Photo.prefetchAround when sidebar is visible and unrestricted", () => {
+    const spy = vi.spyOn(Photo, "prefetchAround").mockReturnValue(Promise.resolve([]));
+    const wrapper = mountLightbox();
+    const models = [{ UID: "uid-curr" }, { UID: "uid-next" }];
+    const ctx = {
+      ...wrapper.vm,
+      info: true,
+      models,
+      index: 0,
+      $session: { isSidebarRestricted: () => false },
+    };
+
+    wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
+
+    expect(spy).toHaveBeenCalledWith(models, 0, { before: 0, after: 1 });
+    spy.mockRestore();
+  });
 });
