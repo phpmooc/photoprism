@@ -1170,12 +1170,22 @@ export default {
         return;
       }
 
-      this.p.update().then(() => {
-        if ((field === "title" || field === "caption") && this.view?.model) {
-          this.view.model.Title = this.view.photo.Title;
-          this.view.model.Caption = this.view.photo.Caption;
-        }
-      });
+      // The inline-edit binding (v-model="p.X") already mutated the photo
+      // optimistically; on success sync the matching Thumb fields, on
+      // failure roll back so the user sees the title/caption revert and
+      // gets a notification instead of a silent ghost edit.
+      this.p
+        .update()
+        .then(() => {
+          if ((field === "title" || field === "caption") && this.view?.model) {
+            this.view.model.Title = this.view.photo.Title;
+            this.view.model.Caption = this.view.photo.Caption;
+          }
+        })
+        .catch(() => {
+          this.p.rollback();
+          this.$notify.error(this.$gettext("Failed to save changes"));
+        });
     },
     cancelEditing() {
       // Guard: clicking a pencil icon triggers blur on the previous field before focus lands
@@ -1492,11 +1502,17 @@ export default {
         photo.TakenAt = isoTime;
       }
 
-      photo.update().then(() => {
-        if (!this.view?.model) return;
-        this.view.model.TakenAtLocal = photo.TakenAtLocal;
-        this.view.model.TimeZone = photo.TimeZone;
-      });
+      photo
+        .update()
+        .then(() => {
+          if (!this.view?.model) return;
+          this.view.model.TakenAtLocal = photo.TakenAtLocal;
+          this.view.model.TimeZone = photo.TimeZone;
+        })
+        .catch(() => {
+          photo.rollback();
+          this.$notify.error(this.$gettext("Failed to save changes"));
+        });
     },
     confirmCamera(data) {
       this.cameraDialog = false;
@@ -1533,11 +1549,17 @@ export default {
         photo.Country = data.location.country;
       }
 
-      photo.update().then(() => {
-        if (!this.view?.model) return;
-        this.view.model.Lat = photo.Lat;
-        this.view.model.Lng = photo.Lng;
-      });
+      photo
+        .update()
+        .then(() => {
+          if (!this.view?.model) return;
+          this.view.model.Lat = photo.Lat;
+          this.view.model.Lng = photo.Lng;
+        })
+        .catch(() => {
+          photo.rollback();
+          this.$notify.error(this.$gettext("Failed to save changes"));
+        });
     },
   },
 };

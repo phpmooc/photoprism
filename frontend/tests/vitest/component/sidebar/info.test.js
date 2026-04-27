@@ -1320,6 +1320,256 @@ describe("PSidebarInfo component", () => {
     });
   });
 
+  // Symmetric coverage for the other three save paths. Each handler mirrors
+  // confirmCamera: mutate the photo optimistically, call photo.update(), on
+  // success sync the matching Thumb fields, on failure roll back and notify.
+  // The Photo mock fakes the Model.__originalValues + rollback() contract so
+  // these tests stay decoupled from the real model implementation.
+  function attachRollbackContract(photo, snapshot) {
+    photo.__originalValues = { ...snapshot };
+    photo.originalValue = (key) => photo.__originalValues[key];
+    photo.rollback = () => {
+      Object.keys(photo.__originalValues).forEach((key) => {
+        photo[key] = photo.__originalValues[key];
+      });
+      return photo;
+    };
+    return photo;
+  }
+
+  function buildSidebarPhoto(initial, overrides = {}) {
+    const photo = {
+      UID: "ps6sg6be2lvl0yh7",
+      Files: [],
+      Labels: [],
+      Albums: [],
+      Details: {},
+      getMarkers: () => [],
+      getCameraInfo: () => "",
+      getLensInfo: () => "",
+      getImageInfo: () => "",
+      getVideoInfo: () => "",
+      getVectorInfo: () => "",
+      getExifInfo: () => "",
+      locationInfo: () => "",
+      wasChanged: vi.fn().mockReturnValue(true),
+      ...initial,
+      update: vi.fn(),
+      ...overrides,
+    };
+    return attachRollbackContract(photo, initial);
+  }
+
+  describe("confirmDateTime failure rollback", () => {
+    function buildDateTimePhoto(overrides = {}) {
+      const photo = buildSidebarPhoto(
+        {
+          Day: 1,
+          Month: 1,
+          Year: 2020,
+          TimeZone: "UTC",
+          TakenAtLocal: "2020-01-01T00:00:00Z",
+          TakenAt: "2020-01-01T00:00:00Z",
+        },
+        overrides
+      );
+      photo.localDate = vi.fn().mockReturnValue({
+        isValid: true,
+        toISO: () => "2022-07-15T13:45:30",
+      });
+      photo.currentTimeZoneUTC = vi.fn().mockReturnValue(true);
+      return photo;
+    }
+
+    // Use UTC so the success-path test stays inside the suite-wide
+    // DateTime.fromISO mock surface (which only stubs toLocaleString,
+    // not setZone — see beforeEach above). The rollback-path test
+    // never re-renders formatTime() because the mutations get reverted
+    // before Vue flushes, so any timezone works there.
+    const newDateTimeData = {
+      Day: 15,
+      Month: 7,
+      Year: 2022,
+      TimeZone: "UTC",
+      time: "13:45:30",
+    };
+
+    it("rolls back date/time fields and notifies the user when update() rejects", async () => {
+      const photo = buildDateTimePhoto();
+      photo.update.mockRejectedValueOnce(new Error("boom"));
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.confirmDateTime(newDateTimeData);
+      // Optimistic write applied before the rejection lands.
+      expect(photo.Year).toBe(2022);
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      expect(photo.Day).toBe(1);
+      expect(photo.Month).toBe(1);
+      expect(photo.Year).toBe(2020);
+      expect(photo.TimeZone).toBe("UTC");
+      expect(w.vm.$notify.error).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the optimistic mutation when update() resolves", async () => {
+      const photo = buildDateTimePhoto();
+      photo.update.mockResolvedValueOnce({});
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.confirmDateTime(newDateTimeData);
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      expect(photo.Year).toBe(2022);
+      expect(photo.TimeZone).toBe("UTC");
+      expect(w.vm.$notify.error).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("confirmLocation failure rollback", () => {
+    function buildLocationPhoto(overrides = {}) {
+      return buildSidebarPhoto(
+        {
+          Lat: 0,
+          Lng: 0,
+          PlaceSrc: "",
+          Country: "zz",
+        },
+        overrides
+      );
+    }
+
+    const newLocationData = {
+      lat: 52.52,
+      lng: 13.405,
+      location: { country: "de" },
+    };
+
+    it("rolls back location fields and notifies the user when update() rejects", async () => {
+      const photo = buildLocationPhoto();
+      photo.update.mockRejectedValueOnce(new Error("boom"));
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.confirmLocation(newLocationData);
+      // Optimistic write applied before the rejection lands.
+      expect(photo.Lat).toBe(52.52);
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      expect(photo.Lat).toBe(0);
+      expect(photo.Lng).toBe(0);
+      expect(photo.PlaceSrc).toBe("");
+      expect(photo.Country).toBe("zz");
+      expect(w.vm.$notify.error).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the optimistic mutation when update() resolves", async () => {
+      const photo = buildLocationPhoto();
+      photo.update.mockResolvedValueOnce({});
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.confirmLocation(newLocationData);
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      expect(photo.Lat).toBe(52.52);
+      expect(photo.Lng).toBe(13.405);
+      expect(photo.PlaceSrc).toBe("manual");
+      expect(photo.Country).toBe("de");
+      expect(w.vm.$notify.error).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("confirmField (inline edit) failure rollback", () => {
+    function buildInlineEditPhoto(overrides = {}) {
+      // The inline-edit binding is v-model="p.Title", so the user's keystrokes
+      // mutate photo.Title directly before confirmField() runs.
+      return buildSidebarPhoto({ Title: "Original", Caption: "Original caption" }, overrides);
+    }
+
+    it("rolls back the inline edit and notifies the user when update() rejects", async () => {
+      const photo = buildInlineEditPhoto();
+      photo.update.mockRejectedValueOnce(new Error("boom"));
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      // Simulate the v-model edit having already mutated photo.Title.
+      photo.Title = "Edited";
+      w.vm.editingField = "title";
+
+      w.vm.confirmField();
+      // editingField is cleared synchronously before the update resolves.
+      expect(w.vm.editingField).toBeNull();
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      expect(photo.Title).toBe("Original");
+      expect(w.vm.$notify.error).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the inline edit when update() resolves", async () => {
+      const photo = buildInlineEditPhoto();
+      photo.update.mockResolvedValueOnce({});
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      photo.Title = "Edited";
+      w.vm.editingField = "title";
+
+      w.vm.confirmField();
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      expect(photo.Title).toBe("Edited");
+      expect(w.vm.$notify.error).not.toHaveBeenCalled();
+    });
+
+    it("does not call update() when the field is unchanged", () => {
+      const photo = buildInlineEditPhoto();
+      photo.wasChanged.mockReturnValue(false);
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.editingField = "title";
+      w.vm.confirmField();
+
+      expect(photo.update).not.toHaveBeenCalled();
+      expect(w.vm.$notify.error).not.toHaveBeenCalled();
+    });
+  });
+
   // Labels
   it("should return labels from photo prop", () => {
     expect(wrapper.vm.labels).toHaveLength(2);
