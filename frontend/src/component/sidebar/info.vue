@@ -660,46 +660,25 @@ export default {
     PConfirmDialog,
   },
   props: {
-    modelValue: {
-      type: Object,
-      default: () => {},
-    },
-    photo: {
-      type: Object,
-      default: null,
-    },
-    canEdit: {
-      type: Boolean,
-      default: false,
-    },
-    collection: {
-      type: Object,
-      default: () => {},
-    },
-    context: {
+    // UID of the photo currently shown in the parent lightbox. Drives the
+    // sidebar lifecycle (re-fetching markers, resetting inline edits) when
+    // the user navigates between slides. All other parent state is read
+    // through `view` (see data() below) — this matches the pattern used
+    // by component/photo/edit/labels.vue.
+    uid: {
       type: String,
       default: "",
     },
-    markersVisible: {
-      type: Boolean,
-      default: false,
-    },
-    addingMarker: {
-      type: Boolean,
-      default: false,
-    },
-    markersBusy: {
-      type: Boolean,
-      default: false,
-    },
-    newMarkerUid: {
-      type: String,
-      default: null,
-    },
   },
-  emits: ["update:modelValue", "close", "toggle-markers-visible", "toggle-adding-marker", "remove-marker", "eject-marker", "reload-markers", "naming-started"],
+  emits: ["close", "toggle-markers-visible", "toggle-adding-marker", "remove-marker", "eject-marker", "reload-markers", "naming-started"],
   data() {
     return {
+      // Live reactive handle to the parent lightbox's $data, captured once at
+      // mount via `$view.getData()`. The lightbox calls `$view.enter(this)`
+      // before the sidebar mounts (see lightbox.vue:showDialog), so this is
+      // populated by the time data() runs. Mutations through this.view.X
+      // write through to the parent and don't trigger vue/no-mutating-props.
+      view: this.$view.getData(),
       actions: [],
       featPeople: this.$config.feature("people"),
       featPlaces: this.$config.feature("places"),
@@ -741,11 +720,36 @@ export default {
     };
   },
   computed: {
+    // Aliases for parent-owned reactive state. These read through `view` so
+    // every existing template/script reference (this.model.X, this.p.X, etc.)
+    // keeps working without churn. Mutations are explicit: write to
+    // `this.view.photo.X` / `this.view.model.X`, never to `this.p` / `this.model`.
     model() {
-      return this.modelValue;
+      return this.view?.model;
     },
     p() {
-      return this.photo;
+      return this.view?.photo;
+    },
+    canEdit() {
+      return Boolean(this.view?.canEdit && this.view?.contextAllowsEdit);
+    },
+    collection() {
+      return this.view?.collection;
+    },
+    context() {
+      return this.view?.context;
+    },
+    markersVisible() {
+      return Boolean(this.view?.markersVisible);
+    },
+    addingMarker() {
+      return Boolean(this.view?.addingMarker);
+    },
+    markersBusy() {
+      return Boolean(this.view?.markersBusy);
+    },
+    newMarkerUid() {
+      return this.view?.pendingNameMarkerUid;
     },
     isEditable() {
       return this.canEdit && this.p && this.p.Details && !this.restrictedRole;
@@ -914,30 +918,31 @@ export default {
       }
     },
     setFieldValue(field, value) {
+      if (!this.view?.photo) return;
       switch (field) {
         case "title":
-          this.p.Title = value;
+          this.view.photo.Title = value;
           break;
         case "caption":
-          this.p.Caption = value;
+          this.view.photo.Caption = value;
           break;
         case "subject":
-          this.p.Details.Subject = value;
+          this.view.photo.Details.Subject = value;
           break;
         case "artist":
-          this.p.Details.Artist = value;
+          this.view.photo.Details.Artist = value;
           break;
         case "copyright":
-          this.p.Details.Copyright = value;
+          this.view.photo.Details.Copyright = value;
           break;
         case "license":
-          this.p.Details.License = value;
+          this.view.photo.Details.License = value;
           break;
         case "keywords":
-          this.p.Details.Keywords = value;
+          this.view.photo.Details.Keywords = value;
           break;
         case "notes":
-          this.p.Details.Notes = value;
+          this.view.photo.Details.Notes = value;
           break;
       }
     },
@@ -1166,9 +1171,9 @@ export default {
       }
 
       this.p.update().then(() => {
-        if (field === "title" || field === "caption") {
-          this.model.Title = this.p.Title;
-          this.model.Caption = this.p.Caption;
+        if ((field === "title" || field === "caption") && this.view?.model) {
+          this.view.model.Title = this.view.photo.Title;
+          this.view.model.Caption = this.view.photo.Caption;
         }
       });
     },
@@ -1464,14 +1469,15 @@ export default {
     confirmDateTime(data) {
       this.dateTimeDialog = false;
 
-      if (!this.photo || !this.canEdit) return;
+      const photo = this.view?.photo;
+      if (!photo || !photo.UID || !this.canEdit) return;
 
-      this.photo.Day = data.Day;
-      this.photo.Month = data.Month;
-      this.photo.Year = data.Year;
-      this.photo.TimeZone = data.TimeZone;
+      photo.Day = data.Day;
+      photo.Month = data.Month;
+      photo.Year = data.Year;
+      photo.TimeZone = data.TimeZone;
 
-      const localDate = this.photo.localDate(data.time);
+      const localDate = photo.localDate(data.time);
       if (!localDate.isValid) return;
 
       const isoTime =
@@ -1480,47 +1486,51 @@ export default {
           includeOffset: false,
         }) + "Z";
 
-      this.photo.TakenAtLocal = isoTime;
+      photo.TakenAtLocal = isoTime;
 
-      if (this.photo.currentTimeZoneUTC()) {
-        this.photo.TakenAt = isoTime;
+      if (photo.currentTimeZoneUTC()) {
+        photo.TakenAt = isoTime;
       }
 
-      this.photo.update().then(() => {
-        this.model.TakenAtLocal = this.photo.TakenAtLocal;
-        this.model.TimeZone = this.photo.TimeZone;
+      photo.update().then(() => {
+        if (!this.view?.model) return;
+        this.view.model.TakenAtLocal = photo.TakenAtLocal;
+        this.view.model.TimeZone = photo.TimeZone;
       });
     },
     confirmCamera(data) {
       this.cameraDialog = false;
 
-      if (!this.photo || !this.canEdit) return;
+      const photo = this.view?.photo;
+      if (!photo || !photo.UID || !this.canEdit) return;
 
-      this.photo.CameraID = data.CameraID;
-      this.photo.LensID = data.LensID;
-      this.photo.Iso = data.Iso;
-      this.photo.Exposure = data.Exposure;
-      this.photo.FNumber = data.FNumber;
-      this.photo.FocalLength = data.FocalLength;
+      photo.CameraID = data.CameraID;
+      photo.LensID = data.LensID;
+      photo.Iso = data.Iso;
+      photo.Exposure = data.Exposure;
+      photo.FNumber = data.FNumber;
+      photo.FocalLength = data.FocalLength;
 
-      this.photo.update();
+      photo.update();
     },
     confirmLocation(data) {
       this.locationDialog = false;
 
-      if (!this.photo || !this.canEdit) return;
+      const photo = this.view?.photo;
+      if (!photo || !photo.UID || !this.canEdit) return;
 
-      this.photo.Lat = data.lat;
-      this.photo.Lng = data.lng;
-      this.photo.PlaceSrc = "manual";
+      photo.Lat = data.lat;
+      photo.Lng = data.lng;
+      photo.PlaceSrc = "manual";
 
       if (data.location?.country) {
-        this.photo.Country = data.location.country;
+        photo.Country = data.location.country;
       }
 
-      this.photo.update().then(() => {
-        this.model.Lat = this.photo.Lat;
-        this.model.Lng = this.photo.Lng;
+      photo.update().then(() => {
+        if (!this.view?.model) return;
+        this.view.model.Lat = photo.Lat;
+        this.view.model.Lng = photo.Lng;
       });
     },
   },

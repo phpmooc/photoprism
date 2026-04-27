@@ -121,14 +121,17 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     const wrapper = mountLightbox();
     const ctx = {
       ...wrapper.vm,
-      photo: null,
+      photo: new Photo({ UID: "stale" }),
       model: { UID: "ps6sg6be2lvl0yh7" },
       $session: { isSidebarRestricted: () => true },
     };
 
     wrapper.vm.$options.methods.fetchPhoto.call(ctx, "ps6sg6be2lvl0yh7");
 
-    expect(ctx.photo).toBeNull();
+    // Restricted roles get an empty Photo (not null) so the sidebar can read
+    // this.view.photo.X without nullable chains.
+    expect(ctx.photo).toBeInstanceOf(Photo);
+    expect(ctx.photo.UID).toBe("");
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });

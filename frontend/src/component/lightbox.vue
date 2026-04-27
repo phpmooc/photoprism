@@ -87,15 +87,7 @@
       <div v-if="info" ref="sidebar" tabindex="-1" class="p-lightbox__sidebar bg-background">
         <p-sidebar-info
           ref="sidebarInfo"
-          v-model="model"
-          :photo="photo"
-          :can-edit="shouldShowEditButton()"
-          :collection="collection"
-          :context="context"
-          :markers-visible="markersVisible"
-          :adding-marker="addingMarker"
-          :markers-busy="markersBusy"
-          :new-marker-uid="pendingNameMarkerUid"
+          :uid="model.UID"
           @close="hideInfo"
           @toggle-markers-visible="toggleMarkersVisible"
           @toggle-adding-marker="toggleAddingMarker"
@@ -204,7 +196,10 @@ export default {
       collection: null,
       context: contexts.Default,
       model: new Thumb(), // Current slide.
-      photo: null, // Full Photo model from LRU cache (null while loading).
+      // Full Photo model from LRU cache. Defaults to an empty instance so the
+      // sidebar can read this.view.photo.X without nullable chains; check UID
+      // (or `is-photo-loaded` style guards) when "loaded" actually matters.
+      photo: new Photo(),
       models: [], // Slide models.
       index: 0, // Current slide index in models.
       contextAllowsEdit: true,
@@ -1636,7 +1631,7 @@ export default {
       this.collection = null;
       this.context = contexts.Default;
       this.model = new Thumb();
-      this.photo = null;
+      this.photo = new Photo();
       this.models = [];
       this.index = 0;
     },
@@ -1716,7 +1711,7 @@ export default {
     // call and let the sidebar work with the viewer data (Thumb model).
     fetchPhoto(uid) {
       if (!uid || this.$session.isSidebarRestricted()) {
-        this.photo = null;
+        this.photo = new Photo();
         return;
       }
 
@@ -1761,7 +1756,7 @@ export default {
       this.addingMarker = false;
     },
     reloadFaceMarkers() {
-      if (this.photo && typeof this.photo.getMarkers === "function") {
+      if (this.photo.UID && typeof this.photo.getMarkers === "function") {
         this.faceMarkers = this.photo.getMarkers(true);
       } else {
         this.faceMarkers = [];
@@ -1782,7 +1777,7 @@ export default {
       return Promise.resolve(true);
     },
     onCreateFaceMarker(area) {
-      if (!this.photo || !this.shouldShowEditButton() || this.markersBusy) return;
+      if (!this.photo.UID || !this.shouldShowEditButton() || this.markersBusy) return;
 
       const file = Array.isArray(this.photo.Files) ? this.photo.Files.find((f) => !!f.Primary) : null;
       if (!file || !file.UID) return;
@@ -1823,7 +1818,7 @@ export default {
         });
     },
     onEjectFaceMarker(marker) {
-      if (!this.photo || !this.shouldShowEditButton() || this.markersBusy) return;
+      if (!this.photo.UID || !this.shouldShowEditButton() || this.markersBusy) return;
       if (!marker || !marker.SubjUID || typeof marker.clearSubject !== "function") return;
 
       this.markersBusy = true;
@@ -1846,7 +1841,7 @@ export default {
     // returning stale Name/SubjUID after setName/clearSubject, so toggling
     // visibility re-renders the old label.
     syncMarkerInFile(marker) {
-      if (!marker || !marker.UID || !this.photo || !Array.isArray(this.photo.Files)) return;
+      if (!marker || !marker.UID || !this.photo.UID || !Array.isArray(this.photo.Files)) return;
       const file = this.photo.Files.find((f) => !!f.Primary);
       if (!file || !Array.isArray(file.Markers)) return;
       const idx = file.Markers.findIndex((mm) => mm.UID === marker.UID);
@@ -1856,11 +1851,11 @@ export default {
     },
     onReloadFaceMarkers(marker) {
       if (marker) this.syncMarkerInFile(marker);
-      if (this.photo) Photo.evictCache(this.photo.UID);
+      if (this.photo.UID) Photo.evictCache(this.photo.UID);
       this.reloadFaceMarkers();
     },
     onRemoveFaceMarker(marker) {
-      if (!this.photo || !this.shouldShowEditButton() || this.markersBusy) return;
+      if (!this.photo.UID || !this.shouldShowEditButton() || this.markersBusy) return;
       if (!marker || marker.SubjUID || typeof marker.reject !== "function") return;
 
       const file = Array.isArray(this.photo.Files) ? this.photo.Files.find((f) => !!f.Primary) : null;

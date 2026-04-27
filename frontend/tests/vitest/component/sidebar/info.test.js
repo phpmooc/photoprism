@@ -35,11 +35,65 @@ const validationUtil = {
   videoFormatUrl: () => "/v.mp4",
   thumb: () => ({ src: "/t.jpg", w: 100, h: 100 }),
 };
-function mountInfoForChips(props) {
+// mountSidebar accepts the same option shape that the suite used to pass
+// directly to `mount(PSidebarInfo, ...)`. PSidebarInfo no longer takes the
+// legacy props (modelValue/photo/canEdit/context/markersVisible/...); they
+// live on the parent lightbox's $data and are surfaced through $view.getData()
+// (see lightbox.vue). This helper extracts the legacy keys from `options.props`
+// and exposes them as a $view mock so existing tests keep working with only
+// `mount(PSidebarInfo, ` -> `mountSidebar(` renamed.
+function mountSidebar(options = {}) {
+  const props = { ...(options.props || {}) };
+  const legacy = {
+    model: props.modelValue,
+    photo: props.photo,
+    canEdit: props.canEdit,
+    contextAllowsEdit: true,
+    collection: props.collection,
+    context: props.context,
+    markersVisible: props.markersVisible,
+    addingMarker: props.addingMarker,
+    markersBusy: props.markersBusy,
+    pendingNameMarkerUid: props.newMarkerUid,
+  };
+
+  // Strip legacy keys so Vue does not warn about unknown props.
+  delete props.modelValue;
+  delete props.photo;
+  delete props.canEdit;
+  delete props.collection;
+  delete props.context;
+  delete props.markersVisible;
+  delete props.addingMarker;
+  delete props.markersBusy;
+  delete props.newMarkerUid;
+
+  if (!props.uid && legacy.model && legacy.model.UID) {
+    props.uid = legacy.model.UID;
+  }
+
+  const global = options.global || {};
+  const mocks = global.mocks || {};
+  const stubs = global.stubs || {};
+
   return mount(PSidebarInfo, {
+    ...options,
+    props,
+    global: {
+      ...global,
+      stubs: { PMap: true, ...stubs },
+      mocks: {
+        $view: { getData: () => legacy },
+        ...mocks,
+      },
+    },
+  });
+}
+
+function mountInfoForChips(props) {
+  return mountSidebar({
     props: { canEdit: true, context: contexts.Photos, ...props },
     global: {
-      stubs: { PMap: true },
       mocks: {
         $config: validationConfig,
         $util: validationUtil,
@@ -129,7 +183,7 @@ describe("PSidebarInfo component", () => {
       toLocaleString: () => "January 1, 2023, 10:00 AM",
     }));
 
-    wrapper = mount(PSidebarInfo, {
+    wrapper = mountSidebar({
       props: {
         modelValue: mockModel,
         photo: mockPhoto,
@@ -182,7 +236,7 @@ describe("PSidebarInfo component", () => {
 
   it("should emit close event when close button is clicked", async () => {
     const onClose = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, context: contexts.Photos, onClose },
       global: { stubs: { PMap: true } },
     });
@@ -219,7 +273,7 @@ describe("PSidebarInfo component", () => {
 
   it("should hide camera info when value is Unknown", () => {
     const photo = { ...mockPhoto, getCameraInfo: vi.fn().mockReturnValue("Unknown"), getMarkers: vi.fn().mockReturnValue([]) };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -237,7 +291,7 @@ describe("PSidebarInfo component", () => {
       getCameraInfo: vi.fn().mockReturnValue("Unknown, ISO 100, 1/125"),
       getMarkers: vi.fn().mockReturnValue([]),
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: false, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -260,7 +314,7 @@ describe("PSidebarInfo component", () => {
       getCameraInfo: vi.fn().mockReturnValue(" Unknown"),
       getMarkers: vi.fn().mockReturnValue([]),
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: false, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -284,7 +338,7 @@ describe("PSidebarInfo component", () => {
       getCameraInfo: vi.fn().mockReturnValue(" Unknown"),
       getMarkers: vi.fn().mockReturnValue([]),
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -308,7 +362,7 @@ describe("PSidebarInfo component", () => {
       getLensInfo: vi.fn().mockReturnValue("50mm, ƒ/1.8"),
       getMarkers: vi.fn().mockReturnValue([]),
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: false, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -316,7 +370,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should return empty strings when photo prop is null", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: null, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -363,7 +417,7 @@ describe("PSidebarInfo component", () => {
   // People section: face marker buttons (show/hide + add) and per-row remove.
   // The sidebar emits events; the parent lightbox owns the actual state.
   it("should render the People header with show/hide and + buttons when editable", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -374,7 +428,7 @@ describe("PSidebarInfo component", () => {
 
   it("should render the People header even when there are no markers, when editable", () => {
     const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([]) };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -396,7 +450,7 @@ describe("PSidebarInfo component", () => {
 
   it("should hide the People section entirely when not editable and there are no markers", () => {
     const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([]) };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -404,7 +458,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should reflect the markersVisible prop on the toggle icon", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         modelValue: mockModel,
         photo: mockPhoto,
@@ -420,7 +474,7 @@ describe("PSidebarInfo component", () => {
 
   it("should emit toggle-markers-visible when the eye icon is clicked", async () => {
     const onToggle = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -436,7 +490,7 @@ describe("PSidebarInfo component", () => {
 
   it("should emit toggle-adding-marker when the + icon is clicked", async () => {
     const onToggle = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -453,7 +507,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should swap the add icon to a check while addingMarker is true", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         modelValue: mockModel,
         photo: mockPhoto,
@@ -470,7 +524,7 @@ describe("PSidebarInfo component", () => {
 
   it("should still emit toggle-adding-marker when addingMarker is true (so the user can exit)", async () => {
     const onToggle = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -486,7 +540,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should not render the per-row remove icon on a named marker", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -496,7 +550,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should render the per-row remove icon on an unnamed marker when editable", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -513,7 +567,7 @@ describe("PSidebarInfo component", () => {
 
   it("should emit remove-marker with the marker when the remove icon is clicked", async () => {
     const onRemove = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -531,7 +585,7 @@ describe("PSidebarInfo component", () => {
 
   it("should refuse to emit remove-marker on a marker that has a SubjUID", () => {
     const onRemove = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -549,7 +603,7 @@ describe("PSidebarInfo component", () => {
     const onToggleVisible = vi.fn();
     const onToggleAdd = vi.fn();
     const onRemove = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -571,7 +625,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should render an inline name input for every marker when canEdit is true", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         modelValue: mockModel,
         photo: mockPhoto,
@@ -591,7 +645,7 @@ describe("PSidebarInfo component", () => {
   // Feature flag gate (Task 4): when $config.feature('people') is false,
   // the entire People section is hidden regardless of marker presence.
   it("should hide the People section when the people feature is disabled", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: {
         stubs: { PMap: true },
@@ -609,7 +663,7 @@ describe("PSidebarInfo component", () => {
   // Eject button (Task 2): named markers expose mdi-eject.
   it("should render the eject icon on a named marker and emit eject-marker on click", async () => {
     const onEject = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -646,7 +700,7 @@ describe("PSidebarInfo component", () => {
 
   it("should refuse to emit eject-marker on a marker without SubjUID", () => {
     const onEject = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -662,7 +716,7 @@ describe("PSidebarInfo component", () => {
 
   it("should refuse to emit eject-marker while markersBusy is true", () => {
     const onEject = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -677,11 +731,13 @@ describe("PSidebarInfo component", () => {
     expect(onEject).not.toHaveBeenCalled();
   });
 
-  // newMarkerUid focuses the input on the freshly-created marker and emits
-  // naming-started so the parent can clear the prop.
-  it("should focus the matching marker input when newMarkerUid changes", async () => {
+  // pendingNameMarkerUid focuses the input on the freshly-created marker and
+  // emits naming-started so the parent (lightbox) can clear its own state.
+  // The value lives on the parent's $view-data; mutating it through the
+  // captured reference triggers the `newMarkerUid` computed and its watcher.
+  it("should focus the matching marker input when pendingNameMarkerUid changes", async () => {
     const onNamingStarted = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": mockPhoto,
@@ -693,7 +749,7 @@ describe("PSidebarInfo component", () => {
       global: { stubs: { PMap: true } },
       attachTo: document.body,
     });
-    await w.setProps({ newMarkerUid: "m2" });
+    w.vm.view.pendingNameMarkerUid = "m2";
     await w.vm.$nextTick();
     await w.vm.$nextTick();
     expect(onNamingStarted).toHaveBeenCalled();
@@ -712,7 +768,7 @@ describe("PSidebarInfo component", () => {
     };
     const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([namedMarker]) };
     const onReload = vi.fn();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: {
         "modelValue": mockModel,
         "photo": photo,
@@ -733,7 +789,7 @@ describe("PSidebarInfo component", () => {
 
   it("should revert the draft to the marker's saved name when cancelMarkerName runs", async () => {
     const markers = mockPhoto.getMarkers();
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -765,7 +821,7 @@ describe("PSidebarInfo component", () => {
       values: { people: [{ UID: "sXYZ", Name: "Alice Smith" }] },
       dir: () => "ltr",
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: {
         stubs: { PMap: true },
@@ -800,7 +856,7 @@ describe("PSidebarInfo component", () => {
       values: { people: [{ UID: "sBOB", Name: "Bob" }] },
       dir: () => "ltr",
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: {
         stubs: { PMap: true },
@@ -830,7 +886,7 @@ describe("PSidebarInfo component", () => {
       },
       dir: () => "ltr",
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: {
         stubs: { PMap: true },
@@ -842,7 +898,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should fall back to an empty knownPeople list when values.people is missing", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -859,7 +915,7 @@ describe("PSidebarInfo component", () => {
       setName,
     };
     const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([namedMarker]) };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -948,7 +1004,7 @@ describe("PSidebarInfo component", () => {
       ...validationConfig,
       values: { people: [{ UID: "sALC", Name: "Alice Smith" }] },
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: {
         stubs: { PMap: true },
@@ -977,7 +1033,7 @@ describe("PSidebarInfo component", () => {
         return this.Title !== "Original";
       },
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1000,7 +1056,7 @@ describe("PSidebarInfo component", () => {
       update,
       wasChanged: () => true,
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1019,7 +1075,7 @@ describe("PSidebarInfo component", () => {
       update: vi.fn(),
       wasChanged: () => true,
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1042,7 +1098,7 @@ describe("PSidebarInfo component", () => {
       Title: "Changed",
       wasChanged: () => true,
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1051,7 +1107,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should report hasPendingEdit when labels have pending additions or removals", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1064,7 +1120,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should report hasPendingEdit when albums have pending additions or removals", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1077,7 +1133,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should report hasPendingEdit while an inline marker name is dirty", async () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1088,7 +1144,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should resolve confirmDiscardPending to true immediately when there is no pending edit", async () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1097,7 +1153,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should open the discard dialog when confirmDiscardPending is called with a pending edit", async () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1114,7 +1170,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should clear pending edits when onDiscardConfirm runs", async () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1128,7 +1184,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should keep pending edits when onDiscardCancel runs", async () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1162,7 +1218,7 @@ describe("PSidebarInfo component", () => {
         { UID: "alb3", Title: "Secret", Slug: "secret", Private: true },
       ],
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: photoWithPrivateAlbum, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1191,7 +1247,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should return empty caption HTML when no caption", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: { ...mockModel, Caption: "" }, photo: mockPhoto, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1201,7 +1257,7 @@ describe("PSidebarInfo component", () => {
   // Cross-link navigation — label, album, and named-person avatars must open
   // in a new browser tab so the current lightbox edit context is preserved.
   function mountWithMockRouter(resolveHref) {
-    return mount(PSidebarInfo, {
+    return mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, context: contexts.Photos },
       global: {
         stubs: { PMap: true },
@@ -1271,7 +1327,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should be editable when canEdit is true with valid photo", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1281,7 +1337,7 @@ describe("PSidebarInfo component", () => {
   // Altitude
   it("should return altitude when photo has Altitude", () => {
     const photo = { ...mockPhoto, Altitude: 340 };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1297,7 +1353,7 @@ describe("PSidebarInfo component", () => {
         { Uncertainty: 100, Label: { ID: 3, UID: "lbl3", Name: "Hidden", Slug: "hidden", CustomSlug: "" } },
       ],
     };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1308,7 +1364,7 @@ describe("PSidebarInfo component", () => {
   // Inline editing: startEditing / cancelEditing
   it("should set editingField and store original value on startEditing", () => {
     const photo = { ...mockPhoto, Title: "Test Title", Caption: "Test Caption" };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1319,7 +1375,7 @@ describe("PSidebarInfo component", () => {
 
   it("should restore original value on cancelEditing", async () => {
     const photo = { ...mockPhoto, Title: "Test Title", wasChanged: vi.fn().mockReturnValue(false) };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1335,7 +1391,7 @@ describe("PSidebarInfo component", () => {
   // getFieldValue / setFieldValue
   it("should get and set field values for all fields", () => {
     const photo = { ...mockPhoto, Title: "Test Title", Caption: "Test Caption" };
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1351,7 +1407,7 @@ describe("PSidebarInfo component", () => {
 
   // Pending label operations
   it("should toggle label pending removal", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1365,7 +1421,7 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should add and remove pending label additions", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1492,7 +1548,7 @@ describe("PSidebarInfo component", () => {
 
   // Pending album operations
   it("should toggle album pending removal", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1610,7 +1666,7 @@ describe("PSidebarInfo component", () => {
 
   // cancelEditing clears all pending state
   it("should clear all pending state on cancelEditing", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1633,7 +1689,7 @@ describe("PSidebarInfo component", () => {
   // Photo watcher: the parent lightbox owns the unsaved-changes guard, so
   // the sidebar no longer silently cancels inline edits when photo changes.
   it("should preserve inline edit state across photo changes (parent guards navigation)", async () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1646,7 +1702,7 @@ describe("PSidebarInfo component", () => {
 
   // clearChipInput
   it("should reset chip state on clearChipInput", () => {
-    const w = mount(PSidebarInfo, {
+    const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
@@ -1663,7 +1719,7 @@ describe("PSidebarInfo component", () => {
 
   describe("restricted-role view", () => {
     const mountRestricted = (isRestricted) =>
-      mount(PSidebarInfo, {
+      mountSidebar({
         props: {
           modelValue: mockModel,
           photo: mockPhoto,
@@ -1742,7 +1798,7 @@ describe("PSidebarInfo component", () => {
         ...mockModel,
         getTypeInfo: vi.fn().mockReturnValue("JPEG\u20034.0MP\u20034032\u2009\u00d7\u20093024"),
       };
-      const w = mount(PSidebarInfo, {
+      const w = mountSidebar({
         props: {
           modelValue: thumbModel,
           photo: null,
@@ -1887,7 +1943,7 @@ describe("PSidebarInfo component", () => {
     }
 
     function mountFor({ anonymous, restricted, editable }, shape) {
-      return mount(PSidebarInfo, {
+      return mountSidebar({
         props: {
           modelValue: buildModel(shape),
           photo: buildPhoto(shape),
@@ -2041,7 +2097,7 @@ describe("PSidebarInfo component", () => {
     // restricted, empty fields) must expose "add prompt" affordances
     // so admins can populate metadata from scratch.
     it("shows add-prompt affordances to admins editing an empty Details object", () => {
-      const w = mount(PSidebarInfo, {
+      const w = mountSidebar({
         props: {
           modelValue: buildModel({ withMetadata: false }),
           photo: {
@@ -2076,7 +2132,7 @@ describe("PSidebarInfo component", () => {
     // identically to a restricted-role session even though the backing
     // User record is empty.
     it("treats anonymous share-link sessions as restricted even with canEdit=true", () => {
-      const w = mount(PSidebarInfo, {
+      const w = mountSidebar({
         props: {
           modelValue: buildModel({ withMetadata: true }),
           photo: buildPhoto({ withMetadata: true }),
@@ -2103,7 +2159,7 @@ describe("PSidebarInfo component", () => {
     // featPeople = false must hide the People section even for an
     // admin on a photo that has markers.
     it("hides the People section when featPeople is disabled, regardless of role", () => {
-      const w = mount(PSidebarInfo, {
+      const w = mountSidebar({
         props: {
           modelValue: buildModel({ withMetadata: true }),
           photo: buildPhoto({ withMetadata: true }),
