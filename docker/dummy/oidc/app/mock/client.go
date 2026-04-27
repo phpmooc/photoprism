@@ -47,11 +47,6 @@ func NewClient(id string) *ConfClient {
 		},
 	}
 	switch id {
-	case "web":
-		c.applicationType = op.ApplicationTypeWeb
-		c.authMethod = oidc.AuthMethodBasic
-		c.accessTokenType = op.AccessTokenTypeBearer
-		c.responseTypes = []oidc.ResponseType{oidc.ResponseTypeCode}
 	case "native":
 		c.applicationType = op.ApplicationTypeNative
 		c.authMethod = oidc.AuthMethodBasic
@@ -61,15 +56,23 @@ func NewClient(id string) *ConfClient {
 			oidc.ResponseTypeIDToken,
 			oidc.ResponseTypeIDTokenOnly,
 		}
-	default:
+	case "user_agent":
 		c.applicationType = op.ApplicationTypeUserAgent
 		c.authMethod = oidc.AuthMethodNone
 		c.accessTokenType = op.AccessTokenTypeJWT
 		c.responseTypes = []oidc.ResponseType{
-			oidc.ResponseTypeCode,
 			oidc.ResponseTypeIDToken,
 			oidc.ResponseTypeIDTokenOnly,
 		}
+	default:
+		// Default to a permissive confidential web client so that any unknown
+		// client_id (such as the ones PhotoPrism generates for its backend)
+		// can complete the authorization-code flow with client_secret_basic
+		// authentication and without PKCE, matching the v1 dummy's behavior.
+		c.applicationType = op.ApplicationTypeWeb
+		c.authMethod = oidc.AuthMethodBasic
+		c.accessTokenType = op.AccessTokenTypeBearer
+		c.responseTypes = []oidc.ResponseType{oidc.ResponseTypeCode}
 	}
 	return c
 }
