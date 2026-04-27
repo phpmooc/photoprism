@@ -241,7 +241,12 @@ export class User extends RestModel {
   }
 
   // Checks if the user role only sees the reduced photo viewer sidebar.
+  // Default-deny: an empty or missing Role is treated as restricted so accounts
+  // without an explicit role never get the full editing surface.
   isSidebarRestricted() {
+    if (!this.Role) {
+      return true;
+    }
     return SidebarRestrictedRoles.includes(this.Role);
   }
 
