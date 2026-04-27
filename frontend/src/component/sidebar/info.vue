@@ -1511,7 +1511,13 @@ export default {
       photo.FNumber = data.FNumber;
       photo.FocalLength = data.FocalLength;
 
-      photo.update();
+      // photo.update() resets __originalValues only on success; on rejection
+      // the snapshot still holds the pre-mutation state, so rollback() puts
+      // every field back without per-field bookkeeping here.
+      photo.update().catch(() => {
+        photo.rollback();
+        this.$notify.error(this.$gettext("Failed to save changes"));
+      });
     },
     confirmLocation(data) {
       this.locationDialog = false;

@@ -1197,6 +1197,129 @@ describe("PSidebarInfo component", () => {
     expect(w.vm.hasPendingEdit()).toBe(true);
   });
 
+  // confirmCamera rolls back the optimistic mutation if the API call fails
+  // and surfaces the failure via $notify.error so the user knows the save
+  // didn't take effect. Uses the model's __originalValues snapshot via the
+  // originalValue() accessor.
+  describe("confirmCamera failure rollback", () => {
+    function buildCameraPhoto(overrides = {}) {
+      const photo = {
+        UID: "ps6sg6be2lvl0yh7",
+        CameraID: 1,
+        LensID: 1,
+        Iso: 100,
+        Exposure: "1/200",
+        FNumber: 2.8,
+        FocalLength: 50,
+        Files: [],
+        Labels: [],
+        Albums: [],
+        Details: {},
+        getMarkers: () => [],
+        getCameraInfo: () => "",
+        getLensInfo: () => "",
+        getImageInfo: () => "",
+        getVideoInfo: () => "",
+        getVectorInfo: () => "",
+        getExifInfo: () => "",
+        locationInfo: () => "",
+        update: vi.fn(),
+        ...overrides,
+      };
+      // Mirror the Model.__originalValues contract: originalValue(key) reads
+      // the snapshot taken when the photo was last loaded/saved, and
+      // rollback() restores every tracked field from that snapshot.
+      photo.__originalValues = {
+        CameraID: photo.CameraID,
+        LensID: photo.LensID,
+        Iso: photo.Iso,
+        Exposure: photo.Exposure,
+        FNumber: photo.FNumber,
+        FocalLength: photo.FocalLength,
+      };
+      photo.originalValue = (key) => photo.__originalValues[key];
+      photo.rollback = () => {
+        Object.keys(photo.__originalValues).forEach((key) => {
+          photo[key] = photo.__originalValues[key];
+        });
+        return photo;
+      };
+      return photo;
+    }
+
+    const newCameraData = {
+      CameraID: 5,
+      LensID: 7,
+      Iso: 800,
+      Exposure: "1/60",
+      FNumber: 1.8,
+      FocalLength: 35,
+    };
+
+    it("rolls back camera fields and notifies the user when update() rejects", async () => {
+      const photo = buildCameraPhoto();
+      photo.update.mockRejectedValueOnce(new Error("boom"));
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.confirmCamera(newCameraData);
+
+      // Optimistic write applies before the rejection lands.
+      expect(photo.CameraID).toBe(5);
+      expect(photo.update).toHaveBeenCalledTimes(1);
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      // Rolled back to __originalValues — must match the pre-confirmCamera state.
+      expect(photo.CameraID).toBe(1);
+      expect(photo.LensID).toBe(1);
+      expect(photo.Iso).toBe(100);
+      expect(photo.Exposure).toBe("1/200");
+      expect(photo.FNumber).toBe(2.8);
+      expect(photo.FocalLength).toBe(50);
+
+      expect(w.vm.$notify.error).toHaveBeenCalledTimes(1);
+    });
+
+    it("keeps the optimistic mutation when update() resolves", async () => {
+      const photo = buildCameraPhoto();
+      photo.update.mockResolvedValueOnce({});
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.confirmCamera(newCameraData);
+
+      await w.vm.$nextTick();
+      await w.vm.$nextTick();
+
+      expect(photo.CameraID).toBe(5);
+      expect(photo.LensID).toBe(7);
+      expect(photo.Iso).toBe(800);
+      expect(w.vm.$notify.error).not.toHaveBeenCalled();
+    });
+
+    it("does nothing when the photo has no UID", () => {
+      const photo = buildCameraPhoto({ UID: "" });
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      w.vm.confirmCamera(newCameraData);
+
+      expect(photo.update).not.toHaveBeenCalled();
+      expect(photo.CameraID).toBe(1);
+    });
+  });
+
   // Labels
   it("should return labels from photo prop", () => {
     expect(wrapper.vm.labels).toHaveLength(2);
