@@ -616,6 +616,14 @@ docker-develop-bookworm-slim:
 	docker pull --platform=amd64 debian:bookworm-slim
 	docker pull --platform=arm64 debian:bookworm-slim
 	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 bookworm-slim /bookworm-slim
+docker-develop-trixie:
+	docker pull --platform=amd64 debian:trixie-slim
+	docker pull --platform=arm64 debian:trixie-slim
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 trixie /trixie
+docker-develop-trixie-slim:
+	docker pull --platform=amd64 debian:trixie-slim
+	docker pull --platform=arm64 debian:trixie-slim
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 trixie-slim /trixie-slim
 docker-develop-bullseye:
 	docker pull --platform=amd64 golang:1-bullseye
 	docker pull --platform=arm64 golang:1-bullseye
@@ -936,6 +944,10 @@ docker-local-bookworm:
 	docker pull photoprism/develop:bookworm
 	docker pull photoprism/develop:bookworm-slim
 	scripts/docker/build.sh photoprism ce-bookworm /bookworm "-t photoprism/photoprism:local"
+docker-local-trixie:
+	docker pull photoprism/develop:trixie
+	docker pull debian:trixie-slim
+	scripts/docker/build.sh photoprism ce-trixie /trixie "-t photoprism/photoprism:local"
 docker-local-bullseye:
 	docker pull photoprism/develop:bullseye
 	docker pull photoprism/develop:bullseye-slim
@@ -986,6 +998,9 @@ docker-local-develop-all: docker-local-develop-questing docker-local-develop-ora
 docker-local-develop-bookworm:
 	docker pull debian:bookworm-slim
 	scripts/docker/build.sh develop bookworm /bookworm
+docker-local-develop-trixie:
+	docker pull debian:trixie-slim
+	scripts/docker/build.sh develop trixie /trixie
 docker-local-develop-bullseye:
 	docker pull golang:1-bullseye
 	scripts/docker/build.sh develop bullseye /bullseye
