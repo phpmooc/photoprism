@@ -4,6 +4,11 @@ import { $config } from "app/session";
 import Session from "common/session";
 import { buildNamespace, createNamespacedStorage } from "common/storage";
 import StorageShim from "node-storage-shim";
+import { Photo } from "model/photo";
+
+// Lets the suite drain the dynamic import + microtask chain that
+// Session.reset() uses to call Photo.clearCache().
+const flushMicrotasks = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 const createConfig = (baseUri, storageNamespace) => {
   const config = Object.assign(Object.create(Object.getPrototypeOf($config)), $config);
@@ -497,5 +502,77 @@ describe("common/session", () => {
     await session.redeemToken("token123");
     expect(session.data.token).toBe("123token");
     session.deleteData();
+  });
+
+  describe("Photo cache invalidation on reset", () => {
+    // Session.reset() dynamically imports model/photo and calls
+    // Photo.clearCache() so metadata fetched under one role cannot leak
+    // to another after logout, login, or role change. Pin the contract
+    // here because the cache lives in a separate module and is wired
+    // up via a runtime import — easy to break without noticing.
+    it("clears the Photo LRU cache when reset() runs", async () => {
+      const storage = new StorageShim();
+      const session = new Session(storage, $config);
+
+      Photo._cache.clear();
+      Photo._cache.set("uid-pre-reset", { UID: "uid-pre-reset", Title: "Cached" });
+      expect(Photo._cache.has("uid-pre-reset")).toBe(true);
+
+      session.reset();
+
+      // The dynamic import resolves on the microtask queue.
+      await flushMicrotasks();
+
+      expect(Photo._cache.has("uid-pre-reset")).toBe(false);
+    });
+  });
+
+  describe("isSidebarRestricted", () => {
+    // Default-deny: an authenticated user with an empty / missing Role
+    // composes through Session.isSidebarRestricted() as restricted, so a
+    // misconfigured account never reaches the full editing surface.
+    it("returns true for an authenticated user with an empty Role", () => {
+      const storage = new StorageShim();
+      const session = new Session(storage, $config);
+      session.setId("a9b8ff820bf40ab451910f8bbfe401b2432446693aa539538fbd2399560a722f");
+      session.setAuthToken("234200000000000000000000000000000000000000000000");
+      session.setData({ user: { ID: 7, Role: "" } });
+
+      expect(session.isAnonymous()).toBe(false);
+      expect(session.isSidebarRestricted()).toBe(true);
+    });
+
+    it("returns true for restricted roles (guest, visitor, contributor)", () => {
+      const storage = new StorageShim();
+      const session = new Session(storage, $config);
+      session.setId("a9b8ff820bf40ab451910f8bbfe401b2432446693aa539538fbd2399560a722f");
+      session.setAuthToken("234200000000000000000000000000000000000000000000");
+
+      ["guest", "visitor", "contributor"].forEach((role) => {
+        session.setData({ user: { ID: 7, Role: role } });
+        expect(session.isSidebarRestricted()).toBe(true);
+      });
+    });
+
+    it("returns false for unrestricted roles (admin, user)", () => {
+      const storage = new StorageShim();
+      const session = new Session(storage, $config);
+      session.setId("a9b8ff820bf40ab451910f8bbfe401b2432446693aa539538fbd2399560a722f");
+      session.setAuthToken("234200000000000000000000000000000000000000000000");
+
+      ["admin", "user"].forEach((role) => {
+        session.setData({ user: { ID: 7, Role: role } });
+        expect(session.isSidebarRestricted()).toBe(false);
+      });
+    });
+
+    it("returns true for anonymous sessions regardless of Role", () => {
+      const storage = new StorageShim();
+      const session = new Session(storage, $config);
+      // No setId/setAuthToken/setData — session.user has no id, so
+      // isAnonymous() returns true and short-circuits the composition.
+      expect(session.isAnonymous()).toBe(true);
+      expect(session.isSidebarRestricted()).toBe(true);
+    });
   });
 });
