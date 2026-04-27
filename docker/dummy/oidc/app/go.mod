@@ -1,6 +1,6 @@
 module caos-test-op
 
-go 1.24.0
+go 1.26.2
 
 require (
 	github.com/gorilla/mux v1.8.1
