@@ -693,6 +693,14 @@ docker-develop-questing-slim:
 	docker pull --platform=amd64 ubuntu:questing
 	docker pull --platform=arm64 ubuntu:questing
 	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 questing-slim /questing-slim
+docker-develop-resolute:
+	docker pull --platform=amd64 ubuntu:resolute
+	docker pull --platform=arm64 ubuntu:resolute
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 resolute /resolute
+docker-develop-resolute-slim:
+	docker pull --platform=amd64 ubuntu:resolute
+	docker pull --platform=arm64 ubuntu:resolute
+	scripts/docker/buildx-multi.sh develop linux/amd64,linux/arm64 resolute-slim /resolute-slim
 unstable: docker-unstable
 docker-unstable: docker-unstable-mantic
 docker-unstable-jammy:
@@ -968,6 +976,10 @@ docker-local-plucky:
 	docker pull photoprism/develop:plucky
 	docker pull ubuntu:plucky
 	scripts/docker/build.sh photoprism ce-plucky /plucky "-t photoprism/photoprism:local"
+docker-local-resolute:
+	docker pull photoprism/develop:resolute
+	docker pull ubuntu:resolute
+	scripts/docker/build.sh photoprism ce-resolute /resolute "-t photoprism/photoprism:local"
 local-develop: docker-local-develop
 docker-local-develop: docker-local-develop-questing
 docker-local-develop-all: docker-local-develop-questing docker-local-develop-oracular docker-local-develop-noble docker-local-develop-mantic docker-local-develop-lunar docker-local-develop-jammy docker-local-develop-bookworm docker-local-develop-bullseye docker-local-develop-buster docker-local-develop-impish
@@ -1004,6 +1016,9 @@ docker-local-develop-questing:
 docker-local-develop-plucky:
 	docker pull ubuntu:plucky
 	scripts/docker/build.sh develop plucky /plucky
+docker-local-develop-resolute:
+	docker pull ubuntu:resolute
+	scripts/docker/build.sh develop resolute /resolute
 docker-ddns:
 	docker pull golang:alpine
 	scripts/docker/buildx-multi.sh ddns linux/amd64,linux/arm64 $(BUILD_DATE)
