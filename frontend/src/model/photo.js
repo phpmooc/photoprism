@@ -854,9 +854,9 @@ export class Photo extends RestModel {
     return $gettext("Unknown");
   }
 
-  locationInfo = () => {
+  locationInfo() {
     return this.generateLocationInfo(this.PlaceID, this.Country, this.Place, this.PlaceLabel);
-  };
+  }
 
   generateLocationInfo = memoizeOne((placeId, countryCode, place, placeLabel) => {
     if (placeId === "zz" && countryCode !== "zz") {
@@ -985,9 +985,9 @@ export class Photo extends RestModel {
   });
 
   // Example: Apple iPhone 12 Pro Max, DNG, 4032 × 3024, 32.9 MB
-  getCameraInfo = () => {
+  getCameraInfo() {
     return this.generateCameraInfo(this.Camera, this.CameraID, this.CameraMake, this.CameraModel, this.Iso, this.Exposure);
-  };
+  }
 
   generateCameraInfo = memoizeOne((camera, cameraId, cameraMake, cameraModel, iso, exposure) => {
     let info = [];
@@ -1033,9 +1033,9 @@ export class Photo extends RestModel {
   });
 
   // Example: iPhone 12 Pro Max 5.1mm ƒ/1.6, 26mm, ISO32, 1/4525
-  getLensInfo = () => {
+  getLensInfo() {
     return this.generateLensInfo(this.Lens, this.LensID, this.LensMake, this.LensModel, this.CameraModel, this.FNumber, this.FocalLength);
-  };
+  }
 
   generateLensInfo = memoizeOne((lens, lensId, lensMake, lensModel, cameraModel, fNumber, focalLength) => {
     let info = [];
@@ -1069,6 +1069,15 @@ export class Photo extends RestModel {
     return info.join(", ");
   });
 
+  getExifInfo() {
+    const parts = [];
+    if (this.FocalLength) parts.push(this.FocalLength + "mm");
+    if (this.FNumber) parts.push("\u0192/" + this.FNumber);
+    if (this.Iso) parts.push("ISO " + this.Iso);
+    if (this.Exposure) parts.push(this.Exposure);
+    return parts.join(" \u2022 ");
+  }
+
   getCamera() {
     if (this.Camera) {
       return this.Camera.Make + " " + this.Camera.Model;
@@ -1088,6 +1097,7 @@ export class Photo extends RestModel {
   }
 
   toggleLike() {
+    Photo.evictCache(this.UID);
     const favorite = !this.Favorite;
     const elements = document.querySelectorAll(`.uid-${this.UID}`);
 
@@ -1101,20 +1111,24 @@ export class Photo extends RestModel {
   }
 
   togglePrivate() {
+    Photo.evictCache(this.UID);
     this.Private = !this.Private;
 
     return $api.put(this.getEntityResource(), { Private: this.Private });
   }
 
   setPrimaryFile(fileUID) {
+    Photo.evictCache(this.UID);
     return $api.post(`${this.getEntityResource()}/files/${fileUID}/primary`).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
   unstackFile(fileUID) {
+    Photo.evictCache(this.UID);
     return $api.post(`${this.getEntityResource()}/files/${fileUID}/unstack`).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
   deleteFile(fileUID) {
+    Photo.evictCache(this.UID);
     return $api.delete(`${this.getEntityResource()}/files/${fileUID}`).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
@@ -1133,32 +1147,39 @@ export class Photo extends RestModel {
     }
 
     // Change file orientation.
+    Photo.evictCache(this.UID);
     return $api.put(`${this.getEntityResource()}/files/${file.UID}/orientation`, values).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
   like() {
+    Photo.evictCache(this.UID);
     this.Favorite = true;
     return $api.post(this.getEntityResource() + "/like");
   }
 
   unlike() {
+    Photo.evictCache(this.UID);
     this.Favorite = false;
     return $api.delete(this.getEntityResource() + "/like");
   }
 
   addLabel(name) {
+    Photo.evictCache(this.UID);
     return $api.post(this.getEntityResource() + "/label", { Name: name, Priority: 10 }).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
   activateLabel(id) {
+    Photo.evictCache(this.UID);
     return $api.put(this.getEntityResource() + "/label/" + id, { Uncertainty: 0 }).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
   renameLabel(id, name) {
+    Photo.evictCache(this.UID);
     return $api.put(this.getEntityResource() + "/label/" + id, { Label: { Name: name } }).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
   removeLabel(id) {
+    Photo.evictCache(this.UID);
     return $api.delete(this.getEntityResource() + "/label/" + id).then((r) => Promise.resolve(this.setValues(r.data)));
   }
 
@@ -1183,6 +1204,7 @@ export class Photo extends RestModel {
   }
 
   update() {
+    Photo.evictCache(this.UID);
     const values = this.getValues(true);
 
     if (typeof values.Title === "string") {
@@ -1262,6 +1284,68 @@ export class Photo extends RestModel {
 
   static getModelName() {
     return $gettext("Photo");
+  }
+
+  static _cache = new Map();
+  static _pending = new Map();
+  static LRU_MAX = 50;
+
+  // Returns an isolated Photo clone built from the cached values, fetching
+  // from the API on cache miss. Each caller receives its own instance so that
+  // local edits (e.g. inline v-model bindings) cannot pollute the cache.
+  static findCached(uid) {
+    const cached = Photo._cache.get(uid);
+    if (cached !== undefined) {
+      // LRU: move entry to the most-recent slot.
+      Photo._cache.delete(uid);
+      Photo._cache.set(uid, cached);
+      return Promise.resolve(new Photo(JSON.parse(JSON.stringify(cached))));
+    }
+
+    // Piggy-back on an in-flight fetch, but hand each waiter an isolated clone.
+    if (Photo._pending.has(uid)) {
+      return Photo._pending.get(uid).then(() => {
+        const values = Photo._cache.get(uid);
+        if (!values) return Promise.reject();
+        return new Photo(JSON.parse(JSON.stringify(values)));
+      });
+    }
+
+    const request = new Photo()
+      .find(uid)
+      .then((photo) => {
+        if (Photo._cache.size >= Photo.LRU_MAX) {
+          const oldest = Photo._cache.keys().next().value;
+          Photo._cache.delete(oldest);
+        }
+        // `freshValues` is a new top-level object from getValues(); its nested
+        // refs are owned by `photo`, which goes out of scope after this .then,
+        // so handing them to the originating caller is safe. The cache gets a
+        // deep copy so later hits remain isolated from that first caller.
+        const freshValues = photo.getValues(false);
+        Photo._cache.set(uid, JSON.parse(JSON.stringify(freshValues)));
+        return new Photo(freshValues);
+      })
+      .finally(() => {
+        Photo._pending.delete(uid);
+      });
+
+    Photo._pending.set(uid, request);
+    return request;
+  }
+
+  // Removes a photo from the LRU cache, e.g. after it has been modified.
+  static evictCache(uid) {
+    if (uid) {
+      Photo._cache.delete(uid);
+    }
+  }
+
+  // Drops every cached photo and any in-flight request. Called on session
+  // reset so metadata fetched under one role cannot be served to another.
+  static clearCache() {
+    Photo._cache.clear();
+    Photo._pending.clear();
   }
 
   static mergeResponse(results, response) {
