@@ -179,7 +179,7 @@ export default class Session {
 
     try {
       return JSON.parse(value);
-    } catch (_error) {
+    } catch {
       this.storage.removeItem(key);
       return null;
     }
@@ -577,7 +577,7 @@ export default class Session {
 
     try {
       Socket.send(JSON.stringify(clientInfo));
-    } catch (e) {
+    } catch {
       if (this.config.debug) {
         console.log("session: can't use websocket, not connected (yet)");
       }

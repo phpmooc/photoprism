@@ -97,7 +97,7 @@ export default {
         return;
       }
 
-      this.model.update().then((m) => {
+      this.model.update().then(() => {
         this.$notify.success(this.$gettext("Changes successfully saved"));
         this.$emit("close");
       });
