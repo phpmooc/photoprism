@@ -53,6 +53,7 @@
             @keydown.escape.prevent="cancelEditing"
             @blur="onInlineFieldBlur"
           ></v-textarea>
+          <!-- eslint-disable-next-line vue/no-v-html -- captionHtml is encode-then-sanitized via $util.sanitizeHtml($util.encodeHTML(raw)); see captionHtml() computed -->
           <div v-else-if="model.Caption" class="text-body-2 meta-caption meta-scrollable" v-html="captionHtml"></div>
           <div v-else class="meta-add-prompt" @click.stop="startEditing('caption')">{{ $gettext("Caption") }}</div>
           <template v-if="isEditable" #append>
@@ -601,6 +602,7 @@
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
+            <!-- eslint-disable-next-line vue/no-v-html -- notesHtml is encode-then-sanitized via $util.sanitizeHtml($util.encodeHTML(raw)); see notesHtml() computed -->
             <div v-else-if="notesHtml" class="text-body-2 meta-notes meta-scrollable" v-html="notesHtml"></div>
             <div v-else class="meta-add-prompt" @click.stop="startEditing('notes')">{{ $gettext("Notes") }}</div>
           </v-list-item>
