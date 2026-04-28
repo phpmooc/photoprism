@@ -109,6 +109,7 @@ export default {
       default: () => {},
     },
   },
+  emits: ["close"],
   data() {
     return {
       featPrivate: this.$config.feature("private"),

@@ -66,6 +66,7 @@ export default {
       default: () => {},
     },
   },
+  emits: ["close"],
   data() {
     return {
       disabled: !this.$config.allow("labels", "manage"),
