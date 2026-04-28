@@ -4,6 +4,8 @@ import * as contexts from "options/contexts";
 import { nextTick } from "vue";
 import PLightbox from "component/lightbox.vue";
 import Photo from "model/photo";
+import Thumb from "model/thumb";
+import Album from "model/album";
 import $util from "common/util";
 import { buildNamespace } from "common/storage";
 import clientConfig from "../config";
@@ -122,7 +124,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     const ctx = {
       ...wrapper.vm,
       photo: new Photo({ UID: "stale" }),
-      model: { UID: "ps6sg6be2lvl0yh7" },
+      model: new Thumb({ UID: "ps6sg6be2lvl0yh7" }),
       $session: { isSidebarRestricted: () => true },
     };
 
@@ -142,7 +144,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     const ctx = {
       ...wrapper.vm,
       photo: null,
-      model: { UID: "ps6sg6be2lvl0yh7" },
+      model: new Thumb({ UID: "ps6sg6be2lvl0yh7" }),
       $session: { isSidebarRestricted: () => false },
     };
 
@@ -233,7 +235,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         ...wrapper.vm,
         photo: placeholder,
         // Start with the user viewing slide N.
-        model: { UID: "uid-slide-n" },
+        model: new Thumb({ UID: "uid-slide-n" }),
         $session: { isSidebarRestricted: () => false },
       };
 
@@ -241,7 +243,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n");
 
       // User swipes to slide N+1 BEFORE slide N's response arrives.
-      ctx.model = { UID: "uid-slide-n-plus-1" };
+      ctx.model = new Thumb({ UID: "uid-slide-n-plus-1" });
 
       // Slide N's response finally lands.
       resolveSlideN();
@@ -262,7 +264,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       const ctx = {
         ...wrapper.vm,
         photo: new Photo(),
-        model: { UID: "uid-slide-n" },
+        model: new Thumb({ UID: "uid-slide-n" }),
         $session: { isSidebarRestricted: () => false },
       };
 
@@ -283,7 +285,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       const ctx = {
         ...wrapper.vm,
         photo: placeholder,
-        model: { UID: "uid-slide-n" },
+        model: new Thumb({ UID: "uid-slide-n" }),
         $session: { isSidebarRestricted: () => false },
       };
 
@@ -319,7 +321,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         photo: placeholder,
         // model.UID intentionally STILL matches — to prove the rejection
         // (not the race-guard) is what protects this.photo here.
-        model: { UID: "uid-slide-n" },
+        model: new Thumb({ UID: "uid-slide-n" }),
         $session: { isSidebarRestricted: () => false },
       };
 
@@ -360,6 +362,211 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       resolvePrefetch([]);
       await Promise.resolve();
       spy.mockRestore();
+    });
+  });
+
+  // Wiring tests for the lightbox archive / restore / album-remove
+  // delegations. These pin the component-to-Thumb boundary so a
+  // future refactor that breaks the call edge (e.g., reverting back
+  // to inline $api.post or skipping the model methods) fails here
+  // instead of silently surviving the unit-test layer.
+  describe("onArchive wiring", () => {
+    it("calls this.model.archive() and notifies on success when canArchive is true", async () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-archive" });
+      const archiveSpy = vi.spyOn(model, "archive").mockResolvedValue({ status: 200, data: {} });
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        canArchive: true,
+        pauseSlideshow: vi.fn(),
+        $notify: { ...wrapper.vm.$notify, success: vi.fn() },
+        $gettext: VTUConfig.global.mocks.$gettext,
+      };
+
+      await wrapper.vm.$options.methods.onArchive.call(ctx);
+
+      expect(ctx.pauseSlideshow).toHaveBeenCalledTimes(1);
+      expect(archiveSpy).toHaveBeenCalledTimes(1);
+      expect(ctx.$notify.success).toHaveBeenCalledTimes(1);
+      archiveSpy.mockRestore();
+    });
+
+    it("does NOT call archive() when canArchive is false", () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-archive" });
+      const archiveSpy = vi.spyOn(model, "archive");
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        canArchive: false,
+        pauseSlideshow: vi.fn(),
+      };
+
+      wrapper.vm.$options.methods.onArchive.call(ctx);
+
+      expect(archiveSpy).not.toHaveBeenCalled();
+      expect(ctx.pauseSlideshow).not.toHaveBeenCalled();
+      archiveSpy.mockRestore();
+    });
+
+    it("does NOT call archive() when model.UID is empty", () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "" });
+      const archiveSpy = vi.spyOn(model, "archive");
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        canArchive: true,
+        pauseSlideshow: vi.fn(),
+        log: vi.fn(),
+      };
+
+      wrapper.vm.$options.methods.onArchive.call(ctx);
+
+      expect(archiveSpy).not.toHaveBeenCalled();
+      archiveSpy.mockRestore();
+    });
+  });
+
+  describe("onRestore wiring", () => {
+    it("calls this.model.restore() and notifies on success when canArchive is true", async () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-restore", Archived: true });
+      const restoreSpy = vi.spyOn(model, "restore").mockResolvedValue({ status: 200, data: {} });
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        canArchive: true,
+        pauseSlideshow: vi.fn(),
+        $notify: { ...wrapper.vm.$notify, success: vi.fn() },
+        $gettext: VTUConfig.global.mocks.$gettext,
+      };
+
+      wrapper.vm.$options.methods.onRestore.call(ctx);
+      // Drain the .then chain.
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(ctx.pauseSlideshow).toHaveBeenCalledTimes(1);
+      expect(restoreSpy).toHaveBeenCalledTimes(1);
+      expect(ctx.$notify.success).toHaveBeenCalledTimes(1);
+      restoreSpy.mockRestore();
+    });
+
+    it("does NOT call restore() when canArchive is false", () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-restore", Archived: true });
+      const restoreSpy = vi.spyOn(model, "restore");
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        canArchive: false,
+        pauseSlideshow: vi.fn(),
+      };
+
+      wrapper.vm.$options.methods.onRestore.call(ctx);
+
+      expect(restoreSpy).not.toHaveBeenCalled();
+      restoreSpy.mockRestore();
+    });
+  });
+
+  describe("onRemoveFromAlbum wiring", () => {
+    it("calls this.model.removeFromAlbum(collection.UID) then evicts the photo on success", async () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-remove" });
+      const removeSpy = vi.spyOn(model, "removeFromAlbum").mockResolvedValue({ status: 200, data: {} });
+      const evictSpy = vi.spyOn(model, "evictPhoto");
+      const collection = new Album({ UID: "album-1" });
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        collection,
+        canManageAlbums: true,
+        pauseSlideshow: vi.fn(),
+      };
+
+      wrapper.vm.$options.methods.onRemoveFromAlbum.call(ctx);
+      // Drain the .then chain.
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(ctx.pauseSlideshow).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledWith("album-1");
+      // Album-remove publishes only albums.updated, so the manual
+      // evictPhoto() in onRemoveFromAlbum.then is what drops the
+      // sidebar's stale Photo.Albums view.
+      expect(evictSpy).toHaveBeenCalledTimes(1);
+      removeSpy.mockRestore();
+      evictSpy.mockRestore();
+    });
+
+    it("does NOT call removeFromAlbum when canManageAlbums is false", () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-remove" });
+      const removeSpy = vi.spyOn(model, "removeFromAlbum");
+      const collection = new Album({ UID: "album-1" });
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        collection,
+        canManageAlbums: false,
+        pauseSlideshow: vi.fn(),
+      };
+
+      wrapper.vm.$options.methods.onRemoveFromAlbum.call(ctx);
+
+      expect(removeSpy).not.toHaveBeenCalled();
+      removeSpy.mockRestore();
+    });
+
+    it("does NOT call removeFromAlbum when collection isn't an Album", () => {
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-remove" });
+      const removeSpy = vi.spyOn(model, "removeFromAlbum");
+      // A plain object (or a non-Album collection) must short-circuit.
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        collection: { UID: "not-an-album-instance" },
+        canManageAlbums: true,
+        pauseSlideshow: vi.fn(),
+      };
+
+      wrapper.vm.$options.methods.onRemoveFromAlbum.call(ctx);
+
+      expect(removeSpy).not.toHaveBeenCalled();
+      removeSpy.mockRestore();
+    });
+
+    it("does NOT call evictPhoto when removeFromAlbum rejects", async () => {
+      // The optimistic Removed flip and its rollback live inside
+      // Thumb.removeFromAlbum (covered in thumb.test.js); here we
+      // pin that the lightbox does NOT evict the cache on failure
+      // — otherwise the sidebar would lose its (still-correct)
+      // Photo.Albums view after a no-op failed remove.
+      const wrapper = mountLightbox();
+      const model = new Thumb({ UID: "uid-remove" });
+      const removeSpy = vi.spyOn(model, "removeFromAlbum").mockRejectedValue(new Error("offline"));
+      const evictSpy = vi.spyOn(model, "evictPhoto");
+      const collection = new Album({ UID: "album-1" });
+      const ctx = {
+        ...wrapper.vm,
+        model,
+        collection,
+        canManageAlbums: true,
+        pauseSlideshow: vi.fn(),
+      };
+
+      wrapper.vm.$options.methods.onRemoveFromAlbum.call(ctx);
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(evictSpy).not.toHaveBeenCalled();
+      removeSpy.mockRestore();
+      evictSpy.mockRestore();
     });
   });
 });

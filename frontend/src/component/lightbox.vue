@@ -1706,20 +1706,23 @@ export default {
       // Ensure that content is focused.
       this.focusContent();
     },
-    // Fetches the full Photo model for the given UID using the LRU cache.
-    // Restricted roles (guest, visitor, contributor) skip the extra API
-    // call and let the sidebar work with the viewer data (Thumb model).
+    // Fetches the full Photo model for the given UID using the LRU
+    // cache, delegated to the Thumb model so the photo-fetch policy
+    // lives on the slide that owns it (Thumb.loadPhoto). Restricted
+    // roles (guest, visitor, contributor) skip the extra API call
+    // and let the sidebar work with the viewer data (Thumb model).
     fetchPhoto(uid) {
       if (!uid || this.$session.isSidebarRestricted()) {
         this.photo = new Photo();
         return;
       }
 
-      Photo.findCached(uid)
-        .then((photo) => {
+      this.model
+        .loadPhoto()
+        .then((m) => {
           // Only apply if still showing this photo (prevents race on fast swiping).
           if (this.model && this.model.UID === uid) {
-            this.photo = photo;
+            this.photo = m;
           }
         })
         .catch(() => {});
@@ -2600,16 +2603,17 @@ export default {
         return;
       }
 
-      this.model.Removed = true;
-
-      $api
-        .delete(`albums/${this.collection.UID}/photos`, { data: { photos: [this.model.UID] } })
+      this.model
+        .removeFromAlbum(this.collection.UID)
         .then(() => {
-          Photo.evictCache(this.model.UID);
+          // Album-remove publishes only albums.updated, not a photos
+          // event — manual eviction stays so the sidebar's cached
+          // Photo.Albums field doesn't surface stale membership.
+          // Optimistic Removed flip + rollback are handled inside
+          // Thumb.removeFromAlbum.
+          this.model.evictPhoto();
         })
-        .catch(() => {
-          this.model.Removed = false;
-        });
+        .catch(() => {});
     },
     onArchive() {
       if (!this.canArchive) {
@@ -2623,10 +2627,10 @@ export default {
         return;
       }
 
-      this.model.Archived = true;
-
-      return $api.post("batch/photos/archive", { photos: [this.model.UID] }).then(() => {
-        Photo.evictCache(this.model.UID);
+      // Optimistic Archived flip + rollback live in Thumb.archive.
+      // Cache eviction is handled by the photos.archived WS
+      // subscriber in model/photo.js — no manual evictPhoto() here.
+      return this.model.archive().then(() => {
         this.$notify.success(this.$gettext("Archived"));
       });
     },
@@ -2642,10 +2646,10 @@ export default {
         return;
       }
 
-      this.model.Archived = false;
-
-      $api.post("batch/photos/restore", { photos: [this.model.UID] }).then(() => {
-        Photo.evictCache(this.model.UID);
+      // Optimistic Archived flip + rollback live in Thumb.restore.
+      // Cache eviction is handled by the photos.restored WS
+      // subscriber in model/photo.js — no manual evictPhoto() here.
+      this.model.restore().then(() => {
         this.$notify.success(this.$gettext("Restored"));
       });
     },

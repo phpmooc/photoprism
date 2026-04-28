@@ -1295,11 +1295,13 @@ export class Photo extends RestModel {
     return Photo._cache;
   }
 
-  // Removes a photo from the LRU cache. Mutating methods on this model no
-  // longer call this directly: the backend publishes "photos.updated" and
-  // "photos.deleted" via websocket and the cache is refreshed/evicted from
-  // there (see the module-level subscriptions below). This stays public as
-  // an escape hatch for code that mutates a photo outside of this model.
+  // Removes a photo from the LRU cache. Mutating methods on this model
+  // no longer call this directly: the backend publishes "photos.updated"
+  // / "photos.deleted" / "photos.archived" / "photos.restored" via
+  // websocket and the cache is evicted from there (see the module-level
+  // subscriptions below). This stays public as an escape hatch for flows
+  // that mutate a photo without firing one of those events — currently
+  // album-membership changes, which only emit "albums.updated".
   static evictCache(uid) {
     if (uid) {
       Photo._cache.evict(uid);
@@ -1308,9 +1310,12 @@ export class Photo extends RestModel {
 
   // Drops every cached photo and any in-flight request. Called on session
   // reset so metadata fetched under one role cannot be served to another.
-  // Note: in-flight loader Promises are not aborted (see Open Question #1
-  // in the cache proposal); a fetch resolving after clearCache() may still
-  // re-seed the cache under its own key.
+  // ModelCache.clear() bumps an internal session-epoch counter and any
+  // in-flight fetch whose epoch no longer matches REJECTS with
+  // ModelCacheStaleFetchError instead of resolving — so neither the
+  // cache nor a .then-chained UI assignment can leak role-A data into
+  // role B during the post-logout unmount window. See
+  // specs/frontend/model-lru-cache.md Decisions §5 for the design.
   static clearCache() {
     Photo._cache.clear();
   }
@@ -1354,41 +1359,42 @@ export class Photo extends RestModel {
   }
 }
 
-// Evict cached entries when the backend reports a photo change. The
-// websocket payload (see PublishPhotoEvent in internal/api/api_event.go)
-// is a search.Photos result, NOT a full /photos/:uid entity — it flattens
-// nested fields like Details into top-level columns (DetailsKeywords,
-// DetailsSubject, ...) and would silently drop the nested Details object
-// if written back via refreshIfPresent. Hydrating from that snapshot
-// would leave Photo.Details === undefined, which collapses the sidebar's
-// isEditable computed and disables editing on the next cache hit.
+// Drops cached entries from the WS event payload. The backend uses
+// two different shapes on the same channel family — handle both:
 //
-// So the WS update channel is consumed as an EVICT signal: the next read
-// goes back to find() and gets the field-complete entity. The local
-// Photo instance held by lightbox.vue is unaffected by this eviction —
-// it was already populated from the field-complete PUT response — so
-// there is no visible flash on the currently-displayed slide.
-$event.subscribe("photos.updated", (_ev, data) => {
+//   - "photos.updated" (PublishPhotoEvent in internal/api/api_event.go)
+//     emits a search.Photos result: an array of objects with .UID.
+//   - "photos.archived" / "photos.restored" / "photos.deleted"
+//     (EntitiesArchived / EntitiesRestored / EntitiesDeleted in
+//     internal/event/publish_entities.go) emit a []string of bare UIDs.
+//
+// A single helper covers both so we don't have to keep them in sync.
+// The "photos.updated" payload is consumed as an EVICT signal (not a
+// refresh) because search.Photos flattens nested fields like Details
+// into top-level columns (DetailsKeywords, DetailsSubject, ...);
+// hydrating from that snapshot would leave Photo.Details === undefined
+// and collapse the sidebar's isEditable computed. Eviction sends the
+// next read back to find() and the field-complete /photos/:uid endpoint.
+function evictCachedFromEntities(data) {
   if (!data || !Array.isArray(data.entities)) {
     return;
   }
   data.entities.forEach((entity) => {
-    if (entity && entity.UID) {
+    if (typeof entity === "string" && entity) {
+      Photo._cache.evict(entity);
+    } else if (entity && typeof entity === "object" && entity.UID) {
       Photo._cache.evict(entity.UID);
     }
   });
-});
+}
 
-// Drop cached entries for photos the backend reports as removed.
-$event.subscribe("photos.deleted", (_ev, data) => {
-  if (!data || !Array.isArray(data.entities)) {
-    return;
-  }
-  data.entities.forEach((entity) => {
-    if (entity && entity.UID) {
-      Photo._cache.evict(entity.UID);
-    }
-  });
-});
+// Subscribe once per channel. Adding "archived" and "restored" here
+// retires the per-mutation Photo.evictCache calls that lightbox.vue
+// previously made after onArchive / onRestore — the WS round-trip
+// covers it for every consumer in this tab.
+$event.subscribe("photos.updated", (_ev, data) => evictCachedFromEntities(data));
+$event.subscribe("photos.deleted", (_ev, data) => evictCachedFromEntities(data));
+$event.subscribe("photos.archived", (_ev, data) => evictCachedFromEntities(data));
+$event.subscribe("photos.restored", (_ev, data) => evictCachedFromEntities(data));
 
 export default Photo;

@@ -1933,15 +1933,67 @@ describe("model/photo", () => {
         expect(Photo._cache.has("uid-ws-uncached")).toBe(false);
       });
 
-      it("evicts cached entries when photos.deleted arrives", async () => {
-        seedCache("uid-ws-del", {});
+      // The backend sends photos.deleted with a []string of bare UIDs
+      // (event.EntitiesDeleted("photos", deleted.UIDs()) in
+      // internal/api/batch_photos.go and internal/photoprism/cleanup.go),
+      // NOT objects with .UID — pin both shapes so nobody re-introduces
+      // the silent-no-op the subscriber had before consolidating the
+      // string/object handling.
+      it("evicts cached entries when photos.deleted arrives with bare-string UIDs", async () => {
+        seedCache("uid-ws-del-string", {});
 
         $event.publish("photos.deleted", {
-          entities: [{ UID: "uid-ws-del" }],
+          entities: ["uid-ws-del-string"],
         });
         await flushEvents();
 
-        expect(Photo._cache.has("uid-ws-del")).toBe(false);
+        expect(Photo._cache.has("uid-ws-del-string")).toBe(false);
+      });
+
+      it("also tolerates the legacy object shape on photos.deleted", async () => {
+        seedCache("uid-ws-del-obj", {});
+
+        $event.publish("photos.deleted", {
+          entities: [{ UID: "uid-ws-del-obj" }],
+        });
+        await flushEvents();
+
+        expect(Photo._cache.has("uid-ws-del-obj")).toBe(false);
+      });
+
+      it("evicts cached entries when photos.archived arrives (bare-string payload)", async () => {
+        // event.EntitiesArchived("photos", frm.Photos) in
+        // internal/api/batch_photos.go — frm.Photos is []string.
+        seedCache("uid-ws-arc", {});
+
+        $event.publish("photos.archived", {
+          entities: ["uid-ws-arc"],
+        });
+        await flushEvents();
+
+        expect(Photo._cache.has("uid-ws-arc")).toBe(false);
+      });
+
+      it("evicts cached entries when photos.restored arrives (bare-string payload)", async () => {
+        // event.EntitiesRestored("photos", frm.Photos) — same shape.
+        seedCache("uid-ws-res", {});
+
+        $event.publish("photos.restored", {
+          entities: ["uid-ws-res"],
+        });
+        await flushEvents();
+
+        expect(Photo._cache.has("uid-ws-res")).toBe(false);
+      });
+
+      it("ignores empty-string entries in archived/restored payloads", async () => {
+        seedCache("uid-keep-empty", {});
+
+        $event.publish("photos.archived", { entities: ["", "uid-keep-empty"] });
+        await flushEvents();
+        // The non-empty string evicts; the empty one is skipped (a
+        // malformed-payload guard, not a silent no-op for valid data).
+        expect(Photo._cache.has("uid-keep-empty")).toBe(false);
       });
 
       // Regression for the edit-then-navigate-back scenario where the
@@ -1985,15 +2037,17 @@ describe("model/photo", () => {
         expect(Photo._cache.has("uid-shape-bug")).toBe(false);
       });
 
-      it("tolerates malformed payloads", async () => {
+      it("tolerates malformed payloads on every channel", async () => {
         seedCache("uid-keep", {});
 
-        $event.publish("photos.updated", null);
-        $event.publish("photos.updated", {});
-        $event.publish("photos.updated", { entities: "not-an-array" });
-        $event.publish("photos.updated", { entities: [null, { Title: "no uid" }] });
-        $event.publish("photos.deleted", null);
-        $event.publish("photos.deleted", { entities: [null] });
+        // Each subscribed channel runs the same guard, so malformed
+        // payloads on any of them must leave the cache untouched.
+        ["photos.updated", "photos.deleted", "photos.archived", "photos.restored"].forEach((ev) => {
+          $event.publish(ev, null);
+          $event.publish(ev, {});
+          $event.publish(ev, { entities: "not-an-array" });
+          $event.publish(ev, { entities: [null, { Title: "no uid" }, 0, false, undefined] });
+        });
         await flushEvents();
 
         expect(Photo._cache.has("uid-keep")).toBe(true);
