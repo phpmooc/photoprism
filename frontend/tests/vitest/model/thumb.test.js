@@ -1,5 +1,5 @@
-import { describe, it, expect, vi } from "vitest";
-import "../fixtures";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { Mock } from "../fixtures";
 import Thumb from "model/thumb";
 import Photo from "model/photo";
 import File from "model/file";
@@ -374,39 +374,48 @@ describe("model/thumb", () => {
     });
   });
 
-  // The archive/restore/removeFromAlbum tests use $api directly (not
-  // axios-mock-adapter), spying on the verbs to assert the URL and
-  // payload shape. This avoids registering one-off Mock.onPost handlers
-  // in fixtures.js for endpoints that already have global mocks.
-  // archive/restore/removeFromAlbum spy on $api directly rather than
-  // registering one-off Mock.onPost handlers in fixtures.js for
-  // endpoints that already have global mocks. They also pin the
-  // optimistic-flip + rollback contract that drives lightbox menu
-  // visibility (this.model?.Archived / this.model?.Removed checks).
-  // archive/restore/removeFromAlbum spy on $api directly rather than
-  // registering one-off Mock.onPost handlers in fixtures.js for
-  // endpoints that already have global mocks. They also pin the
-  // optimistic-flip + restore-previous-value rollback contract that
-  // drives lightbox menu visibility (this.model?.Archived /
-  // this.model?.Removed checks).
+  // archive / restore / removeFromAlbum drive the lightbox menu
+  // visibility (this.model?.Archived / this.model?.Removed checks
+  // around lightbox.vue:1437). The tests below pin two contracts:
+  // 1. Right URL + payload shape — verified through the global Mock
+  //    in fixtures.js plus Mock.history for the request log.
+  // 2. Optimistic-flip + restore-previous-value rollback — a
+  //    literal `false`/`true` rollback would silently promote an
+  //    undefined tri-state field, and an already-archived re-archive
+  //    must not flip back to "not archived" on failure.
+  //
+  // Rapid-fire prevention is intentionally a UI concern (see
+  // $notify.blockUI("busy") in lightbox.vue onArchive / onRestore /
+  // onRemoveFromAlbum) — the model stays stateless.
+  //
+  // Rejection tests use `vi.spyOn($api, ...).mockRejectedValueOnce`
+  // because axios-mock-adapter matches handlers in registration
+  // order (see node_modules/axios-mock-adapter/src/utils.js#find);
+  // a `replyOnce(500)` registered after the persistent `reply(200)`
+  // in fixtures.js never wins, so it can't simulate a one-off
+  // failure for an endpoint that has a global success mock.
   describe("archive", () => {
+    beforeEach(() => {
+      Mock.history.post.length = 0;
+    });
+
     it("flips Archived to true, posts to batch/photos/archive, and resolves on success", async () => {
-      const $api = (await import("common/api")).default;
-      const spy = vi.spyOn($api, "post").mockResolvedValue({ status: 200, data: { code: 200 } });
       const thumb = new Thumb({ UID: "abc123" });
       // Pre-condition: Archived is undefined (not in defaults — see
       // the explicit-tri-state checks at lightbox.vue:1437).
       expect(thumb.Archived).toBeUndefined();
-      await thumb.archive();
-      expect(spy).toHaveBeenCalledWith("batch/photos/archive", { photos: ["abc123"] });
+      const response = await thumb.archive();
+      expect(response.status).toBe(200);
       expect(thumb.Archived).toBe(true);
-      spy.mockRestore();
+      const calls = Mock.history.post.filter((r) => r.url === "batch/photos/archive");
+      expect(calls).toHaveLength(1);
+      expect(JSON.parse(calls[0].data)).toEqual({ photos: ["abc123"] });
     });
 
     it("restores the pre-call Archived value on rejection (was undefined)", async () => {
       const $api = (await import("common/api")).default;
       const err = new Error("offline");
-      const spy = vi.spyOn($api, "post").mockRejectedValue(err);
+      const spy = vi.spyOn($api, "post").mockRejectedValueOnce(err);
       const thumb = new Thumb({ UID: "abc123" });
       // Pre-state is undefined (default, since Archived isn't in
       // getDefaults()). A literal `false` rollback would silently
@@ -423,7 +432,7 @@ describe("model/thumb", () => {
       // truthful "archived" UI to "not archived" on failure.
       const $api = (await import("common/api")).default;
       const err = new Error("offline");
-      const spy = vi.spyOn($api, "post").mockRejectedValue(err);
+      const spy = vi.spyOn($api, "post").mockRejectedValueOnce(err);
       const thumb = new Thumb({ UID: "abc123", Archived: true });
       await expect(thumb.archive()).rejects.toBe(err);
       expect(thumb.Archived).toBe(true);
@@ -432,20 +441,24 @@ describe("model/thumb", () => {
   });
 
   describe("restore", () => {
+    beforeEach(() => {
+      Mock.history.post.length = 0;
+    });
+
     it("flips Archived to false, posts to batch/photos/restore, and resolves on success", async () => {
-      const $api = (await import("common/api")).default;
-      const spy = vi.spyOn($api, "post").mockResolvedValue({ status: 200, data: { code: 200 } });
       const thumb = new Thumb({ UID: "abc123", Archived: true });
-      await thumb.restore();
-      expect(spy).toHaveBeenCalledWith("batch/photos/restore", { photos: ["abc123"] });
+      const response = await thumb.restore();
+      expect(response.status).toBe(200);
       expect(thumb.Archived).toBe(false);
-      spy.mockRestore();
+      const calls = Mock.history.post.filter((r) => r.url === "batch/photos/restore");
+      expect(calls).toHaveLength(1);
+      expect(JSON.parse(calls[0].data)).toEqual({ photos: ["abc123"] });
     });
 
     it("restores the pre-call Archived value on rejection (was true)", async () => {
       const $api = (await import("common/api")).default;
       const err = new Error("offline");
-      const spy = vi.spyOn($api, "post").mockRejectedValue(err);
+      const spy = vi.spyOn($api, "post").mockRejectedValueOnce(err);
       const thumb = new Thumb({ UID: "abc123", Archived: true });
       await expect(thumb.restore()).rejects.toBe(err);
       expect(thumb.Archived).toBe(true);
@@ -457,7 +470,7 @@ describe("model/thumb", () => {
       // ensures we don't silently flip undefined → true on failure.
       const $api = (await import("common/api")).default;
       const err = new Error("offline");
-      const spy = vi.spyOn($api, "post").mockRejectedValue(err);
+      const spy = vi.spyOn($api, "post").mockRejectedValueOnce(err);
       const thumb = new Thumb({ UID: "abc123" });
       await expect(thumb.restore()).rejects.toBe(err);
       expect(thumb.Archived).toBeUndefined();
@@ -466,21 +479,25 @@ describe("model/thumb", () => {
   });
 
   describe("removeFromAlbum", () => {
+    beforeEach(() => {
+      Mock.history.delete.length = 0;
+    });
+
     it("flips Removed to true, DELETEs albums/:albumUID/photos, and resolves on success", async () => {
-      const $api = (await import("common/api")).default;
-      const spy = vi.spyOn($api, "delete").mockResolvedValue({ status: 200, data: { code: 200 } });
       const thumb = new Thumb({ UID: "abc123" });
       expect(thumb.Removed).toBeUndefined();
-      await thumb.removeFromAlbum("album-1");
-      expect(spy).toHaveBeenCalledWith("albums/album-1/photos", { data: { photos: ["abc123"] } });
+      const response = await thumb.removeFromAlbum("album-1");
+      expect(response.status).toBe(200);
       expect(thumb.Removed).toBe(true);
-      spy.mockRestore();
+      const calls = Mock.history.delete.filter((r) => r.url === "albums/album-1/photos");
+      expect(calls).toHaveLength(1);
+      expect(JSON.parse(calls[0].data)).toEqual({ photos: ["abc123"] });
     });
 
     it("restores the pre-call Removed value on rejection (was undefined)", async () => {
       const $api = (await import("common/api")).default;
       const err = new Error("offline");
-      const spy = vi.spyOn($api, "delete").mockRejectedValue(err);
+      const spy = vi.spyOn($api, "delete").mockRejectedValueOnce(err);
       const thumb = new Thumb({ UID: "abc123" });
       await expect(thumb.removeFromAlbum("album-1")).rejects.toBe(err);
       expect(thumb.Removed).toBeUndefined();
