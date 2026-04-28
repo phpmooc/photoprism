@@ -48,7 +48,7 @@ fi
 
 # Upgrade NPM and install development dependencies.
 echo "Configuring NPM..."
-sudo npm config set cache ~/.cache/npm
+sudo npm config set cache /root/.cache/npm
 echo "Updating NPM..."
 sudo npm install -g --ignore-scripts --no-fund --no-audit --no-update-notifier "npm@$NPM_VERSION" n@latest
 echo "Installing npm-check-updates and license-report..."
