@@ -10,7 +10,7 @@
         <v-list-item v-if="editingField === 'title' || model.Title || isEditable" class="metadata__item">
           <v-text-field
             v-if="editingField === 'title'"
-            v-model="p.Title"
+            v-model="photo.Title"
             :placeholder="$pgettext('Photo', 'Title')"
             :rules="[textRule]"
             variant="plain"
@@ -41,7 +41,7 @@
         <v-list-item v-if="editingField === 'caption' || model.Caption || isEditable" class="metadata__item">
           <v-textarea
             v-if="editingField === 'caption'"
-            v-model="p.Caption"
+            v-model="photo.Caption"
             :placeholder="$gettext('Caption')"
             variant="plain"
             density="compact"
@@ -401,7 +401,7 @@
           >
             <v-textarea
               v-if="editingField === 'subject'"
-              v-model="p.Details.Subject"
+              v-model="photo.Details.Subject"
               :placeholder="$gettext('Subject')"
               :rules="[textRule]"
               variant="plain"
@@ -437,7 +437,7 @@
           >
             <v-textarea
               v-if="editingField === 'artist'"
-              v-model="p.Details.Artist"
+              v-model="photo.Details.Artist"
               :placeholder="$gettext('Artist')"
               :rules="[textRule]"
               variant="plain"
@@ -473,7 +473,7 @@
           >
             <v-textarea
               v-if="editingField === 'copyright'"
-              v-model="p.Details.Copyright"
+              v-model="photo.Details.Copyright"
               :placeholder="$gettext('Copyright')"
               :rules="[textRule]"
               variant="plain"
@@ -509,7 +509,7 @@
           >
             <v-textarea
               v-if="editingField === 'license'"
-              v-model="p.Details.License"
+              v-model="photo.Details.License"
               :placeholder="$gettext('License')"
               :rules="[textRule]"
               variant="plain"
@@ -556,7 +556,7 @@
           <v-list-item class="metadata__item">
             <v-textarea
               v-if="editingField === 'keywords'"
-              v-model="p.Details.Keywords"
+              v-model="photo.Details.Keywords"
               :placeholder="$gettext('Keywords')"
               variant="plain"
               density="compact"
@@ -591,7 +591,7 @@
           <v-list-item class="metadata__item">
             <v-textarea
               v-if="editingField === 'notes'"
-              v-model="p.Details.Notes"
+              v-model="photo.Details.Notes"
               :placeholder="$gettext('Notes')"
               variant="plain"
               density="compact"
@@ -609,11 +609,11 @@
         </template>
       </v-list>
     </div>
-    <p-date-time-dialog :visible="dateTimeDialog" :photo="p" @close="dateTimeDialog = false" @confirm="confirmDateTime"></p-date-time-dialog>
-    <p-camera-dialog :visible="cameraDialog" :photo="p" @close="cameraDialog = false" @confirm="confirmCamera"></p-camera-dialog>
+    <p-date-time-dialog :visible="dateTimeDialog" :photo="photo" @close="dateTimeDialog = false" @confirm="confirmDateTime"></p-date-time-dialog>
+    <p-camera-dialog :visible="cameraDialog" :photo="photo" @close="cameraDialog = false" @confirm="confirmCamera"></p-camera-dialog>
     <p-location-dialog
       :visible="locationDialog"
-      :latlng="[p ? Number(p.Lat) || 0 : 0, p ? Number(p.Lng) || 0 : 0]"
+      :latlng="[photo ? Number(photo.Lat) || 0 : 0, photo ? Number(photo.Lng) || 0 : 0]"
       @close="locationDialog = false"
       @confirm="confirmLocation"
     ></p-location-dialog>
@@ -723,13 +723,13 @@ export default {
   },
   computed: {
     // Aliases for parent-owned reactive state. These read through `view` so
-    // every existing template/script reference (this.model.X, this.p.X, etc.)
+    // every existing template/script reference (this.model.X, this.photo.X, etc.)
     // keeps working without churn. Mutations are explicit: write to
-    // `this.view.photo.X` / `this.view.model.X`, never to `this.p` / `this.model`.
+    // `this.view.photo.X` / `this.view.model.X`, never to `this.photo` / `this.model`.
     model() {
       return this.view?.model;
     },
-    p() {
+    photo() {
       return this.view?.photo;
     },
     canEdit() {
@@ -754,50 +754,51 @@ export default {
       return this.view?.pendingNameMarkerUid;
     },
     isEditable() {
-      return this.canEdit && this.p && this.p.Details && !this.restrictedRole;
+      return this.canEdit && this.photo && this.photo.Details && !this.restrictedRole;
     },
     restrictedRole() {
       return this.$session.isSidebarRestricted();
     },
     captionHtml() {
-      const raw = this.p?.Caption ?? this.model?.Caption;
+      const raw = this.photo?.Caption ?? this.model?.Caption;
       if (!raw) return "";
       return this.$util.sanitizeHtml(this.$util.encodeHTML(raw));
     },
     notesHtml() {
-      if (!this.p?.Details?.Notes) return "";
-      return this.$util.sanitizeHtml(this.$util.encodeHTML(this.p.Details.Notes));
+      if (!this.photo?.Details?.Notes) return "";
+      return this.$util.sanitizeHtml(this.$util.encodeHTML(this.photo.Details.Notes));
     },
     cameraInfo() {
-      if (!this.p) return "";
+      if (!this.photo) return "";
       // Backend returns the "Unknown" placeholder camera (CameraID=1,
       // Camera={Make:"", Model:"Unknown"}) when no EXIF camera is set, and
       // formatCamera() happily renders that as " Unknown". Suppress it so
       // the read-only sidebar doesn't surface an empty camera row.
       const hasRealCamera =
-        (this.p.CameraID && this.p.CameraID > 1) ||
-        (this.p.CameraMake && this.p.CameraMake.trim()) ||
-        (this.p.CameraModel && this.p.CameraModel.trim() && this.p.CameraModel !== "Unknown");
+        (this.photo.CameraID && this.photo.CameraID > 1) ||
+        (this.photo.CameraMake && this.photo.CameraMake.trim()) ||
+        (this.photo.CameraModel && this.photo.CameraModel.trim() && this.photo.CameraModel !== "Unknown");
       if (!hasRealCamera) return "";
       // Suppress "Unknown, ISO 100"-style rows when only ISO/exposure are set.
-      if (!this.$util.formatCamera(this.p.Camera, this.p.CameraID, this.p.CameraMake, this.p.CameraModel, false)) return "";
-      const info = this.p.getCameraInfo();
+      if (!this.$util.formatCamera(this.photo.Camera, this.photo.CameraID, this.photo.CameraMake, this.photo.CameraModel, false)) return "";
+      const info = this.photo.getCameraInfo();
       return info !== this.$gettext("Unknown") ? info : "";
     },
     lensInfo() {
-      if (!this.p) return "";
-      const hasLens = (this.p.LensID && this.p.LensID > 1) || this.p.LensMake || this.p.LensModel || this.p.Lens?.Model || this.p.Lens?.Make;
+      if (!this.photo) return "";
+      const hasLens =
+        (this.photo.LensID && this.photo.LensID > 1) || this.photo.LensMake || this.photo.LensModel || this.photo.Lens?.Model || this.photo.Lens?.Make;
       if (!hasLens) return "";
-      const info = this.p.getLensInfo();
+      const info = this.photo.getLensInfo();
       return info !== this.$gettext("Unknown") ? info : "";
     },
     exifInfo() {
-      if (!this.p) return "";
-      return this.p.getExifInfo();
+      if (!this.photo) return "";
+      return this.photo.getExifInfo();
     },
     people() {
-      if (!this.p) return [];
-      return this.p.getMarkers(true);
+      if (!this.photo) return [];
+      return this.photo.getMarkers(true);
     },
     knownPeople() {
       const values = this.$config && this.$config.values;
@@ -805,54 +806,54 @@ export default {
       return values.people;
     },
     labels() {
-      if (!this.p?.Labels) return [];
-      return this.p.Labels.filter((l) => l.Label && l.Label.Name && l.Uncertainty < 100);
+      if (!this.photo?.Labels) return [];
+      return this.photo.Labels.filter((l) => l.Label && l.Label.Name && l.Uncertainty < 100);
     },
     albums() {
-      if (!this.p?.Albums) return [];
-      return this.p.Albums.filter((a) => a.Title && !a.Private);
+      if (!this.photo?.Albums) return [];
+      return this.photo.Albums.filter((a) => a.Title && !a.Private);
     },
     subject() {
-      return this.p?.Details?.Subject || "";
+      return this.photo?.Details?.Subject || "";
     },
     artist() {
-      return this.p?.Details?.Artist || "";
+      return this.photo?.Details?.Artist || "";
     },
     copyright() {
-      return this.p?.Details?.Copyright || "";
+      return this.photo?.Details?.Copyright || "";
     },
     license() {
-      return this.p?.Details?.License || "";
+      return this.photo?.Details?.License || "";
     },
     keywords() {
-      return this.p?.Details?.Keywords || "";
+      return this.photo?.Details?.Keywords || "";
     },
     placeName() {
-      if (!this.p) return "";
-      return this.p.locationInfo() || "";
+      if (!this.photo) return "";
+      return this.photo.locationInfo() || "";
     },
     altitude() {
-      if (!this.p || !this.p.Altitude) return "";
-      return this.p.Altitude + " m";
+      if (!this.photo || !this.photo.Altitude) return "";
+      return this.photo.Altitude + " m";
     },
     fileName() {
-      if (!this.p) return "";
-      if (this.p.FileName) return this.p.FileName;
-      const primary = typeof this.p.primaryFile === "function" ? this.p.primaryFile() : null;
+      if (!this.photo) return "";
+      if (this.photo.FileName) return this.photo.FileName;
+      const primary = typeof this.photo.primaryFile === "function" ? this.photo.primaryFile() : null;
       return primary?.Name || "";
     },
     fileInfo() {
-      if (this.p) {
-        switch (this.p.Type) {
+      if (this.photo) {
+        switch (this.photo.Type) {
           case media.Video:
           case media.Live:
           case media.Animated:
-            return this.p.getVideoInfo();
+            return this.photo.getVideoInfo();
           case media.Vector:
           case media.Document:
-            return this.p.getVectorInfo();
+            return this.photo.getVectorInfo();
           default:
-            return this.p.getImageInfo();
+            return this.photo.getImageInfo();
         }
       }
       // Fallback for restricted roles: Thumb.getTypeInfo() produces
@@ -863,7 +864,7 @@ export default {
       return "";
     },
     fileIcon() {
-      switch (this.p?.Type || this.model?.Type) {
+      switch (this.photo?.Type || this.model?.Type) {
         case media.Raw:
           return "mdi-raw";
         case media.Video:
@@ -900,21 +901,21 @@ export default {
     getFieldValue(field) {
       switch (field) {
         case "title":
-          return this.p.Title;
+          return this.photo.Title;
         case "caption":
-          return this.p.Caption;
+          return this.photo.Caption;
         case "subject":
-          return this.p.Details.Subject;
+          return this.photo.Details.Subject;
         case "artist":
-          return this.p.Details.Artist;
+          return this.photo.Details.Artist;
         case "copyright":
-          return this.p.Details.Copyright;
+          return this.photo.Details.Copyright;
         case "license":
-          return this.p.Details.License;
+          return this.photo.Details.License;
         case "keywords":
-          return this.p.Details.Keywords;
+          return this.photo.Details.Keywords;
         case "notes":
-          return this.p.Details.Notes;
+          return this.photo.Details.Notes;
         default:
           return "";
       }
@@ -1159,7 +1160,7 @@ export default {
       if (r) r(false);
     },
     confirmField() {
-      if (!this.p || !this.canEdit) {
+      if (!this.photo || !this.canEdit) {
         this.editingField = null;
         return;
       }
@@ -1168,15 +1169,15 @@ export default {
       this.editingField = null;
       this.editOriginal = null;
 
-      if (!this.p.wasChanged()) {
+      if (!this.photo.wasChanged()) {
         return;
       }
 
-      // The inline-edit binding (v-model="p.X") already mutated the photo
+      // The inline-edit binding (v-model="photo.X") already mutated the photo
       // optimistically; on success sync the matching Thumb fields, on
       // failure roll back so the user sees the title/caption revert and
       // gets a notification instead of a silent ghost edit.
-      this.p
+      this.photo
         .update()
         .then(() => {
           if ((field === "title" || field === "caption") && this.view?.model) {
@@ -1185,7 +1186,7 @@ export default {
           }
         })
         .catch(() => {
-          this.p.rollback();
+          this.photo.rollback();
           this.$notify.error(this.$gettext("Failed to save changes"));
         });
     },
@@ -1359,7 +1360,7 @@ export default {
       }
     },
     confirmLabels() {
-      if (!this.p) {
+      if (!this.photo) {
         this.editingField = null;
         return;
       }
@@ -1371,8 +1372,8 @@ export default {
       this.pendingLabelAdditions = [];
 
       const promises = [];
-      removals.forEach((id) => promises.push(this.p.removeLabel(id)));
-      additions.forEach((name) => promises.push(this.p.addLabel(name)));
+      removals.forEach((id) => promises.push(this.photo.removeLabel(id)));
+      additions.forEach((name) => promises.push(this.photo.addLabel(name)));
 
       if (promises.length) {
         Promise.all(promises).catch(() => {});
@@ -1392,7 +1393,7 @@ export default {
       }
     },
     confirmAlbums() {
-      if (!this.p) {
+      if (!this.photo) {
         this.editingField = null;
         return;
       }
@@ -1404,17 +1405,17 @@ export default {
       this.pendingAlbumAdditions = [];
 
       const promises = [];
-      removals.forEach((uid) => promises.push(this.$api.delete(`albums/${uid}/photos`, { data: { photos: [this.p.UID] } })));
-      additions.forEach((a) => promises.push(this.$api.post(`albums/${a.UID}/photos`, { photos: [this.p.UID] })));
+      removals.forEach((uid) => promises.push(this.$api.delete(`albums/${uid}/photos`, { data: { photos: [this.photo.UID] } })));
+      additions.forEach((a) => promises.push(this.$api.post(`albums/${a.UID}/photos`, { photos: [this.photo.UID] })));
 
       if (promises.length) {
         Promise.all(promises)
           .then(() => {
-            Photo.evictCache(this.p.UID);
-            return this.p.find(this.p.UID);
+            Photo.evictCache(this.photo.UID);
+            return this.photo.find(this.photo.UID);
           })
           .then((photo) => {
-            this.p.setValues(photo.getValues());
+            this.photo.setValues(photo.getValues());
           })
           .catch(() => {});
       }

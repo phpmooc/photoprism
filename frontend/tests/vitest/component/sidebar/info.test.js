@@ -2557,7 +2557,7 @@ describe("PSidebarInfo component", () => {
   // Pins the template bindings on <p-date-time-dialog>, <p-camera-dialog>,
   // and <p-location-dialog>. Commit 7a611b6d6 removed the legacy `photo`
   // prop on PSidebarInfo and routed parent state through `$view.getData()`
-  // (exposed via the `p` computed). The three dialog tags in the sidebar
+  // (exposed via the `photo` computed). The three dialog tags in the sidebar
   // template kept referencing the now-undefined `photo` identifier, so the
   // dialogs received `:photo="undefined"` / `:latlng="[0, 0]"` and their
   // loadFromPhoto() hooks bailed out — opening every sidebar dialog with
