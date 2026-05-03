@@ -146,9 +146,11 @@ func TestNewCompressMiddleware_PrefersZstdOverGzip(t *testing.T) {
 func TestNewCompressMiddleware_BypassesPartialContent(t *testing.T) {
 	// 206 Partial Content responses serve a slice of the identity
 	// representation. Compressing them would scramble the byte offsets the
-	// client asked for and contradict the Content-Range header — a real bug
-	// for ranged GETs on /static/build/app.js and similar compressible
-	// static-asset routes wired in routes_static.go and routes_webapp.go.
+	// client asked for and contradict the Content-Range header. The bundled
+	// `/static/*` route is now served by PrecompressedStatic and excluded
+	// from the runtime middleware, so this test uses a non-excluded path
+	// to verify the middleware-side 206 bypass for any future compressible
+	// route that may produce a 206 (e.g. routes_webapp.go).
 	for _, prefs := range []string{"gzip", "zstd"} {
 		t.Run("Prefs="+prefs, func(t *testing.T) {
 			gin.SetMode(gin.TestMode)
@@ -159,14 +161,14 @@ func TestNewCompressMiddleware_BypassesPartialContent(t *testing.T) {
 			r.Use(NewCompressMiddleware(conf))
 			// Mimic what http.ServeContent does for a Range request: set
 			// Content-Range, status 206, and write only the requested slice.
-			r.GET("/static/build/app.js", func(c *gin.Context) {
+			r.GET("/bundle/app.js", func(c *gin.Context) {
 				c.Header("Content-Range", "bytes 0-9/100")
 				c.Header("Accept-Ranges", "bytes")
 				c.Data(http.StatusPartialContent, "application/javascript", []byte("0123456789"))
 			})
 
 			w := httptest.NewRecorder()
-			req := httptest.NewRequest(http.MethodGet, "/static/build/app.js", nil)
+			req := httptest.NewRequest(http.MethodGet, "/bundle/app.js", nil)
 			req.Header.Set("Range", "bytes=0-9")
 			req.Header.Set("Accept-Encoding", prefs)
 			r.ServeHTTP(w, req)
@@ -186,9 +188,11 @@ func TestNewCompressMiddleware_BypassesPartialContent(t *testing.T) {
 func TestNewCompressMiddleware_BypassesPartialContentViaGinStatic(t *testing.T) {
 	// End-to-end check that the bypass also works when 206 is produced by
 	// gin.Static (i.e. http.ServeFile / http.ServeContent), not just by a
-	// hand-crafted handler. This is the actual code path used by
-	// internal/server/routes_static.go:131 for the bundled JS/CSS assets
-	// where the predicate would otherwise allow compression.
+	// hand-crafted handler. The bundled `/static/*` and `/c/static/*` routes
+	// are now served by PrecompressedStatic and excluded from the runtime
+	// middleware via NewShouldCompressFn, so this test uses a route that is
+	// still in the runtime middleware's scope to exercise the same code
+	// path on any future compressible static-file route.
 	for _, prefs := range []string{"gzip", "zstd"} {
 		t.Run("Prefs="+prefs, func(t *testing.T) {
 			gin.SetMode(gin.TestMode)
@@ -206,11 +210,14 @@ func TestNewCompressMiddleware_BypassesPartialContentViaGinStatic(t *testing.T) 
 
 			r := gin.New()
 			r.Use(NewCompressMiddleware(conf))
-			r.Static("/static", dir)
+			// Use a route that is not on the predicate's exclusion list so
+			// the middleware's 206 bypass — not the static-route exclusion —
+			// is what we're verifying here.
+			r.Static("/bundle", dir)
 
 			t.Run("RangeRequestReturns206RawBytes", func(t *testing.T) {
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, "/static/app.js", nil)
+				req := httptest.NewRequest(http.MethodGet, "/bundle/app.js", nil)
 				req.Header.Set("Range", "bytes=10-19")
 				req.Header.Set("Accept-Encoding", prefs)
 				r.ServeHTTP(w, req)
@@ -227,11 +234,11 @@ func TestNewCompressMiddleware_BypassesPartialContentViaGinStatic(t *testing.T) 
 			})
 
 			t.Run("FullRequestStillCompresses", func(t *testing.T) {
-				// Sanity check: a non-Range GET on the same static route still
+				// Sanity check: a non-Range GET on the same route still
 				// goes through the encoder, so we know the bypass is targeted
-				// at 206 rather than blanket-disabling compression for static.
+				// at 206 rather than blanket-disabling compression for the path.
 				w := httptest.NewRecorder()
-				req := httptest.NewRequest(http.MethodGet, "/static/app.js", nil)
+				req := httptest.NewRequest(http.MethodGet, "/bundle/app.js", nil)
 				req.Header.Set("Accept-Encoding", prefs)
 				r.ServeHTTP(w, req)
 

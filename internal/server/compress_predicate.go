@@ -64,6 +64,13 @@ func NewShouldCompressFn(conf *config.Config) func(c *gin.Context) bool {
 		conf.BaseUri(config.ApiUri + "/labels"),
 		conf.BaseUri(config.ApiUri + "/videos"),
 		conf.BaseUri(proxy.PathPrefix),
+		// Bundled and custom static assets are served with precompressed
+		// .zst / .gz siblings via PrecompressedStatic; bypass the runtime
+		// encoder so it never re-encodes an already-encoded body and so
+		// PHOTOPRISM_HTTP_COMPRESSION=none consistently disables every
+		// encoded code path on these routes.
+		conf.BaseUri(config.StaticUri),
+		conf.BaseUri(config.CustomStaticUri),
 	}
 
 	return func(c *gin.Context) bool {

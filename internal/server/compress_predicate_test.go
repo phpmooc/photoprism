@@ -43,6 +43,8 @@ func TestNewShouldCompressFn(t *testing.T) {
 	r.GET(conf.BaseUri(config.ApiUri+"/cluster/theme"), check)
 	r.GET(conf.BaseUri("/s/:token/:shared/preview"), check)
 	r.GET(conf.BaseUri(proxy.PathPrefix+"test/ok"), check)
+	r.GET(conf.BaseUri(config.StaticUri+"/build/app.js"), check)
+	r.GET(conf.BaseUri(config.CustomStaticUri+"/foo.css"), check)
 
 	doRequest := func(path string) int {
 		w := httptest.NewRecorder()
@@ -76,6 +78,15 @@ func TestNewShouldCompressFn(t *testing.T) {
 	})
 	t.Run("ExcludesPortalProxy", func(t *testing.T) {
 		assert.Equal(t, http.StatusNoContent, doRequest(conf.BaseUri(proxy.PathPrefix+"test/ok")))
+	})
+	t.Run("ExcludesBundledStatic", func(t *testing.T) {
+		// /static/* is served by PrecompressedStatic, which serves precompressed
+		// siblings inline; the runtime middleware must not double-encode.
+		assert.Equal(t, http.StatusNoContent, doRequest(conf.BaseUri(config.StaticUri+"/build/app.js")))
+	})
+	t.Run("ExcludesCustomStatic", func(t *testing.T) {
+		// Custom-extension static assets share the same precompressed pipeline.
+		assert.Equal(t, http.StatusNoContent, doRequest(conf.BaseUri(config.CustomStaticUri+"/foo.css")))
 	})
 
 	t.Run("DoesNotCheckAcceptEncoding", func(t *testing.T) {
