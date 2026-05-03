@@ -44,7 +44,7 @@
 
 ### Configuration & Safety Notes
 
-- Compression: only gzip is enabled; brotli requests log a notice.
+- Compression: configured via `PHOTOPRISM_HTTP_COMPRESSION` / `--http-compression` as a comma-separated preference list. Supported tokens are `zstd`, `gzip`, and `none` (empty value also disables compression). The default ships as `zstd,gzip` so capable clients receive zstd while everyone else falls back to gzip; unknown tokens are ignored with a startup warning. See [`specs/platform/http-compression.md`](../../specs/platform/http-compression.md) for the negotiation rules and exclusion list.
 - Trusted proxies/platform headers are read from config; keep the list tight.
 - If no trusted proxy ranges are configured (or the configured ranges are invalid), proxy trust is disabled and client IP resolution falls back to the TCP peer address.
 - HTTP hardening defaults:

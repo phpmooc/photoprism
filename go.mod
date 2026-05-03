@@ -10,7 +10,7 @@ require (
 	github.com/dsoprea/go-png-image-structure/v2 v2.0.0-20210512210324-29b889a6093d
 	github.com/dsoprea/go-tiff-image-structure/v2 v2.0.0-20221003165014-8ecc4f52edca
 	github.com/dustin/go-humanize v1.0.1
-	github.com/gin-contrib/gzip v1.2.6
+	github.com/gin-contrib/gzip v1.2.6 // indirect
 	github.com/gin-gonic/gin v1.12.0
 	github.com/golang/geo v0.0.0-20260427214057-41a1a8c7eb2a
 	github.com/google/open-location-code/go v0.0.0-20250620134813-83986da0156b
@@ -79,6 +79,7 @@ require (
 	github.com/go-co-op/gocron/v2 v2.21.1
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/golang-jwt/jwt/v5 v5.3.1
+	github.com/klauspost/compress v1.18.6
 	github.com/pquerna/otp v1.5.0
 	github.com/prometheus/client_model v0.6.2
 	github.com/robfig/cron/v3 v3.0.1
