@@ -70,15 +70,29 @@ EOF
   # version (1:2.1.5-2 vs Ubuntu's 8c-*ubuntu*), which then pulls
   # libjpeg62-turbo-dev and collides with Ubuntu's already-installed
   # libjpeg-turbo8-dev (both ship /usr/include/<triplet>/jconfig.h).
-  # The chromium-* packages are elevated to priority 990 so they still install
-  # from Bookworm; their runtime dep on libjpeg62-turbo (no Ubuntu equivalent)
-  # is resolved as the only available candidate, which is harmless.
+  # The chromium-* packages plus chromium's transitive runtime libs are
+  # elevated to priority 990 so they install from Bookworm. The list covers
+  # libs whose Bookworm-required version is not satisfied by the older
+  # Ubuntu LTS (e.g. Jammy ships libharfbuzz0b 2.7.4, libopenjp2-7 2.4.0,
+  # libzstd1 1.4.8 — all below Bookworm chromium's minreq). libc6 /
+  # libstdc++6 are intentionally NOT in the list so the Ubuntu base stays
+  # intact; libjpeg-dev / libjpeg62-turbo-dev are intentionally NOT in the
+  # list so the Resolute libjpeg-dev/libjpeg-turbo8-dev collision stays
+  # prevented (libjpeg62-turbo, the runtime, is fine and required).
   cat > "$pin" <<EOF
 Package: *
 Pin: release o=Debian,n=bookworm
 Pin-Priority: 100
 
 Package: chromium chromium-common chromium-driver chromium-sandbox
+Pin: release o=Debian,n=bookworm
+Pin-Priority: 990
+
+Package: libharfbuzz-subset0 libharfbuzz0b libharfbuzz-icu0 libharfbuzz-gobject0
+Pin: release o=Debian,n=bookworm
+Pin-Priority: 990
+
+Package: libopenjp2-7 libzstd1 libdav1d6 libjpeg62-turbo libminizip1 libopenh264-7
 Pin: release o=Debian,n=bookworm
 Pin-Priority: 990
 EOF
