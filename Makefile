@@ -221,7 +221,7 @@ install-onnx:
 	sudo scripts/dist/install-onnx.sh
 install-darktable:
 	sudo scripts/dist/install-darktable.sh
-acceptance-sqlite-restart:
+acceptance-sqlite-restart: acceptance-sqlite-stop
 	cp -f storage/acceptance/backup.db storage/acceptance/index.db
 	cp -f storage/acceptance/config-sqlite/settingsBackup.yml storage/acceptance/config-sqlite/settings.yml
 	rm -rf storage/acceptance/sidecar/2020
@@ -234,7 +234,7 @@ acceptance-sqlite-restart:
 	./photoprism --auth-mode="public" -c "./storage/acceptance/config-sqlite" start -d
 acceptance-sqlite-stop:
 	./photoprism --auth-mode="public" -c "./storage/acceptance/config-sqlite" stop
-acceptance-auth-sqlite-restart:
+acceptance-auth-sqlite-restart: acceptance-auth-sqlite-stop
 	cp -f storage/acceptance/backup.db storage/acceptance/index.db
 	cp -f storage/acceptance/config-sqlite/settingsBackup.yml storage/acceptance/config-sqlite/settings.yml
 	./photoprism --auth-mode="password" -c "./storage/acceptance/config-sqlite" start -d
