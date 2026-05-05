@@ -18,11 +18,12 @@
 # Use 'xtradeb' only when our mirror has fallen behind a chromium update
 # (e.g. CVE patch landed at XtraDeb but cron hasn't refreshed yet).
 #
-# Distribution package set installed:
+# Distribution package set installed (named explicitly on the apt-get install
+# line so a missing piece fails fast and visibly):
 #   - chromium                   — the browser binary
+#   - chromium-common            — shared resources (strict-version Depends of chromium)
 #   - chromium-driver            — chromedriver for headless / Selenium / TestCafe
 #   - chromium-sandbox           — setuid sandbox helper
-#   - chromium-common            — shared resources (auto-pulled, version-locked to chromium)
 #
 # Runtime library dependencies (transitively pulled in by apt). The exact
 # package names drift between Ubuntu releases (jammy/noble/questing/resolute);
@@ -107,7 +108,7 @@ EOF
 
   apt-get update
   apt-get -qq install -y --no-install-recommends \
-    chromium chromium-driver chromium-sandbox
+    chromium chromium-common chromium-driver chromium-sandbox
 }
 
 # Adds the XtraDeb PPA apt source and installs chromium from it. Fallback
@@ -131,7 +132,7 @@ EOF
 
   apt-get update
   apt-get -qq install -y --no-install-recommends \
-    chromium chromium-driver chromium-sandbox
+    chromium chromium-common chromium-driver chromium-sandbox
 }
 
 case $DESTARCH in
@@ -150,7 +151,7 @@ case $DESTARCH in
       debian)
         echo "Installing Chromium on ${ID} for ${DESTARCH^^}..."
         apt-get update
-        apt-get -qq install chromium chromium-driver chromium-sandbox
+        apt-get -qq install chromium chromium-common chromium-driver chromium-sandbox
         ;;
 
       ubuntu)
