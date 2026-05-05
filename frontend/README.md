@@ -40,10 +40,9 @@ Other frontend documentation lives next to this file:
 
 `frontend/package.json` and root `package.json` declare matching `overrides`. Mirroring them keeps the npm workspace lockfile resolution consistent.
 
-| Override                           | Reason                                                                                                                                                                        |
-|------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `"minimatch@~3.0": "^3.1.3"`       | Forces transitive `minimatch` resolutions onto the patched 3.1.x line. Defends against the ReDoS chain (`GHSA-3ppc-4f35-3m26`, `GHSA-7r86-cg39-jmmj`, `GHSA-23c5-xmqv-rm74`). |
-| `"serialize-javascript": "^7.0.5"` | Closes the `workbox-build` → `@rollup/plugin-terser` → `serialize-javascript` RCE advisory (`GHSA-5c6j-r48x-rmvq`, `GHSA-qj8w-gfj5-8c6v`).                                    |
+| Override                           | Reason                                                                                                                                     |
+|------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------|
+| `"serialize-javascript": "^7.0.5"` | Closes the `workbox-build` → `@rollup/plugin-terser` → `serialize-javascript` RCE advisory (`GHSA-5c6j-r48x-rmvq`, `GHSA-qj8w-gfj5-8c6v`). |
 
 When an upstream advisory is fully resolved, retire the override and rerun `make audit` plus a focused build/test pass before committing the cleanup.
 

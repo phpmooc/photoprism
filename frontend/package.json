@@ -137,7 +137,6 @@
     "yarn": "please use npm"
   },
   "overrides": {
-    "minimatch@~3.0": "^3.1.3",
     "serialize-javascript": "^7.0.5"
   }
 }
