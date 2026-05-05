@@ -18,6 +18,38 @@
 # Use 'xtradeb' only when our mirror has fallen behind a chromium update
 # (e.g. CVE patch landed at XtraDeb but cron hasn't refreshed yet).
 #
+# Distribution package set installed:
+#   - chromium                   — the browser binary
+#   - chromium-driver            — chromedriver for headless / Selenium / TestCafe
+#   - chromium-sandbox           — setuid sandbox helper
+#   - chromium-common            — shared resources (auto-pulled, version-locked to chromium)
+#
+# Runtime library dependencies (transitively pulled in by apt). The exact
+# package names drift between Ubuntu releases (jammy/noble/questing/resolute);
+# the categories below stay stable. Confirm against
+#   `dpkg-deb -f chromium_*.deb Depends`
+# on the relevant codename before bumping a base image.
+#   - GTK / GUI:        libgtk-3-0[t64], libxnvctrl0, libxrandr2, libxkbcommon0,
+#                       libxcomposite1, libxdamage1, libxfixes3, libxext6,
+#                       libxcb1, libx11-6, libpango-1.0-0, libcairo2
+#   - Accessibility:    libatk1.0-0[t64], libatk-bridge2.0-0[t64], libatspi2.0-0[t64]
+#   - GPU / EGL:        libgbm1 (>= 21.1.0), mesa-libgallium (transitive)
+#   - Crypto / TLS:     libnss3 (>= 2:3.30), libnspr4
+#   - Audio:            libasound2[t64], libpulse0, libopus0, libflac8|12|14
+#   - Codecs / images:  libdav1d5|7, libopenh264-6|7|8, libopenjp2-7,
+#                       liblcms2-2, libjpeg8, libfreetype6
+#   - Compression:      libzstd1 (>= 1.4 / 1.5.5), zlib1g, libminizip1[t64]
+#   - DBus / udev:      libdbus-1-3, libudev1
+#   - System:           libc6, libgcc-s1, libcups2[t64], libfontconfig1,
+#                       libdouble-conversion3, libexpat1, libgraphite2-3,
+#                       libglib2.0-0[t64], libharfbuzz0b, libharfbuzz-subset0
+#
+# In our build images these come from the standard Ubuntu archive; the slim
+# variants of `photoprism/develop:*` deliberately exclude many of them, which
+# is why chromium installs there fail with "libbsd0:arm64 is selected for
+# removal" or similar dep-resolver errors. Install chromium only into the
+# full (non-slim) develop images.
+#
 # This script must run as root. Use one of these invocations:
 #
 #   # Pipe via stdin (recommended one-liner — works everywhere, incl. SSH):
