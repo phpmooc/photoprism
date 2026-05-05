@@ -10,6 +10,7 @@
         <v-list-item v-if="editingField === 'title' || model.Title || isEditable" class="metadata__item">
           <v-text-field
             v-if="editingField === 'title'"
+            ref="inlineEditor"
             v-model="photo.Title"
             :placeholder="$pgettext('Photo', 'Title')"
             :rules="[textRule]"
@@ -41,6 +42,7 @@
         <v-list-item v-if="editingField === 'caption' || model.Caption || isEditable" class="metadata__item">
           <v-textarea
             v-if="editingField === 'caption'"
+            ref="inlineEditor"
             v-model="photo.Caption"
             :placeholder="$gettext('Caption')"
             variant="plain"
@@ -397,10 +399,11 @@
             v-if="editingField === 'subject' || subject || isEditable"
             v-tooltip="$gettext('Subject')"
             prepend-icon="mdi-text-box-outline"
-            class="metadata__item"
+            class="metadata__item meta-subject"
           >
             <v-textarea
               v-if="editingField === 'subject'"
+              ref="inlineEditor"
               v-model="photo.Details.Subject"
               :placeholder="$gettext('Subject')"
               :rules="[textRule]"
@@ -409,7 +412,7 @@
               auto-grow
               hide-details="auto"
               autocomplete="off"
-              class="meta-inline-edit"
+              class="meta-inline-edit meta-inline-subject"
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
@@ -433,10 +436,11 @@
             v-if="editingField === 'artist' || artist || isEditable"
             v-tooltip="$gettext('Artist')"
             prepend-icon="mdi-palette"
-            class="metadata__item"
+            class="metadata__item meta-artist"
           >
             <v-textarea
               v-if="editingField === 'artist'"
+              ref="inlineEditor"
               v-model="photo.Details.Artist"
               :placeholder="$gettext('Artist')"
               :rules="[textRule]"
@@ -445,7 +449,7 @@
               auto-grow
               hide-details="auto"
               autocomplete="off"
-              class="meta-inline-edit"
+              class="meta-inline-edit meta-inline-artist"
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
@@ -469,10 +473,11 @@
             v-if="editingField === 'copyright' || copyright || isEditable"
             v-tooltip="$gettext('Copyright')"
             prepend-icon="mdi-copyright"
-            class="metadata__item"
+            class="metadata__item meta-copyright"
           >
             <v-textarea
               v-if="editingField === 'copyright'"
+              ref="inlineEditor"
               v-model="photo.Details.Copyright"
               :placeholder="$gettext('Copyright')"
               :rules="[textRule]"
@@ -481,7 +486,7 @@
               auto-grow
               hide-details="auto"
               autocomplete="off"
-              class="meta-inline-edit"
+              class="meta-inline-edit meta-inline-copyright"
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
@@ -505,10 +510,11 @@
             v-if="editingField === 'license' || license || isEditable"
             v-tooltip="$gettext('License')"
             prepend-icon="mdi-license"
-            class="metadata__item"
+            class="metadata__item meta-license"
           >
             <v-textarea
               v-if="editingField === 'license'"
+              ref="inlineEditor"
               v-model="photo.Details.License"
               :placeholder="$gettext('License')"
               :rules="[textRule]"
@@ -517,7 +523,7 @@
               auto-grow
               hide-details="auto"
               autocomplete="off"
-              class="meta-inline-edit"
+              class="meta-inline-edit meta-inline-license"
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
@@ -539,7 +545,7 @@
 
         <template v-if="!restrictedRole && (editingField === 'keywords' || keywords || isEditable)">
           <v-divider class="my-4"></v-divider>
-          <v-list-item class="metadata__item">
+          <v-list-item class="metadata__item meta-keywords">
             <div class="text-subtitle-2">{{ $gettext("Keywords") }}</div>
             <template v-if="isEditable" #append>
               <v-icon
@@ -553,9 +559,10 @@
               <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('keywords')"></v-icon>
             </template>
           </v-list-item>
-          <v-list-item class="metadata__item">
+          <v-list-item class="metadata__item meta-keywords">
             <v-textarea
               v-if="editingField === 'keywords'"
+              ref="inlineEditor"
               v-model="photo.Details.Keywords"
               :placeholder="$gettext('Keywords')"
               variant="plain"
@@ -563,7 +570,7 @@
               auto-grow
               hide-details="auto"
               autocomplete="off"
-              class="meta-inline-edit"
+              class="meta-inline-edit meta-inline-keywords"
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
@@ -574,7 +581,7 @@
 
         <template v-if="!restrictedRole && (editingField === 'notes' || notesHtml || isEditable)">
           <v-divider class="my-4"></v-divider>
-          <v-list-item class="metadata__item">
+          <v-list-item class="metadata__item meta-notes">
             <div class="text-subtitle-2">{{ $gettext("Notes") }}</div>
             <template v-if="isEditable" #append>
               <v-icon
@@ -588,9 +595,10 @@
               <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('notes')"></v-icon>
             </template>
           </v-list-item>
-          <v-list-item class="metadata__item">
+          <v-list-item class="metadata__item meta-notes">
             <v-textarea
               v-if="editingField === 'notes'"
+              ref="inlineEditor"
               v-model="photo.Details.Notes"
               :placeholder="$gettext('Notes')"
               variant="plain"
@@ -598,7 +606,7 @@
               auto-grow
               hide-details="auto"
               autocomplete="off"
-              class="meta-inline-edit"
+              class="meta-inline-edit meta-inline-notes"
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
@@ -959,8 +967,12 @@ export default {
       this._editStartedAt = Date.now();
 
       this.$nextTick(() => {
-        const input = this.$el.querySelector(".meta-inline-edit input, .meta-inline-edit textarea");
-        if (input) input.focus();
+        // Each inline editor (title/caption/subject/artist/copyright/license/
+        // keywords/notes) is gated by a unique editingField, so they share a
+        // single ref slot. VTextField/VTextarea forward .focus() to their
+        // native input via Vuetify's forwardRefs.
+        const editor = this.$refs.inlineEditor;
+        if (editor && typeof editor.focus === "function") editor.focus();
       });
     },
     onToggleMarkersVisible() {
