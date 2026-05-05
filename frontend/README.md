@@ -2,15 +2,12 @@
 
 The Vue 3 + Vuetify 3 web UI for PhotoPrism. Built with webpack, tested with Vitest, and packaged into the Go binary as static assets.
 
-Other frontend documentation lives next to this file or under `specs/frontend/`:
+Other frontend documentation lives next to this file:
 
 - `frontend/AGENTS.md` — agent quickstart
 - `frontend/CODEMAP.md` — module layout and responsibilities
 - `frontend/src/common/README.md` — dialog/focus patterns and shared helpers
 - `frontend/tests/README.md` — test layout
-- `specs/frontend/security.md` — supply-chain and XSS policy (authoritative)
-- `specs/frontend/authentication.md` — login, OIDC bridge, session storage
-- `specs/frontend/model-lru-cache.md` — client model cache
 
 ## Common Commands
 
@@ -85,7 +82,7 @@ rg -nF "<pkg>" frontend pro/frontend plus/frontend portal/frontend \
 
 ## Adding a New Dependency
 
-1. Confirm the package has an active maintainer, scoped name, and a 2FA-protected publisher (per `specs/frontend/security.md`).
+1. Confirm the package has an active maintainer, scoped name, and a 2FA-protected publisher.
 2. Avoid packages that require `postinstall`/`install` scripts. Installs default to `--ignore-scripts`.
 3. Add to `frontend/package.json`. From the **repo root** run `npm install --ignore-scripts --no-audit --no-fund --no-update-notifier` so the workspace lockfile updates.
 4. `make audit` must report zero advisories.
@@ -112,5 +109,4 @@ rg -nF "<pkg>" frontend pro/frontend plus/frontend portal/frontend \
 
 - `Makefile` and `frontend/Makefile` for build, test, and audit targets.
 - `frontend/package.json` for dependency declarations, overrides, and pin rationale comments.
-- `specs/frontend/security.md` for supply-chain policy, lockfile rules, and incident-response procedures.
 - Git log for the *why* behind any specific pin or removal — search with `git log -p -S "<pkg>" -- frontend/package.json`.
