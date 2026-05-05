@@ -31,11 +31,10 @@ Other frontend documentation lives next to this file:
 
 ### Currently Pinned Packages
 
-| Package   | Pin           | Reason                                                                                                                                                                                                                                                                                                            |
-|-----------|---------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `vuetify` | `3.12.2`      | 3.12.3+ added an `onFocusout` handler to `VAutocomplete`/`VSelect`/`VCombobox` that closes long autocomplete/select dropdowns on open (#5538). Still unfixed in 3.12.5; upstream development moved to v4. See the long `//vuetify` comment in `package.json` and `frontend/CODEMAP.md` for retest steps.          |
-| `axios`   | `1.16.0`      | High-risk package. Originally pinned to `1.14.0` after the March 2026 supply-chain compromise (malicious `1.14.1`/`0.30.4` from a hijacked maintainer account). Quarantine was unwound on 2026-04-27 once OSV-Scanner came back clean. Keep an exact pin (no caret) per industry guidance for high-risk packages. |
-| `cheerio` | `1.0.0-rc.12` | Bumping past `1.0.0` (stable) caused regressions in 2024 — see commit `ab9e156c9` which reverted the bump introduced by `834ce2824`. Cheerio is currently a top-level dep with no source-level imports; do not bump until it has been audited or removed.                                                         |
+| Package   | Pin      | Reason                                                                                                                                                                                                                                                                                                            |
+|-----------|----------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `vuetify` | `3.12.2` | 3.12.3+ added an `onFocusout` handler to `VAutocomplete`/`VSelect`/`VCombobox` that closes long autocomplete/select dropdowns on open (#5538). Still unfixed in 3.12.5; upstream development moved to v4. See the long `//vuetify` comment in `package.json` and `frontend/CODEMAP.md` for retest steps.          |
+| `axios`   | `1.16.0` | High-risk package. Originally pinned to `1.14.0` after the March 2026 supply-chain compromise (malicious `1.14.1`/`0.30.4` from a hijacked maintainer account). Quarantine was unwound on 2026-04-27 once OSV-Scanner came back clean. Keep an exact pin (no caret) per industry guidance for high-risk packages. |
 
 ### Override Layer (Transitive Pins)
 
