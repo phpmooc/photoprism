@@ -10,7 +10,7 @@
         <v-list-item v-if="editingField === 'title' || model.Title || isEditable" class="metadata__item">
           <v-text-field
             v-if="editingField === 'title'"
-            ref="inlineEditor"
+            :ref="setInlineEditorRef"
             v-model="photo.Title"
             :placeholder="$pgettext('Photo', 'Title')"
             :rules="[textRule]"
@@ -42,7 +42,7 @@
         <v-list-item v-if="editingField === 'caption' || model.Caption || isEditable" class="metadata__item">
           <v-textarea
             v-if="editingField === 'caption'"
-            ref="inlineEditor"
+            :ref="setInlineEditorRef"
             v-model="photo.Caption"
             :placeholder="$gettext('Caption')"
             variant="plain"
@@ -378,242 +378,76 @@
           </v-list-item>
         </template>
 
-        <template
-          v-if="
-            !restrictedRole &&
-            (editingField === 'subject' ||
-              editingField === 'artist' ||
-              editingField === 'copyright' ||
-              editingField === 'license' ||
-              subject ||
-              artist ||
-              copyright ||
-              license ||
-              isEditable)
-          "
-        >
+        <template v-if="showDetailsSection">
           <v-divider class="my-4"></v-divider>
-
-          <!-- Subject -->
           <v-list-item
-            v-if="editingField === 'subject' || subject || isEditable"
-            v-tooltip="$gettext('Subject')"
-            prepend-icon="mdi-text-box-outline"
-            class="metadata__item meta-subject"
+            v-for="f in detailsFields"
+            v-show="shouldShowFieldRow(f)"
+            :key="f.key"
+            v-tooltip="f.label"
+            :prepend-icon="f.icon"
+            class="metadata__item"
+            :class="`meta-${f.key}`"
           >
             <v-textarea
-              v-if="editingField === 'subject'"
-              ref="inlineEditor"
-              v-model="photo.Details.Subject"
-              :placeholder="$gettext('Subject')"
+              v-if="editingField === f.key"
+              :ref="setInlineEditorRef"
+              :model-value="f.read(photo)"
+              :placeholder="f.label"
               :rules="[textRule]"
               variant="plain"
               density="compact"
               auto-grow
               hide-details="auto"
               autocomplete="off"
-              class="meta-inline-edit meta-inline-subject"
+              class="meta-inline-edit"
+              :class="`meta-inline-${f.key}`"
+              @update:model-value="(v) => f.write(photo, v)"
               @keydown.escape.prevent="cancelEditing"
               @blur="onInlineFieldBlur"
             ></v-textarea>
-            <div v-else-if="subject" class="text-body-2 meta-scrollable">{{ subject }}</div>
-            <div v-else class="meta-add-prompt" @click.stop="startEditing('subject')">{{ $gettext("Subject") }}</div>
+            <div v-else-if="f.read(photo)" class="text-body-2 meta-scrollable">{{ f.read(photo) }}</div>
+            <div v-else class="meta-add-prompt" @click.stop="startEditing(f.key)">{{ f.label }}</div>
             <template v-if="isEditable" #append>
-              <v-icon
-                v-if="editingField === 'subject'"
-                icon="mdi-check"
-                size="small"
-                class="meta-inline-confirm"
-                @mousedown.prevent
-                @click.stop="confirmField"
-              ></v-icon>
-              <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('subject')"></v-icon>
-            </template>
-          </v-list-item>
-
-          <!-- Artist -->
-          <v-list-item
-            v-if="editingField === 'artist' || artist || isEditable"
-            v-tooltip="$gettext('Artist')"
-            prepend-icon="mdi-palette"
-            class="metadata__item meta-artist"
-          >
-            <v-textarea
-              v-if="editingField === 'artist'"
-              ref="inlineEditor"
-              v-model="photo.Details.Artist"
-              :placeholder="$gettext('Artist')"
-              :rules="[textRule]"
-              variant="plain"
-              density="compact"
-              auto-grow
-              hide-details="auto"
-              autocomplete="off"
-              class="meta-inline-edit meta-inline-artist"
-              @keydown.escape.prevent="cancelEditing"
-              @blur="onInlineFieldBlur"
-            ></v-textarea>
-            <div v-else-if="artist" class="text-body-2 meta-scrollable">{{ artist }}</div>
-            <div v-else class="meta-add-prompt" @click.stop="startEditing('artist')">{{ $gettext("Artist") }}</div>
-            <template v-if="isEditable" #append>
-              <v-icon
-                v-if="editingField === 'artist'"
-                icon="mdi-check"
-                size="small"
-                class="meta-inline-confirm"
-                @mousedown.prevent
-                @click.stop="confirmField"
-              ></v-icon>
-              <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('artist')"></v-icon>
-            </template>
-          </v-list-item>
-
-          <!-- Copyright -->
-          <v-list-item
-            v-if="editingField === 'copyright' || copyright || isEditable"
-            v-tooltip="$gettext('Copyright')"
-            prepend-icon="mdi-copyright"
-            class="metadata__item meta-copyright"
-          >
-            <v-textarea
-              v-if="editingField === 'copyright'"
-              ref="inlineEditor"
-              v-model="photo.Details.Copyright"
-              :placeholder="$gettext('Copyright')"
-              :rules="[textRule]"
-              variant="plain"
-              density="compact"
-              auto-grow
-              hide-details="auto"
-              autocomplete="off"
-              class="meta-inline-edit meta-inline-copyright"
-              @keydown.escape.prevent="cancelEditing"
-              @blur="onInlineFieldBlur"
-            ></v-textarea>
-            <div v-else-if="copyright" class="text-body-2 meta-scrollable">{{ copyright }}</div>
-            <div v-else class="meta-add-prompt" @click.stop="startEditing('copyright')">{{ $gettext("Copyright") }}</div>
-            <template v-if="isEditable" #append>
-              <v-icon
-                v-if="editingField === 'copyright'"
-                icon="mdi-check"
-                size="small"
-                class="meta-inline-confirm"
-                @mousedown.prevent
-                @click.stop="confirmField"
-              ></v-icon>
-              <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('copyright')"></v-icon>
-            </template>
-          </v-list-item>
-
-          <!-- License -->
-          <v-list-item
-            v-if="editingField === 'license' || license || isEditable"
-            v-tooltip="$gettext('License')"
-            prepend-icon="mdi-license"
-            class="metadata__item meta-license"
-          >
-            <v-textarea
-              v-if="editingField === 'license'"
-              ref="inlineEditor"
-              v-model="photo.Details.License"
-              :placeholder="$gettext('License')"
-              :rules="[textRule]"
-              variant="plain"
-              density="compact"
-              auto-grow
-              hide-details="auto"
-              autocomplete="off"
-              class="meta-inline-edit meta-inline-license"
-              @keydown.escape.prevent="cancelEditing"
-              @blur="onInlineFieldBlur"
-            ></v-textarea>
-            <div v-else-if="license" class="text-body-2 meta-scrollable">{{ license }}</div>
-            <div v-else class="meta-add-prompt" @click.stop="startEditing('license')">{{ $gettext("License") }}</div>
-            <template v-if="isEditable" #append>
-              <v-icon
-                v-if="editingField === 'license'"
-                icon="mdi-check"
-                size="small"
-                class="meta-inline-confirm"
-                @mousedown.prevent
-                @click.stop="confirmField"
-              ></v-icon>
-              <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('license')"></v-icon>
+              <p-sidebar-inline-toolbar :editing="editingField === f.key" @confirm="confirmField" @start="startEditing(f.key)" />
             </template>
           </v-list-item>
         </template>
 
-        <template v-if="!restrictedRole && (editingField === 'keywords' || keywords || isEditable)">
-          <v-divider class="my-4"></v-divider>
-          <v-list-item class="metadata__item meta-keywords">
-            <div class="text-subtitle-2">{{ $gettext("Keywords") }}</div>
-            <template v-if="isEditable" #append>
-              <v-icon
-                v-if="editingField === 'keywords'"
-                icon="mdi-check"
-                size="small"
-                class="meta-inline-confirm"
-                @mousedown.prevent
-                @click.stop="confirmField"
-              ></v-icon>
-              <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('keywords')"></v-icon>
-            </template>
-          </v-list-item>
-          <v-list-item class="metadata__item meta-keywords">
-            <v-textarea
-              v-if="editingField === 'keywords'"
-              ref="inlineEditor"
-              v-model="photo.Details.Keywords"
-              :placeholder="$gettext('Keywords')"
-              variant="plain"
-              density="compact"
-              auto-grow
-              hide-details="auto"
-              autocomplete="off"
-              class="meta-inline-edit meta-inline-keywords"
-              @keydown.escape.prevent="cancelEditing"
-              @blur="onInlineFieldBlur"
-            ></v-textarea>
-            <div v-else-if="keywords" class="text-body-2 meta-keywords meta-scrollable">{{ keywords }}</div>
-            <div v-else class="meta-add-prompt" @click.stop="startEditing('keywords')">{{ $gettext("Keywords") }}</div>
-          </v-list-item>
-        </template>
-
-        <template v-if="!restrictedRole && (editingField === 'notes' || notesHtml || isEditable)">
-          <v-divider class="my-4"></v-divider>
-          <v-list-item class="metadata__item meta-notes">
-            <div class="text-subtitle-2">{{ $gettext("Notes") }}</div>
-            <template v-if="isEditable" #append>
-              <v-icon
-                v-if="editingField === 'notes'"
-                icon="mdi-check"
-                size="small"
-                class="meta-inline-confirm"
-                @mousedown.prevent
-                @click.stop="confirmField"
-              ></v-icon>
-              <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('notes')"></v-icon>
-            </template>
-          </v-list-item>
-          <v-list-item class="metadata__item meta-notes">
-            <v-textarea
-              v-if="editingField === 'notes'"
-              ref="inlineEditor"
-              v-model="photo.Details.Notes"
-              :placeholder="$gettext('Notes')"
-              variant="plain"
-              density="compact"
-              auto-grow
-              hide-details="auto"
-              autocomplete="off"
-              class="meta-inline-edit meta-inline-notes"
-              @keydown.escape.prevent="cancelEditing"
-              @blur="onInlineFieldBlur"
-            ></v-textarea>
-            <!-- eslint-disable-next-line vue/no-v-html -- notesHtml is encode-then-sanitized via $util.sanitizeHtml($util.encodeHTML(raw)); see notesHtml() computed -->
-            <div v-else-if="notesHtml" class="text-body-2 meta-notes meta-scrollable" v-html="notesHtml"></div>
-            <div v-else class="meta-add-prompt" @click.stop="startEditing('notes')">{{ $gettext("Notes") }}</div>
-          </v-list-item>
+        <template v-for="f in textFields" :key="f.key">
+          <template v-if="!restrictedRole && shouldShowFieldRow(f)">
+            <v-divider class="my-4"></v-divider>
+            <v-list-item class="metadata__item" :class="`meta-${f.key}`">
+              <div class="text-subtitle-2">{{ f.label }}</div>
+              <template v-if="isEditable" #append>
+                <p-sidebar-inline-toolbar :editing="editingField === f.key" @confirm="confirmField" @start="startEditing(f.key)" />
+              </template>
+            </v-list-item>
+            <v-list-item class="metadata__item" :class="`meta-${f.key}`">
+              <v-textarea
+                v-if="editingField === f.key"
+                :ref="setInlineEditorRef"
+                :model-value="f.read(photo)"
+                :placeholder="f.label"
+                variant="plain"
+                density="compact"
+                auto-grow
+                hide-details="auto"
+                autocomplete="off"
+                class="meta-inline-edit"
+                :class="`meta-inline-${f.key}`"
+                @update:model-value="(v) => f.write(photo, v)"
+                @keydown.escape.prevent="cancelEditing"
+                @blur="onInlineFieldBlur"
+              ></v-textarea>
+              <!-- eslint-disable-next-line vue/no-v-html -- f.htmlValue references a sanitized computed (e.g. notesHtml) — encode-then-sanitize via $util.sanitizeHtml($util.encodeHTML(raw)). -->
+              <div v-else-if="f.display === 'html' && fieldHtml(f)" class="text-body-2 meta-scrollable" :class="`meta-${f.key}`" v-html="fieldHtml(f)"></div>
+              <div v-else-if="f.display !== 'html' && f.read(photo)" class="text-body-2 meta-scrollable" :class="`meta-${f.key}`">
+                {{ f.read(photo) }}
+              </div>
+              <div v-else class="meta-add-prompt" @click.stop="startEditing(f.key)">{{ f.label }}</div>
+            </v-list-item>
+          </template>
         </template>
       </v-list>
     </div>
@@ -659,6 +493,7 @@ import PDateTimeDialog from "component/sidebar/datetime-dialog.vue";
 import PCameraDialog from "component/sidebar/camera-dialog.vue";
 import PLocationDialog from "component/location/dialog.vue";
 import PConfirmDialog from "component/confirm/dialog.vue";
+import PSidebarInlineToolbar from "component/sidebar/inline-toolbar.vue";
 
 export default {
   name: "PSidebarInfo",
@@ -668,6 +503,7 @@ export default {
     PCameraDialog,
     PLocationDialog,
     PConfirmDialog,
+    PSidebarInlineToolbar,
   },
   props: {
     // UID of the photo currently shown in the parent lightbox. Drives the
@@ -836,6 +672,104 @@ export default {
     keywords() {
       return this.photo?.Details?.Keywords || "";
     },
+    // Single source of truth for inline-text fields. Each entry knows how to
+    // read/write its raw value, what label to render (tooltip, placeholder,
+    // add-prompt), and whether the display branch should treat the value as
+    // sanitized HTML (Caption, Notes) or plain text (everything else).
+    // detailsFields/textFields below select subsets for the two visual layouts.
+    fieldRegistry() {
+      return {
+        title: {
+          key: "title",
+          label: this.$pgettext("Photo", "Title"),
+          read: (p) => p?.Title,
+          write: (p, v) => {
+            if (p) p.Title = v;
+          },
+          display: "text",
+        },
+        caption: {
+          key: "caption",
+          label: this.$gettext("Caption"),
+          read: (p) => p?.Caption,
+          write: (p, v) => {
+            if (p) p.Caption = v;
+          },
+          display: "html",
+          htmlValue: "captionHtml",
+        },
+        subject: {
+          key: "subject",
+          label: this.$gettext("Subject"),
+          icon: "mdi-text-box-outline",
+          read: (p) => p?.Details?.Subject,
+          write: (p, v) => {
+            if (p?.Details) p.Details.Subject = v;
+          },
+          display: "text",
+        },
+        artist: {
+          key: "artist",
+          label: this.$gettext("Artist"),
+          icon: "mdi-palette",
+          read: (p) => p?.Details?.Artist,
+          write: (p, v) => {
+            if (p?.Details) p.Details.Artist = v;
+          },
+          display: "text",
+        },
+        copyright: {
+          key: "copyright",
+          label: this.$gettext("Copyright"),
+          icon: "mdi-copyright",
+          read: (p) => p?.Details?.Copyright,
+          write: (p, v) => {
+            if (p?.Details) p.Details.Copyright = v;
+          },
+          display: "text",
+        },
+        license: {
+          key: "license",
+          label: this.$gettext("License"),
+          icon: "mdi-license",
+          read: (p) => p?.Details?.License,
+          write: (p, v) => {
+            if (p?.Details) p.Details.License = v;
+          },
+          display: "text",
+        },
+        keywords: {
+          key: "keywords",
+          label: this.$gettext("Keywords"),
+          read: (p) => p?.Details?.Keywords,
+          write: (p, v) => {
+            if (p?.Details) p.Details.Keywords = v;
+          },
+          display: "text",
+        },
+        notes: {
+          key: "notes",
+          label: this.$gettext("Notes"),
+          read: (p) => p?.Details?.Notes,
+          write: (p, v) => {
+            if (p?.Details) p.Details.Notes = v;
+          },
+          display: "html",
+          htmlValue: "notesHtml",
+        },
+      };
+    },
+    detailsFields() {
+      return ["subject", "artist", "copyright", "license"].map((k) => this.fieldRegistry[k]);
+    },
+    textFields() {
+      return ["keywords", "notes"].map((k) => this.fieldRegistry[k]);
+    },
+    showDetailsSection() {
+      if (this.restrictedRole) return false;
+      if (this.isEditable) return true;
+      return this.detailsFields.some((f) => Boolean(f.read(this.photo)));
+    },
     placeName() {
       if (!this.photo) return "";
       return this.photo.locationInfo() || "";
@@ -907,55 +841,34 @@ export default {
       this.$emit("close");
     },
     getFieldValue(field) {
-      switch (field) {
-        case "title":
-          return this.photo.Title;
-        case "caption":
-          return this.photo.Caption;
-        case "subject":
-          return this.photo.Details.Subject;
-        case "artist":
-          return this.photo.Details.Artist;
-        case "copyright":
-          return this.photo.Details.Copyright;
-        case "license":
-          return this.photo.Details.License;
-        case "keywords":
-          return this.photo.Details.Keywords;
-        case "notes":
-          return this.photo.Details.Notes;
-        default:
-          return "";
-      }
+      const f = this.fieldRegistry[field];
+      if (!f) return "";
+      const v = f.read(this.photo);
+      return v == null ? "" : v;
     },
     setFieldValue(field, value) {
-      if (!this.view?.photo) return;
-      switch (field) {
-        case "title":
-          this.view.photo.Title = value;
-          break;
-        case "caption":
-          this.view.photo.Caption = value;
-          break;
-        case "subject":
-          this.view.photo.Details.Subject = value;
-          break;
-        case "artist":
-          this.view.photo.Details.Artist = value;
-          break;
-        case "copyright":
-          this.view.photo.Details.Copyright = value;
-          break;
-        case "license":
-          this.view.photo.Details.License = value;
-          break;
-        case "keywords":
-          this.view.photo.Details.Keywords = value;
-          break;
-        case "notes":
-          this.view.photo.Details.Notes = value;
-          break;
-      }
+      const f = this.fieldRegistry[field];
+      if (!f || !this.view?.photo) return;
+      f.write(this.view.photo, value);
+    },
+    // Function ref shared by every inline editor. Vue invokes it with the
+    // mounted component on mount and null on unmount; since each editor is
+    // gated by a unique `editingField === '<key>'`, only one is mounted at
+    // a time, so the latest non-null call always identifies the active one.
+    setInlineEditorRef(el) {
+      if (el) this._inlineEditorEl = el;
+      else if (!this.editingField) this._inlineEditorEl = null;
+    },
+    fieldHtml(f) {
+      if (!f || f.display !== "html" || !f.htmlValue) return "";
+      return this[f.htmlValue] || "";
+    },
+    shouldShowFieldRow(f) {
+      if (!f) return false;
+      if (this.editingField === f.key) return true;
+      if (this.isEditable) return true;
+      if (f.display === "html") return Boolean(this.fieldHtml(f));
+      return Boolean(f.read(this.photo));
     },
     startEditing(field) {
       if (this.editingField) {
@@ -967,11 +880,7 @@ export default {
       this._editStartedAt = Date.now();
 
       this.$nextTick(() => {
-        // Each inline editor (title/caption/subject/artist/copyright/license/
-        // keywords/notes) is gated by a unique editingField, so they share a
-        // single ref slot. VTextField/VTextarea forward .focus() to their
-        // native input via Vuetify's forwardRefs.
-        const editor = this.$refs.inlineEditor;
+        const editor = this._inlineEditorEl;
         if (editor && typeof editor.focus === "function") editor.focus();
       });
     },
