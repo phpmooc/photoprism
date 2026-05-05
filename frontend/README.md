@@ -59,19 +59,17 @@ Some major upgrades are blocked by config-file module style. The configs referen
 | `vuetify` 4.x                 | —      | See the `vuetify` row in [Currently Pinned Packages](#currently-pinned-packages); also a separate v3 → v4 migration project.                           |
 | `vue-router` 5.x              | —      | Major release with breaking changes across `frontend/src/app/routes.js` and dynamic imports. Needs its own evaluation pass with TestCafe verification. |
 
-## Known Unused or Legacy Dependencies
+## Auditing for Orphaned Dependencies
 
-These are listed in `package.json` but appear unused at the source level. Audit before removing — they may be transitive helpers that only matter under specific build flags. Verification command:
+Past migrations (e.g., `easygettext` → `vue3-gettext`, mocha → Vitest) have occasionally left top-level deps behind that no longer have any consumer. Before adding a new dep — and ideally as a periodic sweep — verify each candidate has a real consumer:
 
 ```sh
 rg -nF "<pkg>" frontend \
   --glob '!node_modules/**' --glob '!package-lock.json' --glob '!NOTICE'
+cd frontend && npm ls <pkg> --all
 ```
 
-| Package                  | Notes                                                                                                                                     |
-|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------|
-| `@testing-library/react` | PhotoPrism is Vue, not React. `@testing-library/jest-dom` is used in `tests/vitest/setup.js` and stays.                                   |
-| `vite-tsconfig-paths`    | Declared but never imported in `vitest.config.js` or `vitest.config.pro.js`. Safe candidate for removal pending a dedicated cleanup pass. |
+If neither command surfaces a real source-level import or transitive consumer, the dep is a removal candidate (recent precedents: `postcss-url`, `@vitejs/plugin-react`, `cheerio`, `@testing-library/react`, `vite-tsconfig-paths`).
 
 ## Adding a New Dependency
 
