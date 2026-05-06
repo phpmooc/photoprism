@@ -435,10 +435,9 @@
     ></p-location-dialog>
     <p-confirm-dialog
       :visible="discardDialog.visible"
-      icon=""
+      icon="mdi-alert-circle-outline"
       :text="$gettext('Discard unsaved changes?')"
       :action="$gettext('Discard')"
-      confirm-color="info"
       @close="onDiscardCancel"
       @confirm="onDiscardConfirm"
     ></p-confirm-dialog>
