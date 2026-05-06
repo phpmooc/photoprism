@@ -20,11 +20,11 @@ const validationConfig = {
   values: {},
   dir: () => "ltr",
 };
-// Mounted with the real $util.normalizeLabelTitle so the validation
+// Mounted with the real $util.normalizeTitle so the validation
 // pipeline runs against the same normalization the component uses at
 // runtime. Other $util methods needed at render time are stubbed inline.
 const validationUtil = {
-  normalizeLabelTitle: (s) => $util.normalizeLabelTitle(s),
+  normalizeTitle: (s) => $util.normalizeTitle(s),
   formatCamera: (camera, id, make, model, long) => $util.formatCamera(camera, id, make, model, long),
   encodeHTML: (s) => s,
   sanitizeHtml: (s) => s,

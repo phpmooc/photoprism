@@ -417,7 +417,7 @@
                       v-model:items="labelItems"
                       :available-items="availableLabelOptions"
                       :resolve-item-from-text="resolveLabelFromText"
-                      :normalize-title-for-compare="normalizeLabelTitleForCompare"
+                      :normalize-title-for-compare="normalizeTitleForCompare"
                       :input-placeholder="$gettext('Select or create labels')"
                       :empty-text="$gettext('No labels assigned')"
                       :loading="loading"
@@ -774,8 +774,8 @@ export default {
     getModelCount() {
       return this.model?.models?.length ? this.model.models.length : 0;
     },
-    normalizeLabelTitleForCompare(s) {
-      return $util.normalizeLabelTitle(s);
+    normalizeTitleForCompare(s) {
+      return $util.normalizeTitle(s);
     },
     resolveLabelFromText(inputTitle) {
       if (!inputTitle || !Array.isArray(this.availableLabelOptions)) {
@@ -785,7 +785,7 @@ export default {
       const t = String(inputTitle).trim();
       if (!t) return null;
 
-      const nt = $util.normalizeLabelTitle(t);
+      const nt = $util.normalizeTitle(t);
       const st = $util.slugifyLabelTitle(t);
 
       let found = this.availableLabelOptions.find((o) => o.title.toLowerCase() === t.toLowerCase());
@@ -794,7 +794,7 @@ export default {
       found = this.availableLabelOptions.find((o) => o.slug === st || o.customSlug === st);
       if (found) return { value: found.value, title: found.title };
 
-      found = this.availableLabelOptions.find((o) => $util.normalizeLabelTitle(o.title) === nt);
+      found = this.availableLabelOptions.find((o) => $util.normalizeTitle(o.title) === nt);
       if (found) return { value: found.value, title: found.title };
 
       return { value: "", title: t };

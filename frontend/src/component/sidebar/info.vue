@@ -1277,18 +1277,18 @@ export default {
         this.$notify.error(this.$gettext("Name too long"));
         return false;
       }
-      const norm = this.$util.normalizeLabelTitle(name);
+      const norm = this.$util.normalizeTitle(name);
       if (!norm) return false;
       const additions = this.chipState.labels.additions;
-      if (additions.some((n) => this.$util.normalizeLabelTitle(n) === norm)) return false;
-      if (this.labels.some((l) => this.$util.normalizeLabelTitle(l?.Label?.Name) === norm)) return false;
+      if (additions.some((n) => this.$util.normalizeTitle(n) === norm)) return false;
+      if (this.labels.some((l) => this.$util.normalizeTitle(l?.Label?.Name) === norm)) return false;
       additions.push(name);
       return true;
     },
     albumTitleConflicts(norm) {
       if (!norm) return true;
-      if (this.chipState.albums.additions.some((a) => this.$util.normalizeLabelTitle(a?.Title) === norm)) return true;
-      if (this.albums.some((a) => this.$util.normalizeLabelTitle(a?.Title) === norm)) return true;
+      if (this.chipState.albums.additions.some((a) => this.$util.normalizeTitle(a?.Title) === norm)) return true;
+      if (this.albums.some((a) => this.$util.normalizeTitle(a?.Title) === norm)) return true;
       return false;
     },
     addPendingAlbum(album) {
@@ -1304,7 +1304,7 @@ export default {
         if (additions.some((a) => a.UID === album.UID)) return false;
         if (this.albums.some((a) => a.UID === album.UID)) return false;
       }
-      if (this.albumTitleConflicts(this.$util.normalizeLabelTitle(title))) return false;
+      if (this.albumTitleConflicts(this.$util.normalizeTitle(title))) return false;
       additions.push(album);
       return true;
     },
@@ -1410,7 +1410,7 @@ export default {
         return;
       }
 
-      const norm = this.$util.normalizeLabelTitle(search);
+      const norm = this.$util.normalizeTitle(search);
       if (!norm) {
         this.clearChipInput();
         return;
