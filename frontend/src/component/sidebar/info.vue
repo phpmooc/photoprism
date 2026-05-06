@@ -237,12 +237,12 @@
           </v-list-item>
         </template>
 
-        <template v-if="!restrictedRole && (editingField === 'labels' || labels.length > 0 || isEditable)">
+        <template v-if="!restrictedRole && (labels.length > 0 || isEditable)">
           <v-divider class="my-4"></v-divider>
           <v-list-item class="metadata__item meta-labels">
             <div class="text-subtitle-2">{{ $gettext("Labels") }}</div>
-            <template v-if="isEditable" #append>
-              <p-sidebar-inline-toolbar :editing="editingField === 'labels'" @confirm="confirmLabels" @start="startChipEditing('labels')" />
+            <template v-if="isEditable && chipState.labels.removals.length > 0" #append>
+              <p-sidebar-inline-toolbar :editing="true" @confirm="confirmLabels" />
             </template>
           </v-list-item>
           <v-list-item v-if="labels.length > 0" class="metadata__item metadata__chips meta-labels">
@@ -259,7 +259,7 @@
               >
                 {{ l.Label.Name }}
                 <v-icon
-                  v-if="editingField === 'labels'"
+                  v-if="isEditable"
                   :icon="isChipPendingRemoval('labels', l.Label.ID) ? 'mdi-undo' : 'mdi-close-circle'"
                   size="x-small"
                   class="ml-1"
@@ -267,15 +267,12 @@
               </span>
             </div>
           </v-list-item>
-          <v-list-item v-else-if="isEditable && editingField !== 'labels'" class="metadata__item meta-labels">
-            <div class="meta-add-prompt" @click.stop="startChipEditing('labels')">{{ $gettext("Add label") }}</div>
-          </v-list-item>
-          <v-list-item v-if="editingField === 'labels'" class="metadata__item meta-labels">
+          <v-list-item v-if="isEditable" class="metadata__item meta-labels">
             <v-combobox
-              :key="chipKey"
-              v-model="chipInput"
-              v-model:search="chipSearch"
-              :items="labelOptions"
+              :key="chipState.labels.key"
+              v-model="chipState.labels.input"
+              v-model:search="chipState.labels.search"
+              :items="chipState.labels.options"
               item-title="Name"
               item-value="Name"
               return-object
@@ -289,19 +286,20 @@
               :menu-props="chipMenuProps"
               :list-props="chipListProps"
               class="meta-inline-edit"
+              @focus="loadChipOptions('labels')"
               @update:model-value="onLabelSelected"
               @keydown.enter.stop.prevent="onLabelEnter"
-              @keydown.escape.stop.prevent="cancelEditing"
+              @keydown.escape.stop.prevent="onChipEscape('labels')"
             ></v-combobox>
           </v-list-item>
         </template>
 
-        <template v-if="!restrictedRole && (editingField === 'albums' || albums.length > 0 || isEditable)">
+        <template v-if="!restrictedRole && (albums.length > 0 || isEditable)">
           <v-divider class="my-4"></v-divider>
           <v-list-item class="metadata__item meta-albums">
             <div class="text-subtitle-2">{{ $gettext("Albums") }}</div>
-            <template v-if="isEditable" #append>
-              <p-sidebar-inline-toolbar :editing="editingField === 'albums'" @confirm="confirmAlbums" @start="startChipEditing('albums')" />
+            <template v-if="isEditable && chipState.albums.removals.length > 0" #append>
+              <p-sidebar-inline-toolbar :editing="true" @confirm="confirmAlbums" />
             </template>
           </v-list-item>
           <v-list-item v-if="albums.length > 0" class="metadata__item metadata__chips meta-albums">
@@ -317,24 +315,16 @@
                 @keydown.delete.stop.prevent="onChipDelete('albums', a)"
               >
                 {{ a.Title }}
-                <v-icon
-                  v-if="editingField === 'albums'"
-                  :icon="isChipPendingRemoval('albums', a.UID) ? 'mdi-undo' : 'mdi-close-circle'"
-                  size="x-small"
-                  class="ml-1"
-                ></v-icon>
+                <v-icon v-if="isEditable" :icon="isChipPendingRemoval('albums', a.UID) ? 'mdi-undo' : 'mdi-close-circle'" size="x-small" class="ml-1"></v-icon>
               </span>
             </div>
           </v-list-item>
-          <v-list-item v-else-if="isEditable && editingField !== 'albums'" class="metadata__item meta-albums">
-            <div class="meta-add-prompt" @click.stop="startChipEditing('albums')">{{ $gettext("Add to album") }}</div>
-          </v-list-item>
-          <v-list-item v-if="editingField === 'albums'" class="metadata__item meta-albums">
+          <v-list-item v-if="isEditable" class="metadata__item meta-albums">
             <v-autocomplete
-              :key="chipKey"
-              v-model="chipInput"
-              v-model:search="chipSearch"
-              :items="albumOptions"
+              :key="chipState.albums.key"
+              v-model="chipState.albums.input"
+              v-model:search="chipState.albums.search"
+              :items="chipState.albums.options"
               item-title="Title"
               item-value="UID"
               :placeholder="$gettext('Add to album')"
@@ -348,9 +338,10 @@
               :menu-props="chipMenuProps"
               :list-props="chipListProps"
               class="meta-inline-edit"
+              @focus="loadChipOptions('albums')"
               @update:model-value="onAlbumSelected"
               @keydown.enter.stop="onAlbumEnter"
-              @keydown.escape.stop.prevent="cancelEditing"
+              @keydown.escape.stop.prevent="onChipEscape('albums')"
             ></v-autocomplete>
           </v-list-item>
         </template>
@@ -461,7 +452,7 @@ import { DateTime } from "luxon";
 import * as formats from "options/formats";
 
 import * as media from "common/media";
-import { Label } from "model/label";
+import typeaheadCache from "common/typeahead-cache";
 import { Album } from "model/album";
 import PMap from "component/map.vue";
 import PDateTimeDialog from "component/sidebar/datetime-dialog.vue";
@@ -509,20 +500,26 @@ export default {
       locationDialog: false,
       editingField: null,
       editOriginal: null,
-      chipInput: null,
-      chipSearch: "",
-      chipKey: 0,
-      labelOptions: [],
-      albumOptions: [],
-      // Pending chip removals staged during edit mode. Additions go through
-      // an instant-save path (addLabelImmediate / addAlbumImmediate → model
-      // method on Photo), so they never enter chipState — by the time the
-      // ✓ icon could fire, the chip is already a primary chip read off
-      // this.photo.Labels / this.photo.Albums. Labels removals are keyed
-      // by Label.ID; albums removals by Album.UID.
+      // Per-field combobox state. The combobox/autocomplete row stays
+      // mounted whenever the section is editable (no pencil-to-edit
+      // gesture for chips), so each section needs its own input/search
+      // scratch refs and per-field force-remount key.
+      //
+      // - input/search: Vuetify v-model and v-model:search bindings.
+      //   `search` doubles as the "typed-but-not-yet-Enter" detector
+      //   for hasPendingEdit().
+      // - key: incremented on Enter to force-remount the combobox so
+      //   stale dropdown state clears alongside the input.
+      // - options: typeahead suggestions populated lazily from the
+      //   shared typeaheadCache (common/typeahead-cache.js); shape
+      //   matches the v-combobox/v-autocomplete item-title bindings.
+      // - removals: pending Label.ID / Album.UID removals committed
+      //   by the toolbar ✓. Additions take an instant-save path
+      //   (addLabelImmediate / addAlbumImmediate → Photo model
+      //   methods), so they never enter chipState.
       chipState: {
-        labels: { removals: [] },
-        albums: { removals: [] },
+        labels: { input: null, search: "", key: 0, options: [], removals: [] },
+        albums: { input: null, search: "", key: 0, options: [], removals: [] },
       },
       markerDrafts: {},
       markerNameRule: (v) => !v || v.length <= this.$config.get("clip") || this.$gettext("Text too long"),
@@ -823,6 +820,17 @@ export default {
       this.$nextTick(() => this.focusMarkerInput(uid));
     },
   },
+  mounted() {
+    // Warm the typeahead options for editable sessions so the combobox
+    // dropdown is populated by the time the user focuses the input.
+    // The shared cache (common/typeahead-cache.js) deduplicates concurrent
+    // callers, so a sidebar mount during an open batch-edit session adds
+    // no extra network round-trips.
+    if (this.isEditable && !this.restrictedRole) {
+      this.loadChipOptions("labels");
+      this.loadChipOptions("albums");
+    }
+  },
   methods: {
     close() {
       this.$emit("close");
@@ -1016,6 +1024,8 @@ export default {
     },
     resetInlineEdits() {
       if (this.editingField) this.cancelEditing();
+      this.resetChipState();
+      this.clearChipInput();
       Object.keys(this.markerDrafts).forEach((uid) => {
         const d = this.markerDrafts[uid];
         if (d) d.current = d.original;
@@ -1034,12 +1044,12 @@ export default {
         if (!d) continue;
         if (this.unwrapMarkerName(d.current).trim() !== (d.original || "").trim()) return true;
       }
-      if (Object.values(this.chipState).some((s) => s.removals.length)) return true;
-      // Typed-but-uncommitted text in the chip combobox/autocomplete: pressing
+      // Pending chip removals (staged via × icon) and typed-but-uncommitted
+      // text in the always-visible combobox both count as pending. Pressing
       // Enter would fire the instant-save path (addLabelImmediate /
       // addAlbumImmediate), but until then the characters live only in
-      // chipSearch and would silently vanish on navigation without this guard.
-      if ((this.editingField === "labels" || this.editingField === "albums") && (this.chipSearch || "").trim() !== "") return true;
+      // chipState.<field>.search and would silently vanish on navigation.
+      if (Object.values(this.chipState).some((s) => s.removals.length || (s.search || "").trim() !== "")) return true;
       // An open Add-name confirmation for an unnamed marker is also pending
       // input until the user picks Add or Cancel.
       if (this.addNameDialog && this.addNameDialog.visible) return true;
@@ -1122,8 +1132,6 @@ export default {
       this.editingField = null;
       this.editOriginal = null;
       this._editStartedAt = null;
-      this.resetChipState();
-      this.clearChipInput();
     },
     // Blur handler for inline text fields (title/caption/subject/artist/
     // copyright/license/keywords/notes). Commits the edit instead of
@@ -1177,49 +1185,56 @@ export default {
         this.openInNewTab({ name: "browse", query: { q: "person:" + marker.Name } });
       }
     },
-    startChipEditing(field) {
-      if (this.editingField) {
-        this.cancelEditing();
-      }
-
-      this.editingField = field;
-      this._editStartedAt = Date.now();
-
-      // Preload the typeahead lists once per sidebar mount. The cap (5000)
-      // is a pragmatic ceiling: 1000 was too small for power users with
-      // larger libraries, and a server-side debounced typeahead is the
-      // right long-term answer if 5000 also turns out to be insufficient.
-      // labelOptions / albumOptions reset on lightbox close+reopen, not
-      // on slide navigation — fine for the typical edit session, but a
-      // module-scope cache with WS-driven invalidation would skip the
-      // re-fetch on every open if needed later.
-      const TYPEAHEAD_CAP = 5000;
-      if (field === "labels" && !this.labelOptions.length) {
-        Label.search({ count: TYPEAHEAD_CAP, order: "name", all: true })
-          .then((resp) => {
-            const models = resp.models || [];
-            if (models.length === TYPEAHEAD_CAP) {
-              console.warn(`Label.search returned ${TYPEAHEAD_CAP} results — list may be truncated.`);
-            }
-            this.labelOptions = models.map((l) => ({ Name: l.Name, UID: l.UID }));
+    // Pulls the typeahead suggestions from the shared module-scope
+    // cache (`common/typeahead-cache.js`). Fired on combobox @focus —
+    // cheap when the cache is warm (returns the same array reference)
+    // and refreshes after WS-driven evictions (`labels.updated` /
+    // `albums.updated` / `config.updated`) without per-component
+    // subscriptions. Errors are swallowed so a transient network hiccup
+    // never blocks the editor.
+    loadChipOptions(field) {
+      if (field === "labels") {
+        typeaheadCache
+          .getLabels()
+          .then((models) => {
+            this.chipState.labels.options = models.map((l) => ({ Name: l.Name, UID: l.UID }));
           })
           .catch(() => {});
-      } else if (field === "albums" && !this.albumOptions.length) {
-        Album.search({ count: TYPEAHEAD_CAP, order: "name", type: "album" })
-          .then((resp) => {
-            const models = resp.models || [];
-            if (models.length === TYPEAHEAD_CAP) {
-              console.warn(`Album.search returned ${TYPEAHEAD_CAP} results — list may be truncated.`);
-            }
-            this.albumOptions = models;
+      } else if (field === "albums") {
+        typeaheadCache
+          .getAlbums()
+          .then((models) => {
+            this.chipState.albums.options = models;
           })
           .catch(() => {});
       }
     },
-    clearChipInput() {
-      this.chipInput = null;
-      this.chipSearch = "";
-      this.chipKey++;
+    // Clears the typed text and selection for one combobox. The key
+    // bump force-remounts the v-combobox / v-autocomplete so any stale
+    // dropdown state (a half-rendered no-data row, a tracked input
+    // value Vuetify retained after the model went null) goes with it.
+    clearChipInput(field) {
+      if (!field) {
+        // Legacy callers without a field argument clear both —
+        // cancelEditing() takes this path during inline-text rollback.
+        Object.keys(this.chipState).forEach((f) => this.clearChipInput(f));
+        return;
+      }
+      const state = this.chipState[field];
+      if (!state) return;
+      state.input = null;
+      state.search = "";
+      state.key++;
+    },
+    // Esc inside a chip combobox clears the typed text and the staged
+    // pending removals for that field, then drops focus from the input.
+    // Matches the inline-text Esc semantic (revert to baseline) without
+    // crossing into editingField (chip sections no longer have one).
+    onChipEscape(field) {
+      const state = this.chipState[field];
+      if (!state) return;
+      state.removals = [];
+      this.clearChipInput(field);
     },
     // Generic chip-state helpers. Field is "labels" or "albums"; the key is
     // whatever uniquely identifies a chip in that field's domain (Label.ID
@@ -1244,12 +1259,13 @@ export default {
       });
     },
     // Click + Enter behavior on a primary chip: navigate to the label/album
-    // page when not editing, toggle pending removal when editing the section.
-    // The two chip shapes differ: labels are wrapped (`{ Label: { ID, ... } }`)
-    // while albums come through directly (`{ UID, ... }`).
+    // page when the section is read-only, toggle pending removal when the
+    // section is editable. The two chip shapes differ: labels are wrapped
+    // (`{ Label: { ID, ... } }`) while albums come through directly
+    // (`{ UID, ... }`).
     onChipActivate(field, item) {
       if (!item) return;
-      if (this.editingField !== field) {
+      if (!this.isEditable) {
         if (field === "labels") return this.navigateToLabel(item.Label);
         if (field === "albums") return this.navigateToAlbum(item);
         return;
@@ -1260,7 +1276,7 @@ export default {
     // Delete / Backspace on a primary chip: only meaningful in edit mode,
     // where it toggles pending removal (same effect as click).
     onChipDelete(field, item) {
-      if (!item || this.editingField !== field) return;
+      if (!item || !this.isEditable) return;
       const key = field === "labels" ? item?.Label?.ID : item.UID;
       this.togglePendingChipRemoval(field, key);
     },
@@ -1282,11 +1298,11 @@ export default {
       if (!norm) return false;
       // Already on the photo? Skip the API call.
       if (this.labels.some((l) => this.$util.normalizeTitle(l?.Label?.Name) === norm)) return false;
-      // Match against the system-wide labelOptions — if a normalized match
+      // Match against the system-wide label list — if a normalized match
       // exists, send the canonical existing-label name so the backend
       // doesn't create a near-duplicate (e.g. typed `Hello Cat` reuses an
       // existing `hello-cat` label) and the user sees the canonical casing.
-      const existing = this.labelOptions.find((l) => this.$util.normalizeTitle(l.Name) === norm);
+      const existing = this.chipState.labels.options.find((l) => this.$util.normalizeTitle(l.Name) === norm);
       const finalName = existing ? existing.Name : name;
       this.photo.addLabel(finalName).catch(() => {
         this.$notify.error(this.$gettext("Failed to save changes"));
@@ -1322,32 +1338,29 @@ export default {
     onLabelSelected(value) {
       if (!value || typeof value !== "object" || !value.Name) return;
       this.addLabelImmediate(value.Name);
-      this.clearChipInput();
+      this.clearChipInput("labels");
     },
-    // Read the typed name from the input DOM as a fallback so that
-    // Vuetify clearing `chipSearch` on the same Enter keystroke we
-    // handle does not silently swallow the pending addition.
-    pendingChipName(ev) {
-      if (this.chipSearch) return this.chipSearch;
+    // Read the typed name from the per-field search ref. The ev.target
+    // fallback guards against Vuetify clearing `search` on the same Enter
+    // keystroke we handle, which would otherwise drop the pending addition.
+    pendingChipName(field, ev) {
+      const search = this.chipState[field]?.search;
+      if (search) return search;
       const target = ev && ev.target ? ev.target : null;
       return target && typeof target.value === "string" ? target.value : "";
     },
     onLabelEnter(ev) {
-      if (this.addLabelImmediate(this.pendingChipName(ev))) {
-        this.clearChipInput();
+      if (this.addLabelImmediate(this.pendingChipName("labels", ev))) {
+        this.clearChipInput("labels");
       }
     },
     // Confirms pending REMOVALS via Photo.removeLabel — additions take the
     // instant-save path (addLabelImmediate) and never reach this method.
     confirmLabels() {
-      if (!this.photo) {
-        this.editingField = null;
-        return;
-      }
+      if (!this.photo) return;
 
       const state = this.chipState.labels;
       const removals = state.removals.slice();
-      this.editingField = null;
       state.removals = [];
 
       // photo.removeLabel chains .then((r) => this.setValues(r.data)) (see
@@ -1368,14 +1381,10 @@ export default {
     // Confirms pending REMOVALS via Photo.removeFromAlbum — additions take
     // the instant-save path (addAlbumImmediate) and never reach this method.
     confirmAlbums() {
-      if (!this.photo) {
-        this.editingField = null;
-        return;
-      }
+      if (!this.photo) return;
 
       const state = this.chipState.albums;
       const removals = state.removals.slice();
-      this.editingField = null;
       state.removals = [];
 
       // Photo.removeFromAlbum owns the evict+refind dance per call, so the
@@ -1391,14 +1400,14 @@ export default {
     },
     onAlbumSelected(value) {
       if (!value || typeof value !== "object" || !value.UID) {
-        this.clearChipInput();
+        this.clearChipInput("albums");
         return;
       }
       this.addAlbumImmediate(value);
-      this.clearChipInput();
+      this.clearChipInput("albums");
     },
     onAlbumEnter(ev) {
-      const search = this.pendingChipName(ev).trim();
+      const search = this.pendingChipName("albums", ev).trim();
       if (!search) return;
 
       if (search.length > this.$config.get("clip")) {
@@ -1408,9 +1417,11 @@ export default {
 
       const norm = this.$util.normalizeTitle(search);
       if (!norm) {
-        this.clearChipInput();
+        this.clearChipInput("albums");
         return;
       }
+
+      const options = this.chipState.albums.options;
 
       // Normalized exact-match against the full known-albums list first.
       // normalizeTitle ignores case, strips punctuation, and treats
@@ -1419,7 +1430,7 @@ export default {
       // mirrors the Labels validation pipeline and avoids the spurious
       // substring merges (e.g. typing `ar` matching `Berlin`) that the
       // legacy startsWith/includes fallback below produced for short input.
-      const exactMatch = this.albumOptions.find((a) => this.$util.normalizeTitle(a.Title) === norm);
+      const exactMatch = options.find((a) => this.$util.normalizeTitle(a.Title) === norm);
       if (exactMatch) {
         this.onAlbumSelected(exactMatch);
         return;
@@ -1429,8 +1440,7 @@ export default {
       // exists. Useful for partial typing where the user expects the
       // dropdown's leading-prefix suggestion to be picked up by Enter.
       const lower = search.toLowerCase();
-      const fuzzyMatch =
-        this.albumOptions.find((a) => a.Title.toLowerCase().startsWith(lower)) || this.albumOptions.find((a) => a.Title.toLowerCase().includes(lower));
+      const fuzzyMatch = options.find((a) => a.Title.toLowerCase().startsWith(lower)) || options.find((a) => a.Title.toLowerCase().includes(lower));
       if (fuzzyMatch) {
         this.onAlbumSelected(fuzzyMatch);
         return;
@@ -1439,7 +1449,7 @@ export default {
       // Skip the API round-trip if a normalized title clash already exists
       // among the photo's current albums.
       if (this.albumTitleConflicts(norm)) {
-        this.clearChipInput();
+        this.clearChipInput("albums");
         return;
       }
 
@@ -1449,12 +1459,12 @@ export default {
         .save()
         .then(() => {
           if (album.UID && this.addAlbumImmediate(album)) {
-            this.albumOptions.push(album);
+            options.push(album);
           }
         })
         .catch(() => {})
         .finally(() => {
-          this.clearChipInput();
+          this.clearChipInput("albums");
         });
     },
     confirmDateTime(data) {
