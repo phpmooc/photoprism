@@ -114,10 +114,20 @@
                             the moment the Labels tab renders (and lay the menu
                             out before the tab geometry settles, which
                             mispositions it). The user clicks the input when
-                            they want to type. -->
+                            they want to type.
+                            menu-icon="" hides the default dropdown chevron
+                            because the row's density makes the chevron sit
+                            visibly below the input baseline; the auto-open
+                            on focus is the discovery affordance instead.
+                            v-model:menu + suppressMenuOpen reproduce the
+                            chip-selector trick: clearing the model after
+                            committing a selection would otherwise re-open
+                            the menu via the search-changed watcher. -->
                           <v-combobox
+                            ref="labelInputField"
                             v-model="newLabelModel"
                             v-model:search="newLabel"
+                            v-model:menu="menuOpen"
                             :items="labelOptions"
                             item-title="Name"
                             item-value="Name"
@@ -131,10 +141,12 @@
                             hide-details
                             hide-no-data
                             append-icon=""
+                            menu-icon=""
                             :list-props="{ density: 'compact' }"
                             class="input-label ma-0 pa-0"
                             @focus="loadLabelOptions"
                             @update:model-value="onLabelSelected"
+                            @update:menu="onMenuUpdate"
                             @keydown.enter.stop.prevent="addLabel"
                           ></v-combobox>
                         </td>
@@ -186,6 +198,13 @@ export default {
       // (common/typeahead-cache.js) on first focus. Cache de-dupes
       // across the sidebar combobox and the batch-edit dialog.
       labelOptions: [],
+      // v-model:menu binding so the post-add reset can close the menu
+      // explicitly. suppressMenuOpen is a brief debounce window during
+      // which onMenuUpdate refuses to re-open after a commit — Vuetify
+      // would otherwise re-open via the search-changed watcher when we
+      // clear newLabel/newLabelModel synchronously.
+      menuOpen: false,
+      suppressMenuOpen: false,
       listColumns: [
         {
           title: this.$gettext("Label"),
@@ -255,8 +274,7 @@ export default {
 
       this.view.model.addLabel(finalName).then(() => {
         this.$notify.success("added " + finalName);
-        this.newLabel = "";
-        this.newLabelModel = null;
+        this.resetInput();
       });
     },
     // Selecting an existing label from the dropdown commits via the same
@@ -278,6 +296,36 @@ export default {
           this.labelOptions = models.map((l) => ({ Name: l.Name, UID: l.UID }));
         })
         .catch(() => {});
+    },
+    // Closes the dropdown, blurs the input, then clears the bound
+    // values. Mirrors the chip-selector pattern: clearing inside an
+    // open combobox would otherwise re-open the menu via the
+    // search-changed watcher (the "" search is treated as "show all"
+    // and pops the dropdown again).
+    resetInput() {
+      this.menuOpen = false;
+      this.suppressMenuOpen = true;
+      this.$nextTick(() => {
+        const input = this.$refs.labelInputField;
+        if (input && typeof input.blur === "function") {
+          input.blur();
+        }
+        this.newLabel = "";
+        this.newLabelModel = null;
+        window.setTimeout(() => {
+          this.suppressMenuOpen = false;
+        }, 200);
+      });
+    },
+    // Vetoes Vuetify's "open the menu" intent during the post-commit
+    // debounce window so a stale focus event can't re-pop the dropdown
+    // immediately after the user picked an item.
+    onMenuUpdate(val) {
+      if (val && this.suppressMenuOpen) {
+        this.menuOpen = false;
+        return;
+      }
+      this.menuOpen = val;
     },
     activateLabel(label) {
       if (!label || !this.view?.model) {

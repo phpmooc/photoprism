@@ -165,7 +165,10 @@ describe("component/photo/edit/labels", () => {
       wrapper.vm.newLabel = "Dog";
       wrapper.vm.addLabel();
 
+      // resetInput defers the clear into $nextTick so Vuetify's combobox
+      // sees the menu close before the search-changed watcher fires.
       await Promise.resolve();
+      await wrapper.vm.$nextTick();
 
       expect(addSpy).toHaveBeenCalledWith("Dog");
       expect(notifySuccessSpy).toHaveBeenCalledWith("added Dog");
@@ -241,6 +244,50 @@ describe("component/photo/edit/labels", () => {
       wrapper.vm.onLabelSelected(null);
 
       expect(addSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("menu suppression after add", () => {
+    // After committing a selection, clearing newLabel synchronously
+    // would re-open Vuetify's combobox menu via the search-changed
+    // watcher. resetInput closes the menu, sets a suppress flag,
+    // blurs the input, then clears the bound values on the next tick.
+    it("closes the menu and engages the suppress flag during reset", async () => {
+      const addSpy = vi.fn(() => Promise.resolve());
+      const { wrapper } = mountPhotoLabels({
+        modelOverrides: { addLabel: addSpy },
+      });
+
+      wrapper.vm.menuOpen = true;
+      wrapper.vm.newLabel = "Mountains";
+      wrapper.vm.addLabel();
+      await Promise.resolve();
+
+      expect(wrapper.vm.menuOpen).toBe(false);
+      expect(wrapper.vm.suppressMenuOpen).toBe(true);
+
+      await wrapper.vm.$nextTick();
+      expect(wrapper.vm.newLabel).toBe("");
+      expect(wrapper.vm.newLabelModel).toBeNull();
+    });
+
+    it("rejects re-open intents while suppressMenuOpen is set", () => {
+      const { wrapper } = mountPhotoLabels();
+
+      wrapper.vm.suppressMenuOpen = true;
+      wrapper.vm.onMenuUpdate(true);
+      expect(wrapper.vm.menuOpen).toBe(false);
+    });
+
+    it("forwards the menu state when the suppress flag is not set", () => {
+      const { wrapper } = mountPhotoLabels();
+
+      wrapper.vm.suppressMenuOpen = false;
+      wrapper.vm.onMenuUpdate(true);
+      expect(wrapper.vm.menuOpen).toBe(true);
+
+      wrapper.vm.onMenuUpdate(false);
+      expect(wrapper.vm.menuOpen).toBe(false);
     });
   });
 
