@@ -144,26 +144,6 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       wrapper.vm.info = true;
       expect(() => wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, undefined)).not.toThrow();
     });
-
-    it("calls preventDefault on Tab when info is open (regardless of focus)", () => {
-      const wrapper = mountLightbox();
-      wrapper.vm.info = true;
-      const span = document.createElement("span");
-      span.tabIndex = 0;
-      scratch.appendChild(span);
-      span.focus();
-      const ev = { preventDefault: vi.fn(), originalEvent: { key: "Tab", code: "Tab" } };
-      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
-      expect(ev.preventDefault).toHaveBeenCalledTimes(1);
-    });
-
-    it("does NOT call preventDefault on Tab when info is closed", () => {
-      const wrapper = mountLightbox();
-      wrapper.vm.info = false;
-      const ev = { preventDefault: vi.fn(), originalEvent: { key: "Tab", code: "Tab" } };
-      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
-      expect(ev.preventDefault).not.toHaveBeenCalled();
-    });
   });
 
   it("getViewport falls back to window size without content ref", () => {

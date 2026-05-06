@@ -319,6 +319,22 @@
     background-color: rgba(var(--v-theme-secondary-light, var(--v-theme-surface-bright, var(--v-theme-surface))), 0.7);
 }
 
+/* Keyboard-visible focus ring for tabbable chips. The default browser outline
+   is hard to see against the chip's inset shadow and rounded corners; this
+   draws a clear, theme-aware ring INSIDE the chip area (negative offset) so
+   the ring isn't clipped when chips wrap against the sidebar edge. The
+   outline still follows border-radius in modern browsers. */
+.p-lightbox__container > .p-lightbox__sidebar .meta-chip:focus {
+    outline: 2px solid rgb(var(--v-theme-primary));
+    outline-offset: -2px;
+}
+
+/* Suppress the ring on mouse focus where supported; click on a chip already
+   navigates or toggles, so a transient outline there is just visual noise. */
+.p-lightbox__container > .p-lightbox__sidebar .meta-chip:focus:not(:focus-visible) {
+    outline: none;
+}
+
 .p-lightbox__container > .p-lightbox__sidebar .meta-chip--primary {
     background-color: rgb(var(--v-theme-secondary-light, var(--v-theme-surface-bright, var(--v-theme-surface))));
     color: rgb(var(--v-theme-on-surface));
