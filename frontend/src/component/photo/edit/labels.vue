@@ -198,8 +198,11 @@ export default {
       newLabelModel: null,
       // Typeahead suggestions sourced lazily from the shared cache
       // (common/typeahead-cache.js) on first focus. Cache de-dupes
-      // across the sidebar combobox and the batch-edit dialog.
-      labelOptions: [],
+      // across the sidebar combobox and the batch-edit dialog. The
+      // template binds the `labelOptions` computed below, which
+      // filters out labels already on the photo so the dropdown only
+      // surfaces actionable suggestions.
+      cachedLabelOptions: [],
       // v-model:menu binding so the post-add reset can close the menu
       // explicitly. suppressMenuOpen is a brief debounce window during
       // which onMenuUpdate refuses to re-open after a commit — Vuetify
@@ -247,6 +250,23 @@ export default {
       nameRule: (v) => v.length <= this.$config.get("clip") || this.$gettext("Name too long"),
     };
   },
+  computed: {
+    // Suggestions surfaced in the combobox dropdown — the cached label
+    // list with anything already assigned to this photo filtered out,
+    // then sorted alphabetically via locale-aware comparison so the
+    // result reads naturally across languages (e.g. Hebrew under RTL).
+    // Stays reactive so a label added via this tab disappears from
+    // the dropdown the moment view.model.Labels updates.
+    labelOptions() {
+      const normalize = (s) => (this.$util?.normalizeTitle ? this.$util.normalizeTitle(s) : (s || "").toLowerCase());
+      const assigned = Array.isArray(this.view?.model?.Labels) ? this.view.model.Labels : [];
+      const assignedKeys = new Set(assigned.map((l) => normalize(l?.Label?.Name)).filter(Boolean));
+      return this.cachedLabelOptions
+        .filter((l) => !assignedKeys.has(normalize(l.Name)))
+        .slice()
+        .sort((a, b) => (a.Name || "").localeCompare(b.Name || "", undefined, { sensitivity: "base", numeric: true }));
+    },
+  },
   methods: {
     refresh() {},
     sourceName(s) {
@@ -274,14 +294,28 @@ export default {
       // the backend isn't asked to create a near-duplicate. normalizeTitle
       // ignores case, strips punctuation, and treats `+`/`_`/`-` as
       // space.
-      const norm = this.$util.normalizeTitle ? this.$util.normalizeTitle(typed) : typed.toLowerCase();
+      const normalize = (s) => (this.$util.normalizeTitle ? this.$util.normalizeTitle(s) : (s || "").toLowerCase());
+      const norm = normalize(typed);
       let finalName = typed;
       if (norm) {
-        const existing = this.labelOptions.find((l) =>
-          this.$util.normalizeTitle ? this.$util.normalizeTitle(l.Name) === norm : (l.Name || "").toLowerCase() === norm
-        );
+        const existing = this.labelOptions.find((l) => normalize(l.Name) === norm);
         if (existing) {
           finalName = existing.Name;
+        }
+      }
+
+      // Already on the photo? Skip the API call so picking an existing
+      // chip from the dropdown doesn't bounce through addLabel and
+      // surface a stray "Label updated" + "added <name>" notification
+      // pair (the backend treats a re-add as an update). Match against
+      // the photo's own Labels using the same normalization so typed
+      // variants like `EARTH` collapse onto an existing `Earth`.
+      if (norm) {
+        const labels = Array.isArray(this.view.model.Labels) ? this.view.model.Labels : [];
+        const alreadyOnPhoto = labels.some((l) => normalize(l?.Label?.Name) === norm);
+        if (alreadyOnPhoto) {
+          this.resetInput();
+          return;
         }
       }
 
@@ -302,11 +336,13 @@ export default {
     },
     // Pulls suggestions from the shared cache on first focus. Cheap on
     // re-focus (cache hit) and refreshes after WS-driven evictions.
+    // Stored on the raw `cachedLabelOptions` ref; the `labelOptions`
+    // computed filters out anything already assigned to the photo.
     loadLabelOptions() {
       typeaheadCache
         .getLabels()
         .then((models) => {
-          this.labelOptions = models.map((l) => ({ Name: l.Name, UID: l.UID }));
+          this.cachedLabelOptions = models.map((l) => ({ Name: l.Name, UID: l.UID }));
         })
         .catch(() => {});
     },

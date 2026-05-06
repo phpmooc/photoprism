@@ -184,7 +184,7 @@ describe("component/photo/edit/labels", () => {
         modelOverrides: { addLabel: addSpy },
       });
 
-      wrapper.vm.labelOptions = [{ UID: "lbl-canonical", Name: "Hello Cat" }];
+      wrapper.vm.cachedLabelOptions = [{ UID: "lbl-canonical", Name: "Hello Cat" }];
       wrapper.vm.newLabel = "hello-cat";
       wrapper.vm.addLabel();
       await Promise.resolve();
@@ -199,7 +199,7 @@ describe("component/photo/edit/labels", () => {
         modelOverrides: { addLabel: addSpy },
       });
 
-      wrapper.vm.labelOptions = [{ UID: "lbl-canonical", Name: "Hello Cat" }];
+      wrapper.vm.cachedLabelOptions = [{ UID: "lbl-canonical", Name: "Hello Cat" }];
       wrapper.vm.newLabel = "Sunset";
       wrapper.vm.addLabel();
       await Promise.resolve();
@@ -218,6 +218,49 @@ describe("component/photo/edit/labels", () => {
       await Promise.resolve();
 
       expect(addSpy).toHaveBeenCalledWith("Beach");
+    });
+
+    // Backend treats an addLabel call for an already-assigned label as
+    // an update (re-activation), surfacing a stray "Label updated" +
+    // "added <name>" notification pair. Picking an existing chip from
+    // the dropdown should be a no-op against the API.
+    it("skips the API call when the label is already on the photo", async () => {
+      const addSpy = vi.fn(() => Promise.resolve());
+      const notifySuccessSpy = vi.fn();
+      const { wrapper } = mountPhotoLabels({
+        modelOverrides: {
+          addLabel: addSpy,
+          Labels: [{ Uncertainty: 0, Label: { ID: 1, Name: "Earth" } }],
+        },
+        notifyOverrides: { success: notifySuccessSpy },
+      });
+
+      wrapper.vm.newLabel = "Earth";
+      wrapper.vm.addLabel();
+      await Promise.resolve();
+      await wrapper.vm.$nextTick();
+
+      expect(addSpy).not.toHaveBeenCalled();
+      expect(notifySuccessSpy).not.toHaveBeenCalled();
+      // Reset still runs so the input/menu state is cleared.
+      expect(wrapper.vm.newLabel).toBe("");
+    });
+
+    it("skips the API call for normalized-equal duplicates already on the photo", async () => {
+      const addSpy = vi.fn(() => Promise.resolve());
+      const { wrapper } = mountPhotoLabels({
+        modelOverrides: {
+          addLabel: addSpy,
+          Labels: [{ Uncertainty: 0, Label: { ID: 1, Name: "Hello Cat" } }],
+        },
+      });
+
+      wrapper.vm.newLabel = "hello-cat";
+      wrapper.vm.addLabel();
+      await Promise.resolve();
+      await wrapper.vm.$nextTick();
+
+      expect(addSpy).not.toHaveBeenCalled();
     });
   });
 
@@ -318,6 +361,57 @@ describe("component/photo/edit/labels", () => {
       await Promise.resolve();
       expect(wrapper.vm.labelOptions).toEqual([]);
       cacheSpy.mockRestore();
+    });
+  });
+
+  describe("labelOptions computed", () => {
+    // Filters out anything already on the photo so the dropdown only
+    // shows actionable suggestions, and sorts the remaining items
+    // alphabetically (locale-aware) so the menu reads naturally.
+    it("hides labels already assigned to the photo", () => {
+      const { wrapper } = mountPhotoLabels({
+        modelOverrides: {
+          Labels: [{ Uncertainty: 0, Label: { ID: 1, Name: "Earth" } }],
+        },
+      });
+      wrapper.vm.cachedLabelOptions = [
+        { Name: "Cat", UID: "lbl-cat" },
+        { Name: "Earth", UID: "lbl-earth" },
+        { Name: "Mountain", UID: "lbl-mountain" },
+      ];
+
+      expect(wrapper.vm.labelOptions).toEqual([
+        { Name: "Cat", UID: "lbl-cat" },
+        { Name: "Mountain", UID: "lbl-mountain" },
+      ]);
+    });
+
+    it("filters by normalized name so case and punctuation variants collapse", () => {
+      const { wrapper } = mountPhotoLabels({
+        modelOverrides: {
+          Labels: [{ Uncertainty: 0, Label: { ID: 1, Name: "Hello Cat" } }],
+        },
+      });
+      wrapper.vm.cachedLabelOptions = [
+        { Name: "hello-cat", UID: "lbl-hc-canonical" },
+        { Name: "Mountain", UID: "lbl-mountain" },
+      ];
+
+      // hello-cat normalizes to the same key as the assigned `Hello Cat`.
+      expect(wrapper.vm.labelOptions.map((l) => l.Name)).toEqual(["Mountain"]);
+    });
+
+    it("sorts the surviving options alphabetically", () => {
+      const { wrapper } = mountPhotoLabels();
+      wrapper.vm.cachedLabelOptions = [
+        { Name: "Mountain", UID: "1" },
+        { Name: "apple", UID: "2" },
+        { Name: "Beach", UID: "3" },
+      ];
+
+      // Locale-aware compare with sensitivity:base treats case as
+      // equivalent — `apple` sorts above `Beach` above `Mountain`.
+      expect(wrapper.vm.labelOptions.map((l) => l.Name)).toEqual(["apple", "Beach", "Mountain"]);
     });
   });
 
