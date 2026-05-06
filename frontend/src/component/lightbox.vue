@@ -1105,6 +1105,14 @@ export default {
       this.lightbox.on("pointerDown", this.lightboxPointerListener);
       // this.lightbox.on("pointerMove", this.lightboxPointerListener);
 
+      // Suppress PhotoSwipe's document-level keydown shortcuts (notably "z"
+      // for toggleZoom) while the user is typing in the info sidebar.
+      // PhotoSwipe checks `defaultPrevented` on the dispatched event and
+      // returns early if we mark it; see photoswipe.esm.js _onKeyDown. The
+      // Vue-bound onKeyDown in this component already skips when info is open
+      // and the focus is on an input/textarea — same predicate here.
+      this.lightbox.on("keydown", this.onPswpKeyDown);
+
       // Add PhotoSwipe lightbox controls,
       // see https://photoswipe.com/adding-ui-elements/.
       this.addLightboxControls();
@@ -2361,6 +2369,31 @@ export default {
             this.toggleControls();
           }
           break;
+      }
+    },
+    // Bridges PhotoSwipe's dispatched 'keydown' event so the sidebar can
+    // claim keys that PhotoSwipe would otherwise swallow:
+    //
+    //   - Printable keys (notably "z" for toggleZoom) when an editable
+    //     element inside the sidebar is focused — the textarea/input must
+    //     receive the typed character instead.
+    //   - Tab while the sidebar is open — PhotoSwipe yanks focus back to
+    //     its lightbox root via _focusRoot(), which makes sidebar chips,
+    //     inputs, and pencils unreachable by keyboard. Letting Tab through
+    //     restores normal browser focus order across the sidebar.
+    //
+    // Calling preventDefault on the dispatched event causes _onKeyDown in
+    // photoswipe.esm.js to return before its switch statement runs.
+    onPswpKeyDown(ev) {
+      if (!ev || !this.info) return;
+      const orig = ev.originalEvent;
+      if (orig && (orig.key === "Tab" || orig.code === "Tab")) {
+        ev.preventDefault();
+        return;
+      }
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || (active && active.isContentEditable)) {
+        ev.preventDefault();
       }
     },
     // Toggles video playback on the current video element, if any.

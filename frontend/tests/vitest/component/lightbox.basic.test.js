@@ -1,5 +1,5 @@
 import { mount, config as VTUConfig } from "@vue/test-utils";
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as contexts from "options/contexts";
 import { nextTick } from "vue";
 import PLightbox from "component/lightbox.vue";
@@ -78,6 +78,92 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     expect(localStorage.getItem(infoKey)).toBeNull();
     await wrapper.vm.onShortCut({ code: "KeyI" });
     expect(localStorage.getItem(infoKey)).toBeNull();
+  });
+
+  describe("onPswpKeyDown — sidebar input focus guard", () => {
+    let scratch;
+    beforeEach(() => {
+      scratch = document.createElement("div");
+      document.body.appendChild(scratch);
+    });
+    afterEach(() => {
+      if (scratch && scratch.parentNode) scratch.parentNode.removeChild(scratch);
+    });
+
+    it("calls preventDefault when info is open and an INPUT is focused", () => {
+      const wrapper = mountLightbox();
+      wrapper.vm.info = true;
+      const input = document.createElement("input");
+      scratch.appendChild(input);
+      input.focus();
+      const ev = { preventDefault: vi.fn() };
+      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
+      expect(ev.preventDefault).toHaveBeenCalledTimes(1);
+    });
+
+    it("calls preventDefault when info is open and a TEXTAREA is focused", () => {
+      const wrapper = mountLightbox();
+      wrapper.vm.info = true;
+      const ta = document.createElement("textarea");
+      scratch.appendChild(ta);
+      ta.focus();
+      const ev = { preventDefault: vi.fn() };
+      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
+      expect(ev.preventDefault).toHaveBeenCalledTimes(1);
+    });
+
+    // Note: isContentEditable behavior isn't reliably simulated by jsdom, so
+    // the contenteditable branch of onPswpKeyDown is exercised in the browser
+    // ui-tester run. The INPUT / TEXTAREA / non-editable / no-info / no-event
+    // cases here cover the predicate's two-class boundary in unit tests.
+    it("does NOT call preventDefault when info is closed even with input focused", () => {
+      const wrapper = mountLightbox();
+      wrapper.vm.info = false;
+      const input = document.createElement("input");
+      scratch.appendChild(input);
+      input.focus();
+      const ev = { preventDefault: vi.fn() };
+      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
+      expect(ev.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it("does NOT call preventDefault when focus is on a non-editable element", () => {
+      const wrapper = mountLightbox();
+      wrapper.vm.info = true;
+      const span = document.createElement("span");
+      span.tabIndex = 0;
+      scratch.appendChild(span);
+      span.focus();
+      const ev = { preventDefault: vi.fn() };
+      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
+      expect(ev.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it("tolerates a missing event argument", () => {
+      const wrapper = mountLightbox();
+      wrapper.vm.info = true;
+      expect(() => wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, undefined)).not.toThrow();
+    });
+
+    it("calls preventDefault on Tab when info is open (regardless of focus)", () => {
+      const wrapper = mountLightbox();
+      wrapper.vm.info = true;
+      const span = document.createElement("span");
+      span.tabIndex = 0;
+      scratch.appendChild(span);
+      span.focus();
+      const ev = { preventDefault: vi.fn(), originalEvent: { key: "Tab", code: "Tab" } };
+      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
+      expect(ev.preventDefault).toHaveBeenCalledTimes(1);
+    });
+
+    it("does NOT call preventDefault on Tab when info is closed", () => {
+      const wrapper = mountLightbox();
+      wrapper.vm.info = false;
+      const ev = { preventDefault: vi.fn(), originalEvent: { key: "Tab", code: "Tab" } };
+      wrapper.vm.$options.methods.onPswpKeyDown.call(wrapper.vm, ev);
+      expect(ev.preventDefault).not.toHaveBeenCalled();
+    });
   });
 
   it("getViewport falls back to window size without content ref", () => {
