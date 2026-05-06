@@ -138,10 +138,12 @@
                             single-line
                             flat
                             variant="plain"
+                            density="compact"
                             hide-details
                             hide-no-data
                             append-icon=""
                             menu-icon=""
+                            :menu-props="menuProps"
                             :list-props="{ density: 'compact' }"
                             class="input-label ma-0 pa-0"
                             @focus="loadLabelOptions"
@@ -205,6 +207,17 @@ export default {
       // clear newLabel/newLabelModel synchronously.
       menuOpen: false,
       suppressMenuOpen: false,
+      // location="bottom start" anchors the menu's start corner to the
+      // input's bottom-start (left edge in LTR, right edge in RTL —
+      // logical positioning, no manual RTL handling needed). Vuetify's
+      // v-combobox default is "bottom" (centered), which combined with
+      // a wider-than-input min-width pushes the dropdown leftward into
+      // the photo-thumbnail column. minWidth:0 lets the menu match the
+      // input's natural width instead of forcing a fixed minimum.
+      menuProps: {
+        location: "bottom start",
+        minWidth: 0,
+      },
       listColumns: [
         {
           title: this.$gettext("Label"),
