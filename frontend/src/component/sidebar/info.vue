@@ -188,6 +188,7 @@
               item-value="Name"
               :placeholder="$gettext('Name')"
               :menu-props="markerMenuProps"
+              :list-props="chipListProps"
               :readonly="markersBusy || !!m.SubjUID"
               :rules="[markerNameRule]"
               return-object
@@ -286,6 +287,7 @@
               append-icon=""
               autocomplete="off"
               :menu-props="chipMenuProps"
+              :list-props="chipListProps"
               class="meta-inline-edit"
               @update:model-value="onLabelSelected"
               @keydown.enter.stop.prevent="onLabelEnter"
@@ -344,6 +346,7 @@
               append-icon=""
               autocomplete="off"
               :menu-props="chipMenuProps"
+              :list-props="chipListProps"
               class="meta-inline-edit"
               @update:model-value="onAlbumSelected"
               @keydown.enter.stop="onAlbumEnter"
@@ -531,6 +534,12 @@ export default {
       },
       chipMenuProps: {
         class: "meta-inline-menu",
+      },
+      // Forwarded to the inner v-list of the combobox/autocomplete dropdown.
+      // density="compact" on the input itself only sizes the trigger field —
+      // list-props is the documented way to size the menu items themselves.
+      chipListProps: {
+        density: "compact",
       },
       discardDialog: {
         visible: false,
