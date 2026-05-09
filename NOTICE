@@ -9,7 +9,7 @@ The following 3rd-party software packages may be used by or distributed with
 PhotoPrism. Any information relevant to third-party vendors listed below are
 collected using common, reasonable means.
 
-Date generated: 2026-05-06
+Date generated: 2026-05-09
 
 ================================================================================
 
@@ -6542,8 +6542,8 @@ SOFTWARE.
 --------------------------------------------------------------------------------
 
 Package: github.com/tidwall/gjson
-Version: v1.18.0
-License: MIT (https://github.com/tidwall/gjson/blob/v1.18.0/LICENSE)
+Version: v1.19.0
+License: MIT (https://github.com/tidwall/gjson/blob/v1.19.0/LICENSE)
 
 The MIT License (MIT)
 
@@ -9025,8 +9025,8 @@ License: Apache-2.0 (https://github.com/go4org/go4/blob/a5071408f32f/LICENSE)
 --------------------------------------------------------------------------------
 
 Package: golang.org/x/crypto
-Version: v0.50.0
-License: BSD-3-Clause (https://cs.opensource.google/go/x/crypto/+/v0.50.0:LICENSE)
+Version: v0.51.0
+License: BSD-3-Clause (https://cs.opensource.google/go/x/crypto/+/v0.51.0:LICENSE)
 
 Copyright 2009 The Go Authors.
 
@@ -9059,8 +9059,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 
 Package: golang.org/x/image
-Version: v0.39.0
-License: BSD-3-Clause (https://cs.opensource.google/go/x/image/+/v0.39.0:LICENSE)
+Version: v0.40.0
+License: BSD-3-Clause (https://cs.opensource.google/go/x/image/+/v0.40.0:LICENSE)
 
 Copyright 2009 The Go Authors.
 
@@ -9093,8 +9093,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 
 Package: golang.org/x/mod/semver
-Version: v0.35.0
-License: BSD-3-Clause (https://cs.opensource.google/go/x/mod/+/v0.35.0:LICENSE)
+Version: v0.36.0
+License: BSD-3-Clause (https://cs.opensource.google/go/x/mod/+/v0.36.0:LICENSE)
 
 Copyright 2009 The Go Authors.
 
@@ -9127,8 +9127,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 
 Package: golang.org/x/net
-Version: v0.53.0
-License: BSD-3-Clause (https://cs.opensource.google/go/x/net/+/v0.53.0:LICENSE)
+Version: v0.54.0
+License: BSD-3-Clause (https://cs.opensource.google/go/x/net/+/v0.54.0:LICENSE)
 
 Copyright 2009 The Go Authors.
 
@@ -9229,8 +9229,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 
 Package: golang.org/x/sys
-Version: v0.43.0
-License: BSD-3-Clause (https://cs.opensource.google/go/x/sys/+/v0.43.0:LICENSE)
+Version: v0.44.0
+License: BSD-3-Clause (https://cs.opensource.google/go/x/sys/+/v0.44.0:LICENSE)
 
 Copyright 2009 The Go Authors.
 
@@ -9263,8 +9263,8 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 --------------------------------------------------------------------------------
 
 Package: golang.org/x/text
-Version: v0.36.0
-License: BSD-3-Clause (https://cs.opensource.google/go/x/text/+/v0.36.0:LICENSE)
+Version: v0.37.0
+License: BSD-3-Clause (https://cs.opensource.google/go/x/text/+/v0.37.0:LICENSE)
 
 Copyright 2009 The Go Authors.
 
