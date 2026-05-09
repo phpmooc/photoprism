@@ -84,7 +84,7 @@ function mountSidebar(options = {}) {
       ...global,
       stubs: { PMap: true, ...stubs },
       mocks: {
-        $view: { getData: () => legacy },
+        $view: { getData: () => legacy, enter: () => {}, leave: () => {}, isActive: () => true },
         ...mocks,
       },
     },
