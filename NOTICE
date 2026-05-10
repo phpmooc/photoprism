@@ -9,7 +9,7 @@ The following 3rd-party software packages may be used by or distributed with
 PhotoPrism. Any information relevant to third-party vendors listed below are
 collected using common, reasonable means.
 
-Date generated: 2026-05-09
+Date generated: 2026-05-10
 
 ================================================================================
 
@@ -4695,8 +4695,8 @@ SOFTWARE.
 --------------------------------------------------------------------------------
 
 Package: github.com/mattn/go-sqlite3
-Version: v1.14.42
-License: MIT (https://github.com/mattn/go-sqlite3/blob/v1.14.42/LICENSE)
+Version: v1.14.44
+License: MIT (https://github.com/mattn/go-sqlite3/blob/v1.14.44/LICENSE)
 
 The MIT License (MIT)
 
