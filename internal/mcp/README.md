@@ -6,7 +6,7 @@
 
 - **Transports:**
   - CLI: `photoprism mcp serve` (stdio, no auth; development and testing). The static-data contract documented under *Authorization* and *Extending the Tool Surface* below applies — write-capable tools MUST require a session token even on stdio.
-  - HTTP: `POST/GET/DELETE /api/v1/mcp` (Streamable HTTP, authenticated). Can be disabled via `--disable-mcp` / `PHOTOPRISM_DISABLE_MCP` / `DisableMCP` so the route responds with the standard 404 when an operator does not want the endpoint exposed. The flag is also surfaced to the frontend through `ClientConfig.Disable.MCP` (`disable.mcp`), letting the UI hide MCP-related controls while the endpoint is off.
+  - HTTP: `POST/GET/DELETE /api/v1/mcp` (Streamable HTTP, authenticated). Disabled together with the stdio transport via `--disable-mcp` / `PHOTOPRISM_DISABLE_MCP` / `DisableMCP`: the HTTP route responds with the standard 404 and `photoprism mcp serve` refuses to start (pass `--disable-mcp=false` on the command line to override for ad-hoc development runs). The flag is also surfaced to the frontend through `ClientConfig.Disable.MCP` (`disable.mcp`), letting the UI hide MCP-related controls while the endpoint is off.
 - **Authorization:** HTTP endpoint enforces the `ResourceMCP` ACL (admin plus the API client roles in every edition, manager in Pro/Portal); anonymous access is permitted in public mode for the currently registered read-only tools.
 - **Request Body Cap:** HTTP POST bodies are bounded at `MaxMCPRequestBytes` (currently `MaxMutationRequestBytes`, 256 KiB). Oversized requests receive the standard `413 Request Entity Too Large` response before the upstream SDK reads the body. Early rejection via `Content-Length` protects against large known-size payloads; `http.MaxBytesReader` plus a response-writer wrapper handle chunked bodies. The wrapper translates the SDK's internal `400 "failed to read body"` into a consistent `413` and suppresses the SDK's error phrasing so it does not leak to clients.
 - **Session Timeout:** Streamable HTTP sessions idle out after `McpSessionTimeout` (5 minutes by default). Active clients renew the idle timer on every JSON-RPC request, so interactive IDE use is unaffected; sessions abandoned without the `DELETE` tear-down free up promptly instead of lingering.
@@ -61,6 +61,12 @@ Start the MCP server over stdio:
 ```
 
 The process waits for an MCP client on stdin/stdout. Logs are written to stderr so the MCP message stream stays valid.
+
+When the running config has `DisableMCP=true` (via `options.yml`, `PHOTOPRISM_DISABLE_MCP`, or `--disable-mcp`), the command refuses to start with `mcp serve disabled by config; pass --disable-mcp=false to override`. Pass the override on the command line for ad-hoc development runs without flipping the operator-facing setting:
+
+```bash
+./photoprism --disable-mcp=false mcp serve
+```
 
 ### Run via HTTP
 
