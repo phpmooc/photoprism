@@ -1,7 +1,7 @@
 ## Safety & Data
 
 - If `git status` shows unexpected changes, assume a human might be editing; ask before using reset commands like `git checkout` or `git reset`.
-- Do not run `git config` (global or repo-level); changing Git configuration is prohibited for agents.
+- Do not run `git config` (global or repo-level); changing Git configuration is prohibited for agents. Nested subrepos (e.g. `specs/`) may lack a configured committer identity — pass `-c user.email=… -c user.name=…` to the specific `git commit` invocation rather than configuring the repo.
 - Do not run destructive commands against production data. Prefer ephemeral volumes and test fixtures for acceptance tests.
 - Never commit secrets, local configurations, or cache files. Use environment variables or a local `.env`. Ensure `.env`, `.config`, `.local`, `.codex`, and `.gocache` are in `.gitignore` and `.dockerignore`.
 - Prefer existing caches, workers, and batching strategies in code and `Makefile`. Consider memory/CPU impact of changes; only suggest benchmarks or profiling when justified.
