@@ -27,6 +27,7 @@ const validationConfig = {
 const validationUtil = {
   normalizeTitle: (s) => $util.normalizeTitle(s),
   formatCamera: (camera, id, make, model, long) => $util.formatCamera(camera, id, make, model, long),
+  typeName: (type, defaultValue) => $util.typeName(type, defaultValue),
   encodeHTML: (s) => s,
   sanitizeHtml: (s) => s,
   hasTouch: () => false,
@@ -232,18 +233,18 @@ describe("PSidebarInfo component", () => {
   });
 
   it("should not render an icon or pencil next to the filename", () => {
-    const fileRow = wrapper.find(".metadata__file");
+    const fileRow = wrapper.find(".metadata__file-name");
     expect(fileRow.exists()).toBe(true);
+    // The whole point of this row is to print the filename inline with
+    // no edit/decorative affordance — no inline pencil, no v-icon.
     expect(fileRow.find(".meta-inline-pencil").exists()).toBe(false);
-    const filename = fileRow.find(".meta-filename");
-    expect(filename.exists()).toBe(true);
-    expect(filename.find(".v-icon").exists()).toBe(false);
+    expect(fileRow.find(".v-icon").exists()).toBe(false);
+    expect(fileRow.text()).toContain(mockPhoto.FileName);
   });
 
-  it("should render file info row with a prepend icon like Taken/Camera", () => {
+  it("should render file info row with the file metadata text", () => {
     const html = wrapper.html();
     expect(html).toContain("JPEG, 1920 × 1080, 4.2 MB");
-    expect(html).toContain("mdi-image-outline");
   });
 
   it("should emit close event when close button is clicked", async () => {
@@ -2472,7 +2473,10 @@ describe("PSidebarInfo component", () => {
       const w = mountRestricted(true);
       const html = w.html();
 
-      expect(w.find(".metadata__file").exists()).toBe(false);
+      // file-info row (type + dimensions + size) stays visible for
+      // restricted sessions per the parallel "renders permitted fields"
+      // test above; only the file-name row (path) is gated off.
+      expect(w.find(".metadata__file-name").exists()).toBe(false);
       expect(html).not.toContain("photos/2023/IMG_001.jpg");
 
       expect(html).not.toContain("Canon EOS R5");
@@ -2535,6 +2539,36 @@ describe("PSidebarInfo component", () => {
       });
       expect(w.vm.fileInfo).toBe("JPEG\u20034.0MP\u20034032\u2009\u00d7\u20093024");
       expect(thumbModel.getTypeInfo).toHaveBeenCalled();
+    });
+
+    // fileTypeName drives the file-row tooltip \u2014 Image, Raw, Video, etc.
+    // The setup.js mock for $util.typeName echoes the type value for known
+    // strings and falls back to defaultValue when type is empty.
+    it("fileTypeName resolves the photo Type through $util.typeName", () => {
+      const w = mountSidebar({
+        props: {
+          modelValue: mockModel,
+          photo: { ...mockPhoto, Type: "raw" },
+          canEdit: false,
+          context: contexts.Photos,
+        },
+        global: { stubs: { PMap: true } },
+      });
+      expect(w.vm.fileTypeName).toBe("raw");
+    });
+
+    it("fileTypeName falls back to the generic File label when Type is empty", () => {
+      const thumbModel = { ...mockModel, Type: "" };
+      const w = mountSidebar({
+        props: {
+          modelValue: thumbModel,
+          photo: null,
+          canEdit: false,
+          context: contexts.Photos,
+        },
+        global: { stubs: { PMap: true } },
+      });
+      expect(w.vm.fileTypeName).toBe("File");
     });
   });
 
@@ -2731,7 +2765,10 @@ describe("PSidebarInfo component", () => {
         ]) {
           expect(html).toContain(needle);
         }
-        expect(w.find(".metadata__file").exists()).toBe(true);
+        // Editable users see both the file-info row (type + size) and
+        // the file-name row (path).
+        expect(w.find(".metadata__file-info").exists()).toBe(true);
+        expect(w.find(".metadata__file-name").exists()).toBe(true);
       });
 
       it("renders pencil icons and face-marker controls", () => {
@@ -2756,8 +2793,12 @@ describe("PSidebarInfo component", () => {
         expect(html).toContain(TEXT.caption);
         expect(html).toContain("JPEG, 1920 x 1080, 4.2 MB");
         expect(html).toContain("52.5200, 13.4050");
+        // The file-info row (type + dimensions + size) is shared with
+        // restricted sessions; the file-name row (path) is gated behind
+        // `!restrictedRole` and must not render here.
+        expect(w.find(".metadata__file-info").exists()).toBe(true);
         // Deny-list.
-        expect(w.find(".metadata__file").exists()).toBe(false);
+        expect(w.find(".metadata__file-name").exists()).toBe(false);
         for (const needle of [
           TEXT.filename,
           TEXT.camera,
@@ -2841,9 +2882,11 @@ describe("PSidebarInfo component", () => {
       const prompts = w.findAll(".meta-add-prompt");
       expect(prompts.length).toBeGreaterThanOrEqual(5);
       // At least title, caption, keywords, notes, subject are all expected.
+      // Title/Caption use a "Add a <Field>" affordance label; the others
+      // surface the bare field name as the prompt.
       const texts = prompts.map((p) => p.text());
-      expect(texts).toContain("Title");
-      expect(texts).toContain("Caption");
+      expect(texts).toContain("Add a Title");
+      expect(texts).toContain("Add a Caption");
       expect(texts).toContain("Keywords");
       expect(texts).toContain("Notes");
       expect(texts).toContain("Subject");

@@ -260,4 +260,30 @@ describe("common/util", () => {
       expect($util.normalizeTitle(undefined)).toBe("");
     });
   });
+
+  describe("typeName", () => {
+    it("returns the localized label for known media types", () => {
+      expect($util.typeName("image")).toBe("Image");
+      expect($util.typeName("raw")).toBe("Raw");
+      expect($util.typeName("live")).toBe("Live");
+      expect($util.typeName("video")).toBe("Video");
+      expect($util.typeName("audio")).toBe("Audio");
+      expect($util.typeName("animated")).toBe("Animated");
+      expect($util.typeName("vector")).toBe("Vector");
+      expect($util.typeName("document")).toBe("Document");
+      expect($util.typeName("sidecar")).toBe("Sidecar");
+    });
+    it("falls back to defaultValue for unknown type", () => {
+      expect($util.typeName("unknown", "File")).toBe("File");
+    });
+    it("falls back to defaultValue for empty/null/undefined input", () => {
+      expect($util.typeName("", "File")).toBe("File");
+      expect($util.typeName(null, "File")).toBe("File");
+      expect($util.typeName(undefined, "File")).toBe("File");
+    });
+    it("returns empty string when no defaultValue and unknown type", () => {
+      expect($util.typeName("unknown")).toBe("");
+      expect($util.typeName(null)).toBe("");
+    });
+  });
 });

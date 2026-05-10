@@ -108,6 +108,7 @@ config.global.mocks = {
     formatRemainingSeconds: () => "0",
     formatCamera: (camera, id, make, model) => [make, model].filter(Boolean).join(" "),
     normalizeTitle: (s) => (s || "").toLowerCase().trim(),
+    typeName: (type, defaultValue) => (type ? String(type) : defaultValue !== undefined ? defaultValue : ""),
     videoFormat: () => "avc",
     videoFormatUrl: () => "/v.mp4",
     thumb: () => ({ src: "/t.jpg", w: 100, h: 100 }),

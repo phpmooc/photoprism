@@ -823,6 +823,35 @@ export default class $util {
     }
   }
 
+  // typeName returns the localized label for a media type value
+  // (the same `value` field used by options/options.js#PhotoTypes).
+  // Returns `defaultValue` (or the empty string) for unknown / missing
+  // types so callers can fall back to a generic label like "File".
+  static typeName(type, defaultValue) {
+    switch (type) {
+      case media.Image:
+        return $gettext("Image");
+      case media.Raw:
+        return $gettext("Raw");
+      case media.Live:
+        return $gettext("Live");
+      case media.Video:
+        return $gettext("Video");
+      case media.Audio:
+        return $gettext("Audio");
+      case media.Animated:
+        return $gettext("Animated");
+      case media.Vector:
+        return $gettext("Vector");
+      case media.Document:
+        return $gettext("Document");
+      case media.Sidecar:
+        return $gettext("Sidecar");
+      default:
+        return defaultValue !== undefined ? defaultValue : "";
+    }
+  }
+
   // sourceName returns the localized label for a metadata source.
   static sourceName(src, defaultValue) {
     switch (src) {

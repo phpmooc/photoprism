@@ -12,7 +12,6 @@
             v-if="editingField === 'title'"
             :ref="setInlineEditorRef"
             v-model="photo.Title"
-            :placeholder="$pgettext('Photo', 'Title')"
             :rules="[textRule]"
             variant="plain"
             density="compact"
@@ -24,7 +23,7 @@
             @blur="onInlineFieldBlur"
           ></v-text-field>
           <div v-else-if="model.Title" class="text-subtitle-2 meta-title">{{ model.Title }}</div>
-          <div v-else class="meta-add-prompt" @click.stop="startEditing('title')">{{ $pgettext("Photo", "Title") }}</div>
+          <div v-else class="meta-add-prompt" @click.stop="startEditing('title')">{{ $pgettext("Photo", "Add a Title") }}</div>
           <template v-if="isEditable" #append>
             <v-icon
               v-if="editingField === 'title'"
@@ -44,7 +43,6 @@
             v-if="editingField === 'caption'"
             :ref="setInlineEditorRef"
             v-model="photo.Caption"
-            :placeholder="$gettext('Caption')"
             variant="plain"
             density="compact"
             auto-grow
@@ -57,7 +55,7 @@
           ></v-textarea>
           <!-- eslint-disable-next-line vue/no-v-html -- captionHtml is encode-then-sanitized via $util.sanitizeHtml($util.encodeHTML(raw)); see captionHtml() computed -->
           <div v-else-if="model.Caption" class="text-body-2 meta-caption meta-scrollable" v-html="captionHtml"></div>
-          <div v-else class="meta-add-prompt" @click.stop="startEditing('caption')">{{ $gettext("Caption") }}</div>
+          <div v-else class="meta-add-prompt" @click.stop="startEditing('caption')">{{ $gettext("Add a Caption") }}</div>
           <template v-if="isEditable" #append>
             <v-icon
               v-if="editingField === 'caption'"
@@ -73,13 +71,14 @@
 
         <v-divider v-if="editingField === 'title' || editingField === 'caption' || model.Title || model.Caption || isEditable" class="my-4"></v-divider>
 
-        <v-list-item v-if="!restrictedRole && fileName" class="metadata__item metadata__file">
-          <div class="meta-filename" :title="fileName">{{ fileName }}</div>
+        <v-list-item v-if="fileInfo" v-tooltip="fileTypeName" class="metadata__item metadata__file-info text-body-2">
+          <span class="break-word">{{ fileInfo }}</span>
+        </v-list-item>
+        <v-list-item v-if="!restrictedRole && fileName" class="metadata__item metadata__file-name text-body-2">
+          <span class="break-word">{{ fileName }}</span>
         </v-list-item>
 
-        <v-list-item v-if="fileInfo" v-tooltip="$gettext('File')" :title="fileInfo" :prepend-icon="fileIcon" class="metadata__item"></v-list-item>
-
-        <v-divider v-if="(!restrictedRole && fileName) || fileInfo" class="my-4"></v-divider>
+        <v-divider v-if="(!restrictedRole && fileName) || fileInfo" class="mt-3 mb-4"></v-divider>
 
         <v-list-item v-tooltip="$gettext(`Taken`)" :title="formatTime(model)" prepend-icon="mdi-calendar" class="metadata__item">
           <template v-if="isEditable" #append>
@@ -440,7 +439,6 @@
       icon="mdi-account-plus"
       :icon-size="42"
       :text="addNameDialog.name ? $gettext('Add %{s}?', { s: addNameDialog.name }) : $gettext('Add person?')"
-      confirm-color="info"
       @close="onAddNameCancel"
       @confirm="onAddNameConfirm"
     ></p-confirm-dialog>
@@ -789,23 +787,13 @@ export default {
       }
       return "";
     },
-    fileIcon() {
-      switch (this.photo?.Type || this.model?.Type) {
-        case media.Raw:
-          return "mdi-raw";
-        case media.Video:
-          return "mdi-video";
-        case media.Live:
-          return "mdi-play-circle-outline";
-        case media.Animated:
-          return "mdi-file-gif-box";
-        case media.Vector:
-          return "mdi-vector-polyline";
-        case media.Document:
-          return "mdi-file-pdf-box";
-        default:
-          return "mdi-image-outline";
-      }
+    // Localized media type label for the file row's tooltip. Falls back
+    // to the generic "File" label so the tooltip never reads as empty
+    // when the photo's Type is unknown or the row is rendered for a
+    // restricted-role model that doesn't expose Type.
+    fileTypeName() {
+      const type = this.photo?.Type || this.model?.Type;
+      return this.$util.typeName(type, this.$gettext("File"));
     },
   },
   watch: {

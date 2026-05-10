@@ -114,7 +114,8 @@
                 {{ $gettext("Cancel") }}
               </v-btn>
               <v-btn
-                color="info"
+                variant="flat"
+                color="highlight"
                 min-width="120"
                 class="action-confirm"
                 :disabled="!(currentLat !== null && currentLng !== null) || locationLoading"
