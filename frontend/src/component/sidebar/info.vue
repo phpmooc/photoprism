@@ -320,19 +320,19 @@
             </div>
           </v-list-item>
           <v-list-item v-if="isEditable" class="metadata__item meta-albums">
-            <v-autocomplete
+            <v-combobox
               :key="chipState.albums.key"
               v-model="chipState.albums.input"
               v-model:search="chipState.albums.search"
               :items="chipState.albums.options"
               item-title="Title"
-              item-value="UID"
+              item-value="Title"
+              return-object
               :placeholder="$gettext('Add to album')"
               variant="plain"
               density="compact"
               hide-details
               hide-no-data
-              return-object
               append-icon=""
               autocomplete="off"
               :menu-props="chipMenuProps"
@@ -340,9 +340,9 @@
               class="meta-inline-edit"
               @focus="loadChipOptions('albums')"
               @update:model-value="onAlbumSelected"
-              @keydown.enter.stop="onAlbumEnter"
+              @keydown.enter.stop.prevent="onAlbumEnter"
               @keydown.escape.stop.prevent="onChipEscape('albums')"
-            ></v-autocomplete>
+            ></v-combobox>
           </v-list-item>
         </template>
 
@@ -1211,7 +1211,12 @@ export default {
         typeaheadCache
           .getAlbums()
           .then((models) => {
-            this.chipState.albums.options = models.slice().sort(collator("Title"));
+            // Map to plain {Title, UID} objects so v-combobox doesn't
+            // try to track the rich Album model instance internally —
+            // its reactive metadata (getters, methods, _request slots)
+            // breaks v-combobox's input handling and the user can't
+            // type. Mirrors the labels mapping above.
+            this.chipState.albums.options = models.map((a) => ({ Title: a.Title, UID: a.UID })).sort(collator("Title"));
           })
           .catch(() => {});
       }
@@ -1406,10 +1411,14 @@ export default {
       }
     },
     onAlbumSelected(value) {
-      if (!value || typeof value !== "object" || !value.UID) {
-        this.clearChipInput("albums");
-        return;
-      }
+      // v-combobox emits update:model-value transiently while the user
+      // types free text (the model can momentarily flip to a string or
+      // a Title-only stub before settling). Bail silently on anything
+      // that isn't a real album object — clearing the input here would
+      // bump chipState.albums.key, force-remount the v-combobox, and
+      // kill focus mid-keystroke. Free-text Enter is committed via
+      // onAlbumEnter, which owns the canonical clear path.
+      if (!value || typeof value !== "object" || !value.UID) return;
       this.addAlbumImmediate(value);
       this.clearChipInput("albums");
     },
@@ -1433,23 +1442,15 @@ export default {
       // Normalized exact-match against the full known-albums list first.
       // normalizeTitle ignores case, strips punctuation, and treats
       // `+` / `_` / `-` as space, so `Hello Cat`, `hello-cat`, and
-      // `hello.CAT` all resolve to the same canonical album. This match
-      // mirrors the Labels validation pipeline and avoids the spurious
-      // substring merges (e.g. typing `ar` matching `Berlin`) that the
-      // legacy startsWith/includes fallback below produced for short input.
+      // `hello.CAT` all resolve to the same canonical album. This mirrors
+      // the Labels validation pipeline. Substring fuzzy matching is
+      // intentionally NOT applied here — typing `test` must not silently
+      // merge into an existing `LRUTEST-ALBUM-…`. Users pick partial
+      // matches via the dropdown (click or arrow-key + Enter on a
+      // highlighted item, which fires `onAlbumSelected`).
       const exactMatch = options.find((a) => this.$util.normalizeTitle(a.Title) === norm);
       if (exactMatch) {
         this.onAlbumSelected(exactMatch);
-        return;
-      }
-
-      // Fuzzy fallback: only kicks in when no normalized exact match
-      // exists. Useful for partial typing where the user expects the
-      // dropdown's leading-prefix suggestion to be picked up by Enter.
-      const lower = search.toLowerCase();
-      const fuzzyMatch = options.find((a) => a.Title.toLowerCase().startsWith(lower)) || options.find((a) => a.Title.toLowerCase().includes(lower));
-      if (fuzzyMatch) {
-        this.onAlbumSelected(fuzzyMatch);
         return;
       }
 

@@ -730,8 +730,19 @@ let themes = {
       "surface": "#040709",
       "on-surface": "#ffffff",
       "surface-bright": "#141417",
-      "surface-variant": "#242628",
-      "on-surface-variant": "#f6f6f6",
+      // Contrasting muted grey, used as a text/foreground tone (NOT a
+      // raised surface). Vuetify defaults wire `text-surface-variant`
+      // onto v-combobox/v-autocomplete active rows, v-tab sliders,
+      // outlined alerts, and many `color="surface-variant"` icon/badge
+      // props (see component/defaults.js); the token must therefore
+      // read cleanly against the lightbox's near-black surface AND the
+      // lifted `selected` (#3d3f40) row background. A dark value here
+      // (the previous #242628) blended into the active-row bg and made
+      // matched dropdown items invisible. For raised surfaces inside
+      // the lightbox tree, bind `surface-bright` (#141417) or
+      // `secondary-light` (#1e1e1e) instead.
+      "surface-variant": "#bdbdbd",
+      "on-surface-variant": "#1c1c1c",
       "card": "#171717",
       // Mirrors highlight so Vuetify-internal selection surfaces (active
       // list item, autocomplete-active row, on-selected fallback in

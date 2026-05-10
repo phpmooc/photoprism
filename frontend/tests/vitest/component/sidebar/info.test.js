@@ -2078,6 +2078,24 @@ describe("PSidebarInfo component", () => {
     expect(mockPhoto.addToAlbum).not.toHaveBeenCalled();
   });
 
+  // v-combobox emits transient update:model-value events while the user
+  // types free text. Clearing the input here would bump chipState.albums.key,
+  // force-remount the combobox, and kill focus mid-keystroke. The non-object
+  // path must be a silent no-op so typing into the album combobox stays
+  // usable. Mirrors onLabelSelected.
+  it("should not clear chipState.albums on transient non-object onAlbumSelected", () => {
+    const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
+    w.vm.chipState.albums.search = "test";
+    w.vm.chipState.albums.input = "test";
+    const initialKey = w.vm.chipState.albums.key;
+    w.vm.onAlbumSelected("test");
+    w.vm.onAlbumSelected(null);
+    w.vm.onAlbumSelected({ Title: "test" }); // free-text stub without UID
+    expect(w.vm.chipState.albums.search).toBe("test");
+    expect(w.vm.chipState.albums.input).toBe("test");
+    expect(w.vm.chipState.albums.key).toBe(initialKey);
+  });
+
   it("should skip albums already on the photo in onAlbumSelected", () => {
     const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
     w.vm.onAlbumSelected({ UID: "alb1", Title: "Vacation 2023" });
@@ -2150,27 +2168,32 @@ describe("PSidebarInfo component", () => {
     expect(w.vm.$notify.error).toHaveBeenCalledWith("Failed to save changes");
   });
 
-  // L1: onAlbumEnter should pick up an existing album by normalized exact
-  // match (case + punctuation + `+`/`_`/`-` → space) BEFORE falling back to
-  // fuzzy substring matching. This avoids the silent-merge spurious matches
-  // the legacy `.startsWith` / `.includes` chain produced for short input
-  // (e.g. typing `ar` silently merging into an existing `Berlin`).
-  it("onAlbumEnter prefers a normalized exact match in albumOptions over fuzzy", () => {
-    const saveSpy = vi.spyOn(Album.prototype, "save").mockResolvedValue();
+  // onAlbumEnter resolves typed text to an existing album only via a
+  // normalized exact match (case + punctuation + `+`/`_`/`-` → space).
+  // Substring fuzzy matching is intentionally NOT applied — typing `test`
+  // must not silently merge into an unrelated `LRUTEST-ALBUM-…`. Users pick
+  // partial matches via the dropdown (click or arrow + Enter on a
+  // highlighted item, which fires `onAlbumSelected`).
+  it("onAlbumEnter creates a new album when typed text only fuzzy-matches existing options", async () => {
+    const saveSpy = vi.spyOn(Album.prototype, "save").mockImplementation(function () {
+      this.UID = "alb-new-ar";
+      return Promise.resolve(this);
+    });
     const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
     w.vm.chipState.albums.options = [
       { UID: "alb-berlin", Title: "Berlin" },
       { UID: "alb-archive", Title: "Archive" },
       { UID: "alb-arctic", Title: "Arctic" },
     ];
-    // `ar` would historically `.startsWith`-match "Archive" (or `.includes`
-    // "Berlin") and silently merge — neither is a normalized exact match.
-    // The user expectation is to fall through to fuzzy and pick `Archive`.
+    // `ar` is a substring of "Archive"/"Arctic"/"Berlin" but NOT a
+    // normalized exact match for any of them. The legacy fuzzy fallback
+    // would have silently merged into "Archive"; the new behavior creates
+    // a fresh "ar" album to mirror the labels combobox's free-text path.
     w.vm.chipState.albums.search = "ar";
     w.vm.onAlbumEnter();
-    // No exact normalized match → fuzzy startsWith picks "Archive".
-    expect(mockPhoto.addToAlbum).toHaveBeenCalledWith("alb-archive");
-    expect(saveSpy).not.toHaveBeenCalled();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+    expect(mockPhoto.addToAlbum).toHaveBeenCalledWith("alb-new-ar");
     saveSpy.mockRestore();
   });
 
@@ -2193,17 +2216,38 @@ describe("PSidebarInfo component", () => {
     saveSpy.mockRestore();
   });
 
-  it("onAlbumEnter falls through to fuzzy match when no normalized exact match exists", () => {
-    const saveSpy = vi.spyOn(Album.prototype, "save").mockResolvedValue();
+  it("onAlbumEnter creates a new album for substring-only matches instead of merging", async () => {
+    const saveSpy = vi.spyOn(Album.prototype, "save").mockImplementation(function () {
+      this.UID = "alb-new-summer";
+      return Promise.resolve(this);
+    });
     const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
     w.vm.chipState.albums.options = [{ UID: "alb-summer-2023", Title: "Summer 2023" }];
-    // `summer` is a substring prefix of "Summer 2023" but not a normalized
-    // exact match (norm("summer") !== norm("Summer 2023")), so the fuzzy
-    // fallback picks it up.
+    // `summer` is a substring of "Summer 2023" but not a normalized exact
+    // match — typing it and pressing Enter must create a fresh "summer"
+    // album, not silently add the photo to "Summer 2023".
     w.vm.chipState.albums.search = "summer";
     w.vm.onAlbumEnter();
-    expect(mockPhoto.addToAlbum).toHaveBeenCalledWith("alb-summer-2023");
-    expect(saveSpy).not.toHaveBeenCalled();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+    expect(mockPhoto.addToAlbum).toHaveBeenCalledWith("alb-new-summer");
+    saveSpy.mockRestore();
+  });
+
+  // Regression test for the reported bug: typing "test" must not match an
+  // existing album whose title contains "test" as a substring.
+  it("onAlbumEnter creates a new album when typed text appears as a substring of an existing title", async () => {
+    const saveSpy = vi.spyOn(Album.prototype, "save").mockImplementation(function () {
+      this.UID = "alb-new-test";
+      return Promise.resolve(this);
+    });
+    const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
+    w.vm.chipState.albums.options = [{ UID: "alb-lrutest", Title: "LRUTEST-ALBUM-1777990015505" }];
+    w.vm.chipState.albums.search = "test";
+    w.vm.onAlbumEnter();
+    await new Promise((r) => setTimeout(r, 0));
+    expect(saveSpy).toHaveBeenCalledTimes(1);
+    expect(mockPhoto.addToAlbum).toHaveBeenCalledWith("alb-new-test");
     saveSpy.mockRestore();
   });
 

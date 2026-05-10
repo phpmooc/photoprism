@@ -547,6 +547,22 @@
     line-height: 1.25rem;
 }
 
+/* The lightbox theme's `surface-variant` is a light grey (read by Vuetify
+   defaults onto v-combobox active rows, v-tab sliders, and many
+   `color="surface-variant"` props), so tooltips — which Vuetify paints at
+   `bg-surface-variant` — would render with a near-white background that
+   reads as a foreign light block over the near-black sidebar. Flip the
+   pair for tooltips only: use the dark `on-surface-variant` as the
+   surface and the light `surface-variant` as the text, giving a tooltip
+   that matches the dark, lifted-surface aesthetic of the rest of the
+   sidebar (cards, dialogs, dropdown menus). Tooltips are body-teleported,
+   so the lightbox theme class lands on the popper itself; scope the
+   override there rather than a page-level ancestor. */
+.v-tooltip.v-theme--lightbox > .v-overlay__content {
+    background: rgb(var(--v-theme-on-surface-variant));
+    color: rgb(var(--v-theme-surface-variant));
+}
+
 /* Media Content */
 
 .pswp__content {
