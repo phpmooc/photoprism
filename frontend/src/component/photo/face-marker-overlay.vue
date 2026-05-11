@@ -148,11 +148,11 @@ export default {
   },
   mounted() {
     this.attachPswpListeners();
+    this.attachImageLoadListener();
     this.scheduleUpdate();
 
     this.onWindowResize = () => this.scheduleUpdate();
     window.addEventListener("resize", this.onWindowResize);
-    window.addEventListener("keydown", this.onKeyDown);
 
     if (typeof ResizeObserver === "function") {
       this.resizeObserver = new ResizeObserver(() => this.scheduleUpdate());
@@ -163,8 +163,8 @@ export default {
   },
   beforeUnmount() {
     this.detachPswpListeners();
+    this.detachImageLoadListener();
     window.removeEventListener("resize", this.onWindowResize);
-    window.removeEventListener("keydown", this.onKeyDown);
     window.removeEventListener("pointermove", this.onPointerMove);
     window.removeEventListener("pointerup", this.onPointerUp);
     window.removeEventListener("pointercancel", this.onPointerUp);
@@ -188,10 +188,37 @@ export default {
       }
       return null;
     },
+    // Subscribes to the image's `load` event so updateBounds is called once
+    // `naturalWidth/naturalHeight` become available. The letterbox math
+    // relies on those intrinsic dimensions, and the <img> for video / live
+    // slides is added without explicit dims — so bounds computed before
+    // `load` would fall back to the box rect.
+    attachImageLoadListener() {
+      const img = this.imageElement();
+      if (!img) {
+        this._loadListenedImg = null;
+        return;
+      }
+      if (this._loadListenedImg === img) return;
+      this.detachImageLoadListener();
+      this._loadListenedImg = img;
+      this._onImgLoad = () => this.scheduleUpdate();
+      img.addEventListener("load", this._onImgLoad);
+    },
+    detachImageLoadListener() {
+      if (this._loadListenedImg && this._onImgLoad) {
+        this._loadListenedImg.removeEventListener("load", this._onImgLoad);
+      }
+      this._loadListenedImg = null;
+      this._onImgLoad = null;
+    },
     attachPswpListeners() {
       if (!this.pswp || typeof this.pswp.on !== "function") return;
       this._onZoomPan = () => this.scheduleUpdate();
-      this._onChange = () => this.scheduleUpdate();
+      this._onChange = () => {
+        this.attachImageLoadListener();
+        this.scheduleUpdate();
+      };
       this._onResize = () => this.scheduleUpdate();
       this.pswp.on("zoomPanUpdate", this._onZoomPan);
       this.pswp.on("change", this._onChange);
@@ -226,10 +253,42 @@ export default {
         if (this.bounds !== null) this.bounds = null;
         return;
       }
-      const left = imgRect.left - parentRect.left;
-      const top = imgRect.top - parentRect.top;
-      const width = imgRect.width;
-      const height = imgRect.height;
+      // For video / live / animated slides, the <img class="pswp__image">
+      // takes the slide container's box (e.g. 980×900) via CSS
+      // `width: auto; height: 100%; max-width: 100%; max-height: 100vh;
+      // object-fit: contain`. The pixel content is letterboxed inside that
+      // box but `getBoundingClientRect()` returns the BOX, not the inscribed
+      // image rect. Face-marker X/Y/W/H are normalized against the original
+      // image aspect ratio, so applying them to the box height would stretch
+      // the markers across the letterbox bars (faces look TALL).
+      //
+      // Compute the inscribed rect from the natural aspect ratio. For image
+      // slides where PhotoSwipe sizes the <img> exactly to the displayed
+      // dimensions, this math is a no-op (boxRatio matches naturalRatio).
+      let left = imgRect.left - parentRect.left;
+      let top = imgRect.top - parentRect.top;
+      let width = imgRect.width;
+      let height = imgRect.height;
+      const nW = img.naturalWidth || 0;
+      const nH = img.naturalHeight || 0;
+      if (nW > 0 && nH > 0) {
+        const naturalRatio = nW / nH;
+        const boxRatio = width / height;
+        const tol = 0.001;
+        if (Math.abs(naturalRatio - boxRatio) > tol) {
+          if (naturalRatio > boxRatio) {
+            // image wider than box → letterbox top + bottom
+            const inscribedH = width / naturalRatio;
+            top += (height - inscribedH) / 2;
+            height = inscribedH;
+          } else {
+            // image taller than box → pillarbox left + right
+            const inscribedW = height * naturalRatio;
+            left += (width - inscribedW) / 2;
+            width = inscribedW;
+          }
+        }
+      }
       // Skip the assignment when nothing changed so Vue does not rerender the
       // SVG children on every zoomPanUpdate tick while the image is idle.
       const b = this.bounds;
@@ -413,18 +472,23 @@ export default {
       this.pending = null;
       this.hoverCursor = null;
     },
-    onKeyDown(ev) {
-      if (ev.key !== "Escape") return;
-
+    // Cancels in-progress draw / move / resize interactions and clears any
+    // unconfirmed pending rectangle without exiting draw mode. Returns
+    // true when the overlay consumed the Escape (caller should NOT also
+    // exit draw mode or close the lightbox); false when the overlay had
+    // nothing pending, leaving the caller free to decide. Called by the
+    // lightbox's `onEscapeKey()` via the `faceMarkerOverlay` ref — see
+    // `frontend/src/common/README.md` for the documented keyboard
+    // pattern (Vuetify v-dialog `@keydown.esc.exact` + `onShortCut`).
+    handleEscape() {
       if (this.interaction === "draw") {
         this.interaction = null;
         this.pointerId = null;
         this.dragStart = null;
         this.draft = null;
         this.detachWindowPointerListeners();
-        return;
+        return true;
       }
-
       if (this.interaction === "move" || this.interaction === "resize") {
         const snapshot = this.dragStart && this.dragStart.pending;
         if (snapshot) this.pending = { ...snapshot };
@@ -433,14 +497,13 @@ export default {
         this.pointerId = null;
         this.dragStart = null;
         this.detachWindowPointerListeners();
-        return;
+        return true;
       }
-
       if (this.pending) {
         this.pending = null;
-        return;
+        return true;
       }
-      this.$emit("cancel");
+      return false;
     },
     stopEventFromPswp(ev) {
       if (typeof ev.stopPropagation === "function") ev.stopPropagation();

@@ -289,7 +289,8 @@ describe("PFaceMarkerOverlay", () => {
     wrapper.vm.onPointerUp({ pointerId: 14 });
     expect(wrapper.vm.pending).not.toBeNull();
 
-    wrapper.vm.onKeyDown({ key: "Escape" });
+    const consumed = wrapper.vm.handleEscape();
+    expect(consumed).toBe(true);
     expect(wrapper.vm.pending).toBeNull();
     expect(onCancel).not.toHaveBeenCalled();
   });
@@ -367,17 +368,73 @@ describe("PFaceMarkerOverlay", () => {
     wrapper.vm.onPointerMove({ pointerId: 6, clientX: 300, clientY: 250 });
     expect(wrapper.vm.interaction).toBe("draw");
 
-    wrapper.vm.onKeyDown({ key: "Escape" });
+    const consumed = wrapper.vm.handleEscape();
+    expect(consumed).toBe(true);
     expect(wrapper.vm.interaction).toBeNull();
     expect(wrapper.vm.draft).toBeNull();
     expect(onCreate).not.toHaveBeenCalled();
   });
 
-  it("emits cancel on Escape when not drafting", () => {
-    const onCancel = vi.fn();
-    const { wrapper } = mountOverlay({}, { onCancel });
-    wrapper.vm.onKeyDown({ key: "Escape" });
-    expect(onCancel).toHaveBeenCalledTimes(1);
+  // handleEscape returns false when there is no in-flight interaction
+  // and no pending rect — the lightbox uses this signal to decide
+  // whether to exit draw mode or close the lightbox.
+  it("handleEscape returns false when there is nothing to cancel", () => {
+    const { wrapper } = mountOverlay();
+    expect(wrapper.vm.handleEscape()).toBe(false);
+  });
+
+  // Letterbox math: when the <img> element's box dimensions don't match
+  // the image's natural aspect ratio (typical for video / Live / Animated
+  // slides where the JPG cover is CSS-stretched), updateBounds must inset
+  // by the letterbox / pillarbox bars so markers render against the
+  // inscribed image rect, not the full element box.
+  it("insets bounds for top/bottom letterboxing when image is wider than its box", () => {
+    const { wrapper, pswp } = mountOverlay();
+    // Box is 400×300 (4:3); intrinsic image is 16:9 (e.g. 480×270).
+    // Inscribed image inside the box: width=400, height=400/(16/9)≈225,
+    // top offset = (300-225)/2 = 37.5.
+    pswp.img.getBoundingClientRect = () => ({ left: 100, top: 50, width: 400, height: 300, right: 500, bottom: 350 });
+    Object.defineProperty(pswp.img, "naturalWidth", { value: 480, configurable: true });
+    Object.defineProperty(pswp.img, "naturalHeight", { value: 270, configurable: true });
+    wrapper.vm.updateBounds();
+    const b = wrapper.vm.bounds;
+    expect(b.left).toBe(100);
+    expect(b.width).toBe(400);
+    expect(b.top).toBeCloseTo(50 + 37.5, 3);
+    expect(b.height).toBeCloseTo(225, 3);
+  });
+
+  it("insets bounds for left/right pillarboxing when image is taller than its box", () => {
+    const { wrapper, pswp } = mountOverlay();
+    // Box is 400×300 (4:3); intrinsic image is 1:2 portrait (e.g. 200×400).
+    // Inscribed image inside the box: height=300, width=300*(1/2)=150,
+    // left offset = (400-150)/2 = 125.
+    pswp.img.getBoundingClientRect = () => ({ left: 100, top: 50, width: 400, height: 300, right: 500, bottom: 350 });
+    Object.defineProperty(pswp.img, "naturalWidth", { value: 200, configurable: true });
+    Object.defineProperty(pswp.img, "naturalHeight", { value: 400, configurable: true });
+    wrapper.vm.updateBounds();
+    const b = wrapper.vm.bounds;
+    expect(b.top).toBe(50);
+    expect(b.height).toBe(300);
+    expect(b.left).toBeCloseTo(100 + 125, 3);
+    expect(b.width).toBeCloseTo(150, 3);
+  });
+
+  it("returns the element box unchanged when natural ratio already matches", () => {
+    const { wrapper, pswp } = mountOverlay();
+    pswp.img.getBoundingClientRect = () => ({ left: 100, top: 50, width: 400, height: 300, right: 500, bottom: 350 });
+    Object.defineProperty(pswp.img, "naturalWidth", { value: 800, configurable: true });
+    Object.defineProperty(pswp.img, "naturalHeight", { value: 600, configurable: true });
+    wrapper.vm.updateBounds();
+    expect(wrapper.vm.bounds).toEqual({ left: 100, top: 50, width: 400, height: 300 });
+  });
+
+  it("falls back to the element box when natural dimensions are missing", () => {
+    const { wrapper, pswp } = mountOverlay();
+    pswp.img.getBoundingClientRect = () => ({ left: 100, top: 50, width: 400, height: 300, right: 500, bottom: 350 });
+    // naturalWidth/Height default to 0 on freshly created <img>; no setter needed.
+    wrapper.vm.updateBounds();
+    expect(wrapper.vm.bounds).toEqual({ left: 100, top: 50, width: 400, height: 300 });
   });
 
   it("clamps the drawn square inside the image bounds", () => {
@@ -642,7 +699,7 @@ describe("PFaceMarkerOverlay", () => {
     // Pending was mutated mid-resize.
     expect(wrapper.vm.pending.w).not.toBe(pending.w);
 
-    wrapper.vm.onKeyDown({ key: "Escape" });
+    wrapper.vm.handleEscape();
 
     expect(wrapper.vm.pending).toEqual(pending);
     expect(wrapper.vm.interaction).toBeNull();
@@ -662,7 +719,7 @@ describe("PFaceMarkerOverlay", () => {
     wrapper.vm.onPointerMove({ pointerId: 107, clientX: 260, clientY: 200 });
     expect(wrapper.vm.pending.x).not.toBe(pending.x);
 
-    wrapper.vm.onKeyDown({ key: "Escape" });
+    wrapper.vm.handleEscape();
 
     expect(wrapper.vm.pending).toEqual(pending);
     expect(wrapper.vm.interaction).toBeNull();
