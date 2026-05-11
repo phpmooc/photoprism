@@ -77,17 +77,19 @@ func ensureAlbumUID(title string) string {
 
 // ensureLabelUID resolves or creates a label for the given title and returns its UID,
 // restoring deleted labels when necessary.
+//
+// Uses FirstOrCreateLabel directly because it routes through findLabelByExactName
+// which is homophone-safe: when the user types `吻` and only `问` exists (same
+// pinyin slug `wen`), the existing `问` is NOT returned and a brand-new `吻`
+// label is created instead. The earlier code path queried via FindLabel first,
+// whose slug fallback collapsed homophones onto the first-created label and
+// silently dropped the user's input.
 func ensureLabelUID(title string) string {
 	if title == "" {
 		return ""
 	}
 
-	label, err := entity.FindLabel(title, true)
-
-	if err != nil || label == nil || !label.HasUID() {
-		label = entity.FirstOrCreateLabel(entity.NewLabel(title, 0))
-		err = nil
-	}
+	label := entity.FirstOrCreateLabel(entity.NewLabel(title, 0))
 
 	if label == nil || !label.HasUID() {
 		log.Errorf("batch: failed to resolve label %s", clean.Log(title))
