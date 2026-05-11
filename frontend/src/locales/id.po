@@ -269,6 +269,14 @@ msgstr "Menambahkan ke semua foto yang dipilih"
 msgid "Added"
 msgstr "Sudah ditambahkan"
 
+#: src/component/sidebar/camera-dialog.vue:18
+msgid "Adjust Camera Info"
+msgstr ""
+
+#: src/component/sidebar/datetime-dialog.vue:18
+msgid "Adjust Date & Time"
+msgstr ""
+
 #: src/component/location/dialog.vue:18 src/component/photo/batch-edit.vue:274
 #: src/component/photo/edit/details.vue:146
 msgid "Adjust Location"
@@ -718,14 +726,14 @@ msgstr "Tidak dapat memilih item lainnya"
 #: src/component/label/edit/dialog.vue:44 src/component/location/dialog.vue:114
 #: src/component/people/edit/dialog.vue:47
 #: src/component/photo/album/dialog.vue:64
-#: src/component/photo/face-marker-overlay.vue:68
+#: src/component/photo/face-marker-overlay.vue:61
 #: src/component/service/add.vue:97 src/component/service/edit.vue:232
 #: src/component/service/remove.vue:19 src/component/service/upload.vue:57
 #: src/component/settings/apps.vue:151 src/component/settings/passcode.vue:101
 #: src/component/settings/passcode.vue:142
 #: src/component/settings/password.vue:83 src/component/share/dialog.vue:161
-#: src/component/sidebar/camera-dialog.vue:119
-#: src/component/sidebar/datetime-dialog.vue:118 src/locales.js:214
+#: src/component/sidebar/camera-dialog.vue:120
+#: src/component/sidebar/datetime-dialog.vue:119 src/locales.js:214
 #: src/page/auth/login.vue:120 src/page/connect.vue:36
 #: src/page/library/import.vue:61 src/page/library/index.vue:61
 msgid "Cancel"
@@ -908,20 +916,20 @@ msgstr "Keyakinan"
 #: src/component/photo/album/dialog.vue:34
 #: src/component/photo/album/dialog.vue:43
 #: src/component/photo/album/dialog.vue:67
-#: src/component/photo/face-marker-overlay.vue:61
+#: src/component/photo/face-marker-overlay.vue:54
 #: src/component/settings/passcode.vue:104
 #: src/component/settings/passcode.vue:68
 #: src/component/settings/passcode.vue:69
 #: src/component/settings/passcode.vue:78
 #: src/component/settings/passcode.vue:94
-#: src/component/sidebar/camera-dialog.vue:122
-#: src/component/sidebar/camera-dialog.vue:39
+#: src/component/sidebar/camera-dialog.vue:123
 #: src/component/sidebar/camera-dialog.vue:40
-#: src/component/sidebar/camera-dialog.vue:52
-#: src/component/sidebar/datetime-dialog.vue:121
-#: src/component/sidebar/datetime-dialog.vue:37
+#: src/component/sidebar/camera-dialog.vue:41
+#: src/component/sidebar/camera-dialog.vue:53
+#: src/component/sidebar/datetime-dialog.vue:122
 #: src/component/sidebar/datetime-dialog.vue:38
-#: src/component/sidebar/datetime-dialog.vue:50
+#: src/component/sidebar/datetime-dialog.vue:39
+#: src/component/sidebar/datetime-dialog.vue:51
 msgid "Confirm"
 msgstr "Mengonfirmasi"
 
@@ -1054,7 +1062,7 @@ msgstr "Membuat thumbnail untuk"
 msgid "Current Password"
 msgstr "Kata Sandi Saat Ini"
 
-#: src/options/themes.js:1030 src/options/themes.js:1040
+#: src/options/themes.js:1004 src/options/themes.js:1014
 msgid "Custom"
 msgstr "Kustom"
 
@@ -1105,7 +1113,7 @@ msgstr "Log Debug"
 #: src/options/auth.js:21 src/options/auth.js:22 src/options/auth.js:40
 #: src/options/auth.js:41 src/options/options.js:252 src/options/options.js:255
 #: src/options/options.js:293 src/options/options.js:377
-#: src/options/themes.js:872
+#: src/options/themes.js:846
 msgid "Default"
 msgstr "Bawaan"
 
@@ -1381,14 +1389,6 @@ msgstr "Sunting %{s}"
 #: src/component/user/edit/dialog.vue:23 src/component/service/edit.vue:28
 msgid "Edit Account"
 msgstr "Mengedit Akun"
-
-#: src/component/sidebar/camera-dialog.vue:18
-msgid "Edit Camera Details"
-msgstr "Mengedit Detail Kamera"
-
-#: src/component/sidebar/datetime-dialog.vue:18
-msgid "Edit Date & Time"
-msgstr "Edit Tanggal & Waktu"
 
 #: src/component/photo/edit/dialog.vue:169
 msgid "Edit Photo"
@@ -4202,6 +4202,12 @@ msgstr "Judul"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Arsip"
+
+#~ msgid "Edit Camera Details"
+#~ msgstr "Mengedit Detail Kamera"
+
+#~ msgid "Edit Date & Time"
+#~ msgstr "Edit Tanggal & Waktu"
 
 #~ msgid "Blackman: Lanczos Modification, Less Ringing Artifacts"
 #~ msgstr "Blackman: Modifikasi Lanczos, Artefak Berdering Lebih Sedikit"

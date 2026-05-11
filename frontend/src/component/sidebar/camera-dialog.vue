@@ -15,14 +15,14 @@
     <v-card ref="content" tabindex="-1" :tile="$vuetify.display.xs">
       <v-toolbar flat color="navigation" density="comfortable">
         <v-toolbar-title>
-          {{ $gettext("Edit Camera Details") }}
+          {{ $gettext("Adjust Camera Info") }}
         </v-toolbar-title>
         <v-btn icon :aria-label="$gettext('Close')" @click.stop="close">
           <v-icon>mdi-close</v-icon>
         </v-btn>
       </v-toolbar>
-      <v-card-text class="pb-3">
-        <v-row dense>
+      <v-card-text class="dense">
+        <v-row dense class="py-2">
           <v-col cols="12">
             <v-select
               v-model="cameraID"
@@ -114,15 +114,15 @@
             ></v-text-field>
           </v-col>
         </v-row>
-        <div class="action-buttons mt-4 d-flex justify-end ga-2">
-          <v-btn variant="flat" color="button" class="action-cancel" min-width="100" @click.stop="close">
-            {{ $gettext("Cancel") }}
-          </v-btn>
-          <v-btn variant="flat" color="highlight" class="action-confirm" min-width="100" @click="confirm">
-            {{ $gettext("Confirm") }}
-          </v-btn>
-        </div>
       </v-card-text>
+      <v-card-actions class="action-buttons">
+        <v-btn variant="flat" color="button" class="action-cancel" min-width="100" @click.stop="close">
+          {{ $gettext("Cancel") }}
+        </v-btn>
+        <v-btn variant="flat" color="highlight" class="action-confirm" min-width="100" @click="confirm">
+          {{ $gettext("Confirm") }}
+        </v-btn>
+      </v-card-actions>
     </v-card>
   </v-dialog>
 </template>
