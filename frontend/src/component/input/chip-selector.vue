@@ -51,7 +51,7 @@
         class="chip-selector__input"
         @click:control="focusInput"
         @keydown.enter.prevent="onEnter"
-        @blur="addNewItem"
+        @blur="onInputBlur"
         @update:model-value="onComboboxChange"
         @update:menu="onMenuUpdate"
       >
@@ -330,6 +330,25 @@ export default {
 
     onEnter() {
       this.temporarilyCloseMenu();
+      this.addNewItem();
+    },
+
+    // Blur on the combobox input fires for two distinct reasons:
+    //   (a) the user is leaving the field (Tab, click elsewhere) — pending
+    //       text should commit as a new chip, mirroring the inline-text
+    //       auto-commit-on-blur contract elsewhere in the app.
+    //   (b) Vuetify shifts DOM focus into the dropdown menu (ArrowDown,
+    //       Home, End) — the user is mid-navigation; committing the
+    //       typed prefix here would silently turn `ca` into a brand-new
+    //       chip before they can pick `Camping` from the suggestions.
+    // The menu list items are teleported to a v-overlay-container, so the
+    // shared DOM parent is `<body>`; detect them via `relatedTarget` class
+    // / ancestor lookup and skip the commit in case (b).
+    onInputBlur(event) {
+      const rt = event?.relatedTarget;
+      if (rt && (rt.classList?.contains("v-list-item") || rt.closest?.(".v-overlay-container, .v-list, .v-menu"))) {
+        return;
+      }
       this.addNewItem();
     },
 

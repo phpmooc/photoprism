@@ -232,6 +232,58 @@ describe("component/file/chip-selector", () => {
 
       expect(wrapper.emitted("update:items")).toBeFalsy();
     });
+
+    // Repros the user-reported regression: typing `ca` and pressing ArrowDown
+    // used to commit `ca` as a brand-new chip before the user could pick
+    // `Camping` from the dropdown. The trigger is `@blur` firing on the
+    // input as Vuetify shifts DOM focus into the teleported v-list-item
+    // menu. onInputBlur skips the commit when relatedTarget is a menu item.
+    it("skips addNewItem on blur when focus shifts into the dropdown menu (ArrowDown)", () => {
+      wrapper.vm.newItemTitle = "ca";
+
+      // relatedTarget mimics the v-list-item Vuetify focuses on ArrowDown.
+      const menuItem = document.createElement("div");
+      menuItem.className = "v-list-item v-list-item--link";
+
+      wrapper.vm.onInputBlur({ relatedTarget: menuItem });
+
+      expect(wrapper.emitted("update:items")).toBeFalsy();
+    });
+
+    it("skips addNewItem on blur when relatedTarget is inside a v-overlay-container", () => {
+      wrapper.vm.newItemTitle = "ca";
+
+      // Some Vuetify menu items render under .v-overlay-container without
+      // the v-list-item class on the focused descendant; assert the ancestor
+      // check catches them too.
+      const overlay = document.createElement("div");
+      overlay.className = "v-overlay-container";
+      const focusableInside = document.createElement("div");
+      overlay.appendChild(focusableInside);
+      document.body.appendChild(overlay);
+
+      try {
+        wrapper.vm.onInputBlur({ relatedTarget: focusableInside });
+        expect(wrapper.emitted("update:items")).toBeFalsy();
+      } finally {
+        document.body.removeChild(overlay);
+      }
+    });
+
+    it("commits pending text on blur when relatedTarget is outside the dropdown menu", () => {
+      wrapper.vm.newItemTitle = "Manually-Typed";
+
+      // Tabbing to a sibling field — relatedTarget has no v-list-item /
+      // v-overlay-container ancestry. The blur should still commit.
+      const sibling = document.createElement("button");
+      sibling.className = "some-other-button";
+
+      wrapper.vm.onInputBlur({ relatedTarget: sibling });
+
+      const emitted = wrapper.emitted("update:items");
+      expect(emitted).toBeTruthy();
+      expect(emitted[0][0]).toEqual(expect.arrayContaining([expect.objectContaining({ title: "Manually-Typed", action: "add", isNew: true })]));
+    });
   });
 
   describe("Label resolver and normalization", () => {
