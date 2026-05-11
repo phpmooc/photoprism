@@ -64,6 +64,124 @@ let themes = {
     },
   },
 
+  /* Special theme used for the photo/video viewer */
+  lightbox: {
+    dark: true,
+    title: "Lightbox",
+    name: "lightbox",
+    colors: {
+      "background": "#040709", // Page canvas; near-black so the photo dominates the viewer.
+      "surface": "#040709", // Default container surface; matches `background`, so plain `surface` elements vanish — use `surface-bright`, `secondary-light`, or `card` for raised elements.
+      "on-surface": "#ffffff", // Body text and icon color on `surface`, `surface-bright`, and `surface-light`.
+      "surface-bright": "#141417", // Lifted variant of `surface`; raised tiles, hover backgrounds, inline editors.
+      "surface-variant": "#bdbdbd", // Light-grey foreground tone consumed by Vuetify defaults for active dropdown rows, focus rings, and `color="surface-variant"` props.
+      "on-surface-variant": "#1c1c1c", // Inverse pair of `surface-variant`; also painted as the *background* in the scoped lightbox tooltip rule (`css/lightbox.css`).
+      "card": "#171717", // Dedicated card-container background; one tier above `surface` for raised cards.
+      "selected": "#3d3f40", // Active list-item background; mirrors `highlight` so selection stays a neutral grey rather than reading as a near-white block.
+      "table": "#242424", // VDataTable row and header background.
+      "button": "#232425", // Secondary button color, e.g., used in dialogs for "Cancel".
+      "highlight": "#3d3f40", // Primary button color, e.g., used in dialogs for "Save" or "Confirm".
+      "switch": "#101112", // VSwitch track background when off.
+      "primary": "#ebebeb", // Brand/identity accent; desaturated near-white to keep the lightbox grayscale (focus rings, chip outline).
+      "secondary": "#191919", // Background for secondary panels (tab strips, expansion-panel headers, nav drawer sections).
+      "secondary-light": "#1e1e1e", // Lifted variant of `secondary`; used for raised surfaces inside the lightbox sidebar (menus, sub-panels).
+      "accent": "#2D2E2E", // Small-decoration tint for hover/focus subtleties; not a primary action color.
+      "error": "#e57373", // Error state for banners, validation errors, and error toasts.
+      "info": "#9E7BEA", // Informational notification color; the only purple kept inside the lightbox tree (snackbars, info toasts).
+      "success": "#8763d5", // Successful-outcome notification color (matches the `info` purple cast).
+      "warning": "#ecc434", // Caution / recoverable-concern notification color.
+      "favorite": "#FFD600", // Favorite-star color.
+      "remove": "#da4e4c", // Destructive "remove from collection" action color (distinct from `error`, which is a fault state).
+      "restore": "#00d48a", // Restore-from-trash / undo-remove action color.
+      "album": "#ed9e00", // Album identity color (album icons, chips, thumbnail accents).
+      "on-album": "#ffffff", // Text/icon color on album-tinted backgrounds.
+      "download": "#00bfa5", // Download affordance (buttons, progress).
+      "private": "#00b8d4", // Private badge / lock indicator.
+      "edit": "#2196F3", // Edit affordance (usually muted; rarely tinted).
+      "share": "#3F51B5", // Share affordance (share links, share dialog accents).
+      "love": "#ef5350", // Love / heart indicator (emotional emphasis only).
+      "terminal": "#4A464F", // Background for terminal / code blocks (log views, code samples).
+      "navigation": "#040709", // App bar / top toolbar background; matches the page surface for a flat lightbox look.
+      "navigation-home": "#040709", // "Home" navigation-state background; matches `navigation` in this theme.
+    },
+    variables: {
+      "border-color": "#ffffff", // Divider and outlined-variant border color.
+      "border-opacity": 0.1, // Alpha applied to `border-color`.
+      "hover-opacity": 0.06, // Hover-overlay alpha on list items and rows; bumped above the dark default (~0.02) so hover reads against the near-black surface.
+      "focus-opacity": 0.08, // Keyboard-focus overlay alpha; bumped above the dark default (~0.022) for the same reason.
+    },
+  },
+
+  /* Special theme used on the login page */
+  login: {
+    dark: false,
+    title: "Login",
+    name: "login",
+    colors: {
+      "background": "#2f3031",
+      "surface": "#fafafa",
+      "on-surface": "#333333",
+      "surface-bright": "#fafafa",
+      "surface-variant": "#00a6a9",
+      "on-surface-variant": "#c8e3e7",
+      "card": "#505050",
+      "table": "#505050",
+      "button": "#c8e3e7",
+      "primary": "#05dde1",
+      "highlight": "#00a6a9",
+      "secondary": "#c8e3e7",
+      "secondary-light": "#2a2b2c",
+      "accent": "#05dde1",
+      "error": "#e57373",
+      "info": "#00acc1",
+      "success": "#4db6ac",
+      "warning": "#bc9714",
+      "remove": "#DF5353",
+      "restore": "#3EA2F4",
+      "album": "#ffab00",
+      "download": "#00bfa5",
+      "private": "#00b8d4",
+      "edit": "#0AA9FF",
+      "share": "#9575cd",
+      "love": "#ef5350",
+      "terminal": "#4A464F",
+      "navigation": "#141417",
+      "navigation-home": "#0e0f10",
+    },
+    variables: {
+      "border-color": "#ffffff",
+      "border-opacity": 0.08,
+      "high-emphasis-opacity": 0.96,
+      "medium-emphasis-opacity": 0.7,
+      "hover-opacity": 0.08,
+      "focus-opacity": 0.1,
+    },
+  },
+
+  /* Special light theme, e.g. used for map controls in Places */
+  light: {
+    dark: false,
+    title: "Light",
+    name: "light",
+    colors: {
+      "background": "#ffffff",
+      "surface": "#ffffff",
+      "on-surface": "#000000",
+      "surface-bright": "#FFFFFF",
+      "surface-light": "#EEEEEE",
+      "surface-variant": "#1e1e1f",
+      "on-surface-variant": "#EEEEEE",
+    },
+    variables: {
+      "border-color": "#1e1e1f",
+      "high-emphasis-opacity": 1.0,
+      "medium-emphasis-opacity": 0.8,
+      "label-opacity": 0.96,
+      "focus-opacity": 0.0,
+      "hover-opacity": 0.05,
+    },
+  },
+
   /* Optional themes that the user can choose from in Settings > General */
   abyss: {
     title: "Abyss",
@@ -717,124 +835,6 @@ let themes = {
       "border-opacity": 0.35,
       "disabled-opacity": 0.65,
       "hover-opacity": 0.06,
-    },
-  },
-
-  /* Special theme used for the photo/video viewer */
-  lightbox: {
-    dark: true,
-    title: "Lightbox",
-    name: "lightbox",
-    colors: {
-      "background": "#040709", // Page canvas; near-black so the photo dominates the viewer.
-      "surface": "#040709", // Default container surface; matches `background`, so plain `surface` elements vanish — use `surface-bright`, `secondary-light`, or `card` for raised elements.
-      "on-surface": "#ffffff", // Body text and icon color on `surface`, `surface-bright`, and `surface-light`.
-      "surface-bright": "#141417", // Lifted variant of `surface`; raised tiles, hover backgrounds, inline editors.
-      "surface-variant": "#bdbdbd", // Light-grey foreground tone consumed by Vuetify defaults for active dropdown rows, focus rings, and `color="surface-variant"` props.
-      "on-surface-variant": "#1c1c1c", // Inverse pair of `surface-variant`; also painted as the *background* in the scoped lightbox tooltip rule (`css/lightbox.css`).
-      "card": "#171717", // Dedicated card-container background; one tier above `surface` for raised cards.
-      "selected": "#3d3f40", // Active list-item background; mirrors `highlight` so selection stays a neutral grey rather than reading as a near-white block.
-      "table": "#242424", // VDataTable row and header background.
-      "button": "#232425", // Secondary button color, e.g., used in dialogs for "Cancel".
-      "highlight": "#3d3f40", // Primary button color, e.g., used in dialogs for "Save" or "Confirm".
-      "switch": "#101112", // VSwitch track background when off.
-      "primary": "#ebebeb", // Brand/identity accent; desaturated near-white to keep the lightbox grayscale (focus rings, chip outline).
-      "secondary": "#191919", // Background for secondary panels (tab strips, expansion-panel headers, nav drawer sections).
-      "secondary-light": "#1e1e1e", // Lifted variant of `secondary`; used for raised surfaces inside the lightbox sidebar (menus, sub-panels).
-      "accent": "#2D2E2E", // Small-decoration tint for hover/focus subtleties; not a primary action color.
-      "error": "#e57373", // Error state for banners, validation errors, and error toasts.
-      "info": "#9E7BEA", // Informational notification color; the only purple kept inside the lightbox tree (snackbars, info toasts).
-      "success": "#8763d5", // Successful-outcome notification color (matches the `info` purple cast).
-      "warning": "#ecc434", // Caution / recoverable-concern notification color.
-      "favorite": "#FFD600", // Favorite-star color.
-      "remove": "#da4e4c", // Destructive "remove from collection" action color (distinct from `error`, which is a fault state).
-      "restore": "#00d48a", // Restore-from-trash / undo-remove action color.
-      "album": "#ed9e00", // Album identity color (album icons, chips, thumbnail accents).
-      "on-album": "#ffffff", // Text/icon color on album-tinted backgrounds.
-      "download": "#00bfa5", // Download affordance (buttons, progress).
-      "private": "#00b8d4", // Private badge / lock indicator.
-      "edit": "#2196F3", // Edit affordance (usually muted; rarely tinted).
-      "share": "#3F51B5", // Share affordance (share links, share dialog accents).
-      "love": "#ef5350", // Love / heart indicator (emotional emphasis only).
-      "terminal": "#4A464F", // Background for terminal / code blocks (log views, code samples).
-      "navigation": "#040709", // App bar / top toolbar background; matches the page surface for a flat lightbox look.
-      "navigation-home": "#040709", // "Home" navigation-state background; matches `navigation` in this theme.
-    },
-    variables: {
-      "border-color": "#ffffff", // Divider and outlined-variant border color.
-      "border-opacity": 0.1, // Alpha applied to `border-color`.
-      "hover-opacity": 0.06, // Hover-overlay alpha on list items and rows; bumped above the dark default (~0.02) so hover reads against the near-black surface.
-      "focus-opacity": 0.08, // Keyboard-focus overlay alpha; bumped above the dark default (~0.022) for the same reason.
-    },
-  },
-
-  /* Special theme used on the login page */
-  login: {
-    dark: false,
-    title: "Login",
-    name: "login",
-    colors: {
-      "background": "#2f3031",
-      "surface": "#fafafa",
-      "on-surface": "#333333",
-      "surface-bright": "#fafafa",
-      "surface-variant": "#00a6a9",
-      "on-surface-variant": "#c8e3e7",
-      "card": "#505050",
-      "table": "#505050",
-      "button": "#c8e3e7",
-      "primary": "#05dde1",
-      "highlight": "#00a6a9",
-      "secondary": "#c8e3e7",
-      "secondary-light": "#2a2b2c",
-      "accent": "#05dde1",
-      "error": "#e57373",
-      "info": "#00acc1",
-      "success": "#4db6ac",
-      "warning": "#bc9714",
-      "remove": "#DF5353",
-      "restore": "#3EA2F4",
-      "album": "#ffab00",
-      "download": "#00bfa5",
-      "private": "#00b8d4",
-      "edit": "#0AA9FF",
-      "share": "#9575cd",
-      "love": "#ef5350",
-      "terminal": "#4A464F",
-      "navigation": "#141417",
-      "navigation-home": "#0e0f10",
-    },
-    variables: {
-      "border-color": "#ffffff",
-      "border-opacity": 0.08,
-      "high-emphasis-opacity": 0.96,
-      "medium-emphasis-opacity": 0.7,
-      "hover-opacity": 0.08,
-      "focus-opacity": 0.1,
-    },
-  },
-
-  /* Special light theme, e.g. used for map controls in Places */
-  light: {
-    dark: false,
-    title: "Light",
-    name: "light",
-    colors: {
-      "background": "#ffffff",
-      "surface": "#ffffff",
-      "on-surface": "#000000",
-      "surface-bright": "#FFFFFF",
-      "surface-light": "#EEEEEE",
-      "surface-variant": "#1e1e1f",
-      "on-surface-variant": "#EEEEEE",
-    },
-    variables: {
-      "border-color": "#1e1e1f",
-      "high-emphasis-opacity": 1.0,
-      "medium-emphasis-opacity": 0.8,
-      "label-opacity": 0.96,
-      "focus-opacity": 0.0,
-      "hover-opacity": 0.05,
     },
   },
 };
