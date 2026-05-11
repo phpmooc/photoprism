@@ -547,9 +547,13 @@ export default {
         visible: false,
         resolver: null,
       },
+      // Stores the marker UID (not the transient Marker instance returned
+      // by getMarkers, see P1-8). The live Marker is re-derived from
+      // photo.getMarkers(true) at commit time so a slide-nav between
+      // open + Add/Cancel can't write through a stale reference.
       addNameDialog: {
         visible: false,
-        marker: null,
+        markerUid: "",
         name: "",
       },
     };
@@ -633,10 +637,21 @@ export default {
       if (!this.photo) return [];
       return this.photo.getMarkers(true);
     },
+    // Sorted, locale-aware copy of $config.values.people for the marker
+    // combobox dropdown. Mirrors the Labels/Albums sort baked into
+    // loadChipOptions (L12): localeCompare with `undefined` locale +
+    // base sensitivity + numeric collation. Reading from $config keeps the
+    // list reactive to WS `people.{created,updated,deleted}` events that
+    // are already handled inside common/config.js. A future shared
+    // people-cache module (F1) will move this logic out of the component;
+    // until then the per-consumer sort matches the Labels/Albums pattern.
     knownPeople() {
       const values = this.$config && this.$config.values;
       if (!values || !Array.isArray(values.people)) return [];
-      return values.people;
+      return values.people
+        .filter((p) => p && p.Name)
+        .slice()
+        .sort((a, b) => (a.Name || "").localeCompare(b.Name || "", undefined, { sensitivity: "base", numeric: true }));
     },
     labels() {
       if (!this.photo?.Labels) return [];
@@ -896,16 +911,35 @@ export default {
     },
     onRemoveMarker(marker) {
       if (!this.isEditable || this.markersBusy || !marker || marker.SubjUID) return;
+      // The @mousedown.prevent on the × icon keeps focus on the combobox,
+      // but the row tears down once reject() invalidates the marker — that
+      // fires @blur, which would otherwise re-enter confirmMarkerName with
+      // a doomed marker reference. The timestamp lets confirmMarkerName
+      // bail when an icon click triggered the unmount (P1-7).
+      this._lastDestructiveMarkerActionAt = Date.now();
       this.$emit("remove-marker", marker);
     },
     onEjectMarker(marker) {
       if (!this.isEditable || this.markersBusy || !marker || !marker.SubjUID) return;
+      // See onRemoveMarker — same race when the user types a fresh name
+      // and clicks ⏏ on the eject icon: clearSubject flips SubjUID, the
+      // combobox re-renders editable, and the implicit @blur from the
+      // re-render would commit the typed name we just rejected.
+      this._lastDestructiveMarkerActionAt = Date.now();
       this.$emit("eject-marker", marker);
     },
     // Combobox can bind either the typed string or the selected subject object.
     unwrapMarkerName(value) {
       return typeof value === "object" && value !== null ? value.Name || "" : value || "";
     },
+    // Reconciles the local markerDrafts map with the latest markers from
+    // photo.getMarkers(true). Fires from the `people` watcher on every
+    // photo-cache mutation. The `editing` flag is the guard for P1-3:
+    // when the user is actively typing into a marker's combobox, an
+    // unrelated WS-driven photo update (vision worker, label change,
+    // etc.) re-runs this method but must NOT overwrite the typed text.
+    // confirmMarkerName / cancelMarkerName / onAddNameConfirm clear the
+    // flag after committing or discarding the edit.
     syncMarkerDrafts(markers) {
       const seen = new Set();
       markers.forEach((m) => {
@@ -914,10 +948,12 @@ export default {
         const original = m.Name || "";
         const existing = this.markerDrafts[m.UID];
         if (!existing) {
-          this.markerDrafts[m.UID] = { original, current: original };
+          this.markerDrafts[m.UID] = { original, current: original, editing: false };
         } else if (existing.original !== original) {
           existing.original = original;
-          existing.current = original;
+          if (!existing.editing) {
+            existing.current = original;
+          }
         }
       });
       Object.keys(this.markerDrafts).forEach((uid) => {
@@ -931,12 +967,18 @@ export default {
     markerInputSearch(uid) {
       return this.unwrapMarkerName(this.markerInputValue(uid));
     },
+    // Records typed text from the v-combobox into the per-marker draft and
+    // flips `editing` to true so a concurrent WS update can't snap the
+    // input back to the backend value mid-keystroke (P1-3). The flag is
+    // cleared by commitMarkerName / cancelMarkerName / onAddName* once
+    // the edit reaches a settled state.
     setMarkerInputValue(uid, value) {
       if (!uid) return;
       if (!this.markerDrafts[uid]) {
-        this.markerDrafts[uid] = { original: "", current: value };
+        this.markerDrafts[uid] = { original: "", current: value, editing: true };
       } else {
         this.markerDrafts[uid].current = value;
+        this.markerDrafts[uid].editing = true;
       }
     },
     focusMarkerInput(uid) {
@@ -949,18 +991,48 @@ export default {
     },
     // Match a typed name against knownPeople case-insensitively so the backend
     // doesn't create a duplicate subject when the input only differs in case.
+    // Locale `undefined` defers to the user's active locale so case-folding
+    // works for Turkish dotted/dotless i, German ß, Cyrillic, Hebrew, etc.
     findKnownPerson(name) {
       if (!name) return null;
-      return this.knownPeople.find((p) => p && p.Name && p.Name.localeCompare(name, "en", { sensitivity: "base" }) === 0) || null;
+      return this.knownPeople.find((p) => p && p.Name && p.Name.localeCompare(name, undefined, { sensitivity: "base" }) === 0) || null;
     },
+    // Resolves a marker by UID from the current photo. Used by the
+    // Add-name dialog confirm path so a stale Marker reference held in
+    // addNameDialog can't write through to a marker that no longer
+    // exists on this photo (P1-8). Returns null when the marker has been
+    // removed (e.g. rejected) or the slide moved to a different photo.
+    findMarker(uid) {
+      if (!uid || !this.photo || typeof this.photo.getMarkers !== "function") return null;
+      return this.photo.getMarkers(true).find((m) => m && m.UID === uid) || null;
+    },
+    // Commits typed text from the per-marker draft. Source "enter" fires
+    // from the keyboard, "blur" from focus loss; the latter routes through
+    // an Add-name confirmation when the marker is still unnamed and the
+    // typed name doesn't match an existing subject.
+    //
+    // Gating (P1-6 + P1-7):
+    //   - `markersBusy`: another marker mutation is in flight; bail.
+    //   - `marker.Invalid`: marker was rejected; bail before re-committing.
+    //   - destructive-action timestamp: an × / ⏏ icon was clicked within
+    //     the last 200ms (which destroys this row); bail.
     confirmMarkerName(marker, source = "enter") {
       if (!marker || !marker.UID) return;
+      if (this.markersBusy) return;
+      if (marker.Invalid) return;
+      if (this._lastDestructiveMarkerActionAt && Date.now() - this._lastDestructiveMarkerActionAt < 200) return;
       const draft = this.markerDrafts[marker.UID];
       if (!draft) return;
       const name = this.unwrapMarkerName(draft.current).trim();
       const original = (draft.original || "").trim();
 
-      if (!name || name === original) return;
+      if (!name || name === original) {
+        // Reaching here means the user blurred without changing anything
+        // (or restored the original). The draft is settled; clear the
+        // editing flag so a concurrent WS update can re-sync.
+        draft.editing = false;
+        return;
+      }
       if (typeof marker.setName !== "function") return;
 
       const match = this.findKnownPerson(name);
@@ -969,7 +1041,7 @@ export default {
       // name. Skip the dialog if the person already exists (match) or if the
       // marker is already named (eject/rename path) — both are unambiguous.
       if (source === "blur" && !marker.SubjUID && !match) {
-        this.addNameDialog = { visible: true, marker, name };
+        this.addNameDialog = { visible: true, markerUid: marker.UID, name };
         return;
       }
 
@@ -990,6 +1062,7 @@ export default {
       // tick doesn't snap the input back to the old value mid-request.
       draft.original = marker.Name || "";
       draft.current = marker.Name || "";
+      draft.editing = false;
 
       marker
         .setName()
@@ -1005,29 +1078,41 @@ export default {
       this.setMarkerInputValue(marker.UID, value.Name);
       this.confirmMarkerName(marker, "enter");
     },
+    // Resolves the dialog's stored markerUid against the live photo. If
+    // the marker has been rejected, navigated away from, or otherwise
+    // disappeared, the commit is dropped silently — the dialog already
+    // closed, and surfacing an error for a self-resolved state would just
+    // confuse the user.
     onAddNameConfirm() {
-      const { marker, name } = this.addNameDialog;
-      this.addNameDialog = { visible: false, marker: null, name: "" };
-      if (!marker || !name) return;
+      const { markerUid, name } = this.addNameDialog;
+      this.addNameDialog = { visible: false, markerUid: "", name: "" };
+      if (!markerUid || !name) return;
+      const marker = this.findMarker(markerUid);
+      if (!marker) return;
       this.commitMarkerName(marker, this.findKnownPerson(name), name);
     },
     onAddNameCancel() {
-      const { marker } = this.addNameDialog;
-      this.addNameDialog = { visible: false, marker: null, name: "" };
-      const draft = marker && marker.UID ? this.markerDrafts[marker.UID] : null;
-      if (draft) draft.current = draft.original || "";
+      const { markerUid } = this.addNameDialog;
+      this.addNameDialog = { visible: false, markerUid: "", name: "" };
+      const draft = markerUid ? this.markerDrafts[markerUid] : null;
+      if (draft) {
+        draft.current = draft.original || "";
+        draft.editing = false;
+      }
     },
     cancelMarkerName(marker) {
       if (!marker || !marker.UID) return;
       const draft = this.markerDrafts[marker.UID];
       if (!draft) return;
       draft.current = draft.original;
-      // Blur the active input so the user gets a visual cue the edit was
-      // dropped; @blur re-fires confirmMarkerName but it's a no-op now that
-      // current === original.
-      if (typeof document !== "undefined" && document.activeElement && typeof document.activeElement.blur === "function") {
-        document.activeElement.blur();
-      }
+      draft.editing = false;
+      // Blur the marker's own input so the user gets a visual cue the edit
+      // was dropped; @blur re-fires confirmMarkerName but it's a no-op
+      // now that current === original AND editing is false. Scoped to the
+      // marker's input (P1-9) rather than document.activeElement so an
+      // unrelated focused element isn't blurred by mistake.
+      const input = this.$el && this.$el.querySelector(`[data-marker-uid="${marker.UID}"] input`);
+      if (input && typeof input.blur === "function") input.blur();
     },
     resetInlineEdits() {
       if (this.editingField) this.cancelEditing();
@@ -1035,10 +1120,13 @@ export default {
       this.clearChipInput();
       Object.keys(this.markerDrafts).forEach((uid) => {
         const d = this.markerDrafts[uid];
-        if (d) d.current = d.original;
+        if (d) {
+          d.current = d.original;
+          d.editing = false;
+        }
       });
       if (this.addNameDialog && this.addNameDialog.visible) {
-        this.addNameDialog = { visible: false, marker: null, name: "" };
+        this.addNameDialog = { visible: false, markerUid: "", name: "" };
       }
     },
     // Inline text fields (title/caption/subject/...) are excluded on purpose:

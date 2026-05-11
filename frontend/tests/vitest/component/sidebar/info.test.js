@@ -956,7 +956,7 @@ describe("PSidebarInfo component", () => {
     w.vm.confirmMarkerName(marker, "blur");
     expect(setName).not.toHaveBeenCalled();
     expect(w.vm.addNameDialog.visible).toBe(true);
-    expect(w.vm.addNameDialog.marker?.UID).toBe("m2");
+    expect(w.vm.addNameDialog.markerUid).toBe("m2");
     expect(w.vm.addNameDialog.name).toBe("Plane Port");
   });
 
@@ -1031,6 +1031,265 @@ describe("PSidebarInfo component", () => {
     expect(setName).toHaveBeenCalled();
     expect(marker.Name).toBe("Alice Smith");
     expect(marker.SubjUID).toBe("sALC");
+  });
+
+  // P1-1 — locale-aware case-insensitive match. The previous "en" locale
+  // missed matches under Turkish dotted/dotless i and other non-ASCII case
+  // folding rules; we now use `undefined` to defer to the active locale.
+  // The standard ECMAScript Intl implementation handles Cyrillic case
+  // collation under base sensitivity regardless of locale, so we can
+  // exercise the path without relying on a specific JS locale.
+  it("findKnownPerson resolves Cyrillic case differences via locale-aware match", () => {
+    const knownPersonConfig = {
+      ...validationConfig,
+      values: { people: [{ UID: "sIvan", Name: "Иван Петров" }] },
+    };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+      global: {
+        stubs: { PMap: true },
+        mocks: { $config: knownPersonConfig, $util: validationUtil },
+      },
+    });
+    expect(w.vm.findKnownPerson("иван петров")).toEqual({ UID: "sIvan", Name: "Иван Петров" });
+    expect(w.vm.findKnownPerson("Unknown Person")).toBeNull();
+  });
+
+  // P1-2 — knownPeople sorts the underlying $config.values.people copy
+  // alphabetically via locale-aware collation. Insertion order from
+  // people.created WS events would otherwise put new subjects at the top.
+  it("knownPeople returns a locale-aware sorted copy of $config.values.people", () => {
+    const knownPersonConfig = {
+      ...validationConfig,
+      values: {
+        people: [
+          { UID: "sZara", Name: "Zara" },
+          { UID: "sAndre", Name: "André" },
+          { UID: "sBob", Name: "Bob" },
+          { UID: "sAlice", Name: "alice" },
+          { UID: "sBlank", Name: "" },
+          null,
+        ],
+      },
+    };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+      global: {
+        stubs: { PMap: true },
+        mocks: { $config: knownPersonConfig, $util: validationUtil },
+      },
+    });
+    const names = w.vm.knownPeople.map((p) => p.Name);
+    expect(names).toEqual(["alice", "André", "Bob", "Zara"]);
+    // Original config array stays untouched (no in-place sort).
+    expect(knownPersonConfig.values.people[0].UID).toBe("sZara");
+  });
+
+  // P1-3 — typed-but-uncommitted text must survive a WS-driven sync. The
+  // `editing` flag on the draft entry tells syncMarkerDrafts to leave the
+  // user's typing alone even when the backend value moves.
+  it("syncMarkerDrafts does not clobber typed text while editing is in progress", async () => {
+    const marker = {
+      UID: "m2",
+      Name: "",
+      SubjUID: "",
+      thumbnailUrl: () => "/t/thumb2/public/tile_160",
+      setName: vi.fn(),
+    };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    expect(w.vm.markerDrafts.m2.editing).toBe(true);
+    // Simulate an unrelated WS update that re-fires the people watcher with
+    // a renamed backend Name. The user's typing must NOT be overwritten.
+    w.vm.syncMarkerDrafts([{ UID: "m2", Name: "Renamed By Worker" }]);
+    expect(w.vm.markerInputValue("m2")).toBe("Plane Port");
+    // The captured `original` does update — that's the backend's authoritative
+    // value the draft will roll back to on cancel.
+    expect(w.vm.markerDrafts.m2.original).toBe("Renamed By Worker");
+  });
+
+  // P1-3 — once the edit is settled (commit or cancel), the editing flag
+  // clears and a subsequent WS update can re-sync the input again.
+  it("syncMarkerDrafts re-syncs after the edit settles", async () => {
+    const marker = {
+      UID: "m2",
+      Name: "",
+      SubjUID: "",
+      thumbnailUrl: () => "/t/thumb2/public/tile_160",
+      setName: vi.fn().mockResolvedValue(undefined),
+    };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    w.vm.cancelMarkerName(marker);
+    expect(w.vm.markerDrafts.m2.editing).toBe(false);
+    w.vm.syncMarkerDrafts([{ UID: "m2", Name: "Server Side Name" }]);
+    expect(w.vm.markerInputValue("m2")).toBe("Server Side Name");
+  });
+
+  // P1-6 — confirmMarkerName is a no-op when markersBusy. Prevents a queued
+  // rename from racing with an in-flight reject/eject on the same marker.
+  it("confirmMarkerName bails when markersBusy is true", async () => {
+    const setName = vi.fn().mockResolvedValue(undefined);
+    const marker = {
+      UID: "m2",
+      Name: "",
+      SubjUID: "",
+      thumbnailUrl: () => "/t/thumb2/public/tile_160",
+      setName,
+    };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo, canEdit: true, markersBusy: true, context: contexts.Photos },
+      global: { stubs: { PMap: true }, mocks: { $util: validationUtil } },
+    });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    w.vm.confirmMarkerName(marker, "enter");
+    expect(setName).not.toHaveBeenCalled();
+    expect(w.vm.addNameDialog.visible).toBe(false);
+  });
+
+  // P1-6 — invalid (rejected) marker is filtered out of getMarkers(true)
+  // but the row's @blur can still fire during the unmount tick. Make sure
+  // confirmMarkerName refuses to write through to a rejected marker.
+  it("confirmMarkerName bails when the marker is invalid (rejected)", async () => {
+    const setName = vi.fn().mockResolvedValue(undefined);
+    const marker = {
+      UID: "m2",
+      Name: "",
+      SubjUID: "",
+      Invalid: true,
+      thumbnailUrl: () => "/t/thumb2/public/tile_160",
+      setName,
+    };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    w.vm.confirmMarkerName(marker, "enter");
+    expect(setName).not.toHaveBeenCalled();
+  });
+
+  // P1-7 — onRemoveMarker / onEjectMarker stamp _lastDestructiveMarkerActionAt;
+  // a follow-on @blur within 200ms must be ignored to prevent the destructive
+  // action from racing the inline-commit path.
+  it("confirmMarkerName bails when an icon click was registered <200ms ago", async () => {
+    const setName = vi.fn().mockResolvedValue(undefined);
+    const marker = {
+      UID: "m2",
+      Name: "",
+      SubjUID: "",
+      thumbnailUrl: () => "/t/thumb2/public/tile_160",
+      setName,
+    };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    w.vm._lastDestructiveMarkerActionAt = Date.now();
+    w.vm.confirmMarkerName(marker, "blur");
+    expect(setName).not.toHaveBeenCalled();
+    // After the 200ms window expires the commit is allowed again.
+    w.vm._lastDestructiveMarkerActionAt = Date.now() - 500;
+    w.vm.confirmMarkerName(marker, "enter");
+    expect(setName).toHaveBeenCalledTimes(1);
+  });
+
+  // P1-7 — onRemoveMarker / onEjectMarker arm the destructive-action stamp
+  // even when emitting upward; the parent lightbox owns the actual mutation.
+  it("onRemoveMarker arms _lastDestructiveMarkerActionAt before emitting", () => {
+    const marker = { UID: "m2", Name: "", SubjUID: "", thumbnailUrl: () => "/svg/portrait" };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    expect(w.vm._lastDestructiveMarkerActionAt).toBeFalsy();
+    w.vm.onRemoveMarker(marker);
+    expect(w.vm._lastDestructiveMarkerActionAt).toBeGreaterThan(0);
+  });
+
+  it("onEjectMarker arms _lastDestructiveMarkerActionAt before emitting", () => {
+    const marker = { UID: "m1", Name: "Jane Doe", SubjUID: "subj1", thumbnailUrl: () => "/t/x/p/tile_160" };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    expect(w.vm._lastDestructiveMarkerActionAt).toBeFalsy();
+    w.vm.onEjectMarker(marker);
+    expect(w.vm._lastDestructiveMarkerActionAt).toBeGreaterThan(0);
+  });
+
+  // P1-8 — the Add-name dialog stores a UID (not the transient Marker
+  // instance returned by getMarkers). On confirm, the live Marker is
+  // re-derived; a missing UID resolves to a silent no-op.
+  it("onAddNameConfirm resolves the marker by UID at commit time", async () => {
+    const setName = vi.fn().mockResolvedValue(undefined);
+    const marker = {
+      UID: "m2",
+      Name: "",
+      SubjUID: "",
+      thumbnailUrl: () => "/t/thumb2/public/tile_160",
+      setName,
+    };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    w.vm.confirmMarkerName(marker, "blur");
+    expect(w.vm.addNameDialog.visible).toBe(true);
+    expect(w.vm.addNameDialog.markerUid).toBe("m2");
+    w.vm.onAddNameConfirm();
+    expect(setName).toHaveBeenCalledTimes(1);
+  });
+
+  it("onAddNameConfirm is a silent no-op when the stored UID no longer resolves", async () => {
+    const setName = vi.fn();
+    const marker = {
+      UID: "m2",
+      Name: "",
+      SubjUID: "",
+      thumbnailUrl: () => "/t/thumb2/public/tile_160",
+      setName,
+    };
+    // First render has the marker; after blur opens the dialog the photo
+    // navigates away and the marker disappears from getMarkers().
+    const getMarkers = vi.fn().mockReturnValueOnce([marker]).mockReturnValue([]);
+    const photo = { ...mockPhoto, getMarkers };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    w.vm.confirmMarkerName(marker, "blur");
+    expect(w.vm.addNameDialog.visible).toBe(true);
+    w.vm.onAddNameConfirm();
+    expect(setName).not.toHaveBeenCalled();
+    expect(w.vm.addNameDialog.visible).toBe(false);
+  });
+
+  // P1-9 — cancelMarkerName must blur the marker's own input, not whatever
+  // happens to be document.activeElement at the moment Esc was pressed.
+  it("cancelMarkerName scopes the blur to the marker's own input, not document.activeElement", async () => {
+    const marker = { UID: "m2", Name: "", SubjUID: "", thumbnailUrl: () => "/svg/portrait", setName: vi.fn() };
+    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    await w.vm.$nextTick();
+    w.vm.setMarkerInputValue("m2", "Plane Port");
+    // The previous implementation called `document.activeElement.blur()`
+    // blindly; with an unrelated focused element this would incorrectly
+    // blur it. Verify the scoped query path leaves the outsider alone.
+    const outsider = document.createElement("input");
+    document.body.appendChild(outsider);
+    outsider.focus();
+    expect(document.activeElement).toBe(outsider);
+    const outsiderBlur = vi.spyOn(outsider, "blur");
+    // Spy on the marker row's own input so we also confirm the scoped path
+    // ran (not just that the blind path didn't).
+    const markerInput = w.vm.$el.querySelector(`[data-marker-uid="m2"] input`);
+    expect(markerInput).toBeTruthy();
+    const markerBlur = vi.spyOn(markerInput, "blur");
+    w.vm.cancelMarkerName(marker);
+    expect(markerBlur).toHaveBeenCalled();
+    expect(outsiderBlur).not.toHaveBeenCalled();
+    document.body.removeChild(outsider);
   });
 
   // Inline blur now commits the edit instead of silently reverting — this
