@@ -10,6 +10,8 @@ If the commit relates to specific issues or pull requests, reference their IDs i
 
 Commit messages must not exceed 80 characters in length.
 
+Do not add `Co-Authored-By: Claude …` trailers (or any other AI-authorship trailer) to commit messages.
+
 ## GitHub Issues
 
 Issue titles MUST be concise, use the imperative mood, and start with a single capitalized prefix followed by a colon and a space, e.g. `Search: Add filter for RAW image formats`.

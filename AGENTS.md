@@ -99,7 +99,7 @@ Title Case rules (Chicago-style, with code- and path-aware normalization):
 - Shared Go style rules:
   - After Go edits, run `make fmt-go` and keep `gofmt` tab indentation.
   - Doc comments for packages and exported identifiers must be complete sentences that begin with the described name and end with a period.
-  - Every new function, including unexported helpers, needs a concise doc comment.
+  - Every new function, including unexported helpers, needs a concise doc comment that explains its purpose.
   - Every new Go function, including unexported helpers, must have focused test coverage in the corresponding `*_test.go` files; update existing tests or add new ones as needed.
   - For short examples in comments, indent code instead of using backticks.
   - Every Go package must contain a root `<package>.go` file with the standard license header and a short package description comment.
