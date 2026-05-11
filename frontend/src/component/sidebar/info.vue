@@ -71,14 +71,14 @@
 
         <v-divider v-if="editingField === 'title' || editingField === 'caption' || model.Title || model.Caption || isEditable" class="my-4"></v-divider>
 
-        <v-list-item v-if="fileInfo" v-tooltip="fileTypeName" class="metadata__item metadata__file-info text-body-2">
+        <v-list-item v-if="fileInfo" v-tooltip="fileTypeName" :lines="false" class="metadata__item metadata__file-info text-body-2">
           <span class="break-word">{{ fileInfo }}</span>
         </v-list-item>
-        <v-list-item v-if="!restrictedRole && fileName" class="metadata__item metadata__file-name text-body-2">
+        <v-list-item v-if="!restrictedRole && fileName" :lines="false" class="metadata__item metadata__file-name text-body-2">
           <span class="break-word">{{ fileName }}</span>
         </v-list-item>
 
-        <v-divider v-if="(!restrictedRole && fileName) || fileInfo" class="mt-3 mb-4"></v-divider>
+        <v-divider v-if="(!restrictedRole && fileName) || fileInfo" class="my-4"></v-divider>
 
         <v-list-item v-tooltip="$gettext(`Taken`)" :title="formatTime(model)" prepend-icon="mdi-calendar" class="metadata__item">
           <template v-if="isEditable" #append>
@@ -241,28 +241,22 @@
           <v-list-item class="metadata__item meta-labels">
             <div class="text-subtitle-2">{{ $gettext("Labels") }}</div>
             <template v-if="isEditable && chipState.labels.removals.length > 0" #append>
-              <p-sidebar-inline-toolbar :editing="true" @confirm="confirmLabels" />
+              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" @confirm="confirmLabels" @undo="undoChipRemovals('labels')" />
             </template>
           </v-list-item>
-          <v-list-item v-if="labels.length > 0" class="metadata__item metadata__chips meta-labels">
+          <v-list-item v-if="visibleLabels.length > 0" class="metadata__item metadata__chips meta-labels">
             <div class="d-flex flex-wrap ga-1">
               <span
-                v-for="l in labels"
+                v-for="l in visibleLabels"
                 :key="l.Label.UID"
                 tabindex="0"
                 class="meta-chip meta-chip--primary"
-                :class="{ 'meta-chip--pending-remove': isChipPendingRemoval('labels', l.Label.ID) }"
                 @click.stop.prevent="onChipActivate('labels', l)"
                 @keydown.enter.stop.prevent="onChipActivate('labels', l)"
                 @keydown.delete.stop.prevent="onChipDelete('labels', l)"
               >
                 {{ l.Label.Name }}
-                <v-icon
-                  v-if="isEditable"
-                  :icon="isChipPendingRemoval('labels', l.Label.ID) ? 'mdi-undo' : 'mdi-close-circle'"
-                  size="x-small"
-                  class="ml-1"
-                ></v-icon>
+                <v-icon v-if="isEditable" icon="mdi-close-circle" size="x-small" class="ml-1"></v-icon>
               </span>
             </div>
           </v-list-item>
@@ -298,23 +292,22 @@
           <v-list-item class="metadata__item meta-albums">
             <div class="text-subtitle-2">{{ $gettext("Albums") }}</div>
             <template v-if="isEditable && chipState.albums.removals.length > 0" #append>
-              <p-sidebar-inline-toolbar :editing="true" @confirm="confirmAlbums" />
+              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" @confirm="confirmAlbums" @undo="undoChipRemovals('albums')" />
             </template>
           </v-list-item>
-          <v-list-item v-if="albums.length > 0" class="metadata__item metadata__chips meta-albums">
+          <v-list-item v-if="visibleAlbums.length > 0" class="metadata__item metadata__chips meta-albums">
             <div class="d-flex flex-wrap ga-1">
               <span
-                v-for="a in albums"
+                v-for="a in visibleAlbums"
                 :key="a.UID"
                 tabindex="0"
                 class="meta-chip meta-chip--primary"
-                :class="{ 'meta-chip--pending-remove': isChipPendingRemoval('albums', a.UID) }"
                 @click.stop.prevent="onChipActivate('albums', a)"
                 @keydown.enter.stop.prevent="onChipActivate('albums', a)"
                 @keydown.delete.stop.prevent="onChipDelete('albums', a)"
               >
                 {{ a.Title }}
-                <v-icon v-if="isEditable" :icon="isChipPendingRemoval('albums', a.UID) ? 'mdi-undo' : 'mdi-close-circle'" size="x-small" class="ml-1"></v-icon>
+                <v-icon v-if="isEditable" icon="mdi-close-circle" size="x-small" class="ml-1"></v-icon>
               </span>
             </div>
           </v-list-item>
@@ -638,6 +631,18 @@ export default {
     albums() {
       if (!this.photo?.Albums) return [];
       return this.photo.Albums.filter((a) => a.Title && !a.Private);
+    },
+    // Visible chip lists — `labels` / `albums` minus anything currently
+    // marked for removal in `chipState`. The chip-row wrapper gates on
+    // these so it disappears once the user has soft-removed every chip in
+    // the section (otherwise the wrapper would render as an empty box).
+    // Undo restores the chips by clearing `chipState.<field>.removals`,
+    // which makes these computeds repopulate reactively.
+    visibleLabels() {
+      return this.labels.filter((l) => !this.isChipPendingRemoval("labels", l?.Label?.ID));
+    },
+    visibleAlbums() {
+      return this.albums.filter((a) => !this.isChipPendingRemoval("albums", a?.UID));
     },
     subject() {
       return this.photo?.Details?.Subject || "";
@@ -1024,8 +1029,13 @@ export default {
     },
     // Inline text fields (title/caption/subject/...) are excluded on purpose:
     // onInlineFieldBlur() auto-commits them before any navigation source can
-    // fire, so they can never have pending state at nav time. Only the
-    // staged editors that do NOT auto-commit on blur belong here.
+    // fire, so they can never have pending state at nav time. Chip-section
+    // removals (`chipState.<field>.removals`) ARE counted here because the
+    // user can see and toggle them, but `confirmDiscardPending` auto-commits
+    // them before checking this — by the time the dialog gate runs they're
+    // already gone. The remaining staged inputs that DO open the dialog are
+    // marker drafts, typed-but-uncommitted combobox text, and the open
+    // Add-name confirmation.
     hasPendingEdit() {
       for (const uid of Object.keys(this.markerDrafts)) {
         const d = this.markerDrafts[uid];
@@ -1043,9 +1053,31 @@ export default {
       if (this.addNameDialog && this.addNameDialog.visible) return true;
       return false;
     },
+    // Fire-and-forget commit of any pending chip removals. Mirrors the
+    // inline-text auto-commit on blur: the user's intent (clicking ×) is
+    // honored on navigation/close instead of being silently discarded.
+    // Each Photo.removeLabel / Photo.removeFromAlbum call captures
+    // `this.photo` at the time of invocation, so the response patches the
+    // original Photo instance even if the slide has changed by the time the
+    // promise resolves. The catch path surfaces `$notify.error` and is
+    // shared with the manual ✓ Confirm path through confirmLabels /
+    // confirmAlbums.
+    autoCommitChipRemovals() {
+      if (this.chipState.labels.removals.length) {
+        this.confirmLabels();
+      }
+      if (this.chipState.albums.removals.length) {
+        this.confirmAlbums();
+      }
+    },
     // Async guard used by the lightbox before closing / hiding / navigating.
-    // Returns a Promise<boolean>: true = safe to proceed, false = user canceled.
+    // Returns a Promise<boolean>: true = safe to proceed, false = user
+    // canceled. Pending chip removals auto-commit BEFORE the dialog gate,
+    // so the discard prompt only fires for state the user could plausibly
+    // still want to keep (marker drafts, typed combobox text, the Add-name
+    // dialog) — never for chip × clicks, which are deliberate and final.
     confirmDiscardPending() {
+      this.autoCommitChipRemovals();
       if (!this.hasPendingEdit()) return Promise.resolve(true);
       if (this.discardDialog.visible && this.discardDialog.resolver) {
         // Another request is already waiting on the dialog; reuse it.
@@ -1252,6 +1284,15 @@ export default {
       } else {
         state.removals.push(key);
       }
+    },
+    // Clears all pending removals for one chip section in a single click.
+    // Wired to the Undo icon in the section toolbar; restores soft-removed
+    // chips by emptying `chipState.<field>.removals`, which makes the
+    // `visibleLabels` / `visibleAlbums` computeds repopulate reactively.
+    undoChipRemovals(field) {
+      const state = this.chipState[field];
+      if (!state) return;
+      state.removals = [];
     },
     resetChipState() {
       Object.values(this.chipState).forEach((s) => {

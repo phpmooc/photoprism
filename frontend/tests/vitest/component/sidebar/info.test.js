@@ -2419,6 +2419,168 @@ describe("PSidebarInfo component", () => {
     expect(w.vm.chipState.albums.search).toBe("");
   });
 
+  // `visibleLabels` / `visibleAlbums` filter out chips marked for removal
+  // so the chip-row `v-list-item` disappears once every chip in the
+  // section has been soft-removed. Without these computeds the wrapper
+  // would render as an empty box above the combobox row.
+  describe("visibleLabels / visibleAlbums computeds", () => {
+    it("hides soft-removed labels from the visible list", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      const total = w.vm.labels.length;
+      expect(total).toBeGreaterThan(0);
+      const firstId = w.vm.labels[0].Label.ID;
+      w.vm.togglePendingChipRemoval("labels", firstId);
+
+      expect(w.vm.visibleLabels).toHaveLength(total - 1);
+      expect(w.vm.visibleLabels.some((l) => l?.Label?.ID === firstId)).toBe(false);
+    });
+
+    it("repopulates after undoChipRemovals so the wrapper comes back", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      const total = w.vm.labels.length;
+      w.vm.labels.forEach((l) => w.vm.togglePendingChipRemoval("labels", l?.Label?.ID));
+      expect(w.vm.visibleLabels).toHaveLength(0);
+
+      w.vm.undoChipRemovals("labels");
+
+      expect(w.vm.visibleLabels).toHaveLength(total);
+    });
+
+    it("hides soft-removed albums from the visible list", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      const total = w.vm.albums.length;
+      if (total === 0) return; // fixture has no albums — nothing to assert
+      const firstUid = w.vm.albums[0].UID;
+      w.vm.togglePendingChipRemoval("albums", firstUid);
+
+      expect(w.vm.visibleAlbums).toHaveLength(total - 1);
+      expect(w.vm.visibleAlbums.some((a) => a?.UID === firstUid)).toBe(false);
+    });
+  });
+
+  // The Undo icon in each chip section toolbar clears that section's
+  // `chipState.<field>.removals` in a single click. Soft-removed chips
+  // are filtered out by `visibleLabels` / `visibleAlbums`, so clearing
+  // the removals array makes the chips reappear reactively in the v-for.
+  describe("undoChipRemovals(field)", () => {
+    it("clears pending labels removals but leaves albums untouched", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      w.vm.chipState.labels.removals = [1, 2];
+      w.vm.chipState.albums.removals = ["alb-x"];
+
+      w.vm.undoChipRemovals("labels");
+
+      expect(w.vm.chipState.labels.removals).toHaveLength(0);
+      expect(w.vm.chipState.albums.removals).toEqual(["alb-x"]);
+    });
+
+    it("clears pending albums removals but leaves labels untouched", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      w.vm.chipState.labels.removals = [1];
+      w.vm.chipState.albums.removals = ["alb-x", "alb-y"];
+
+      w.vm.undoChipRemovals("albums");
+
+      expect(w.vm.chipState.labels.removals).toEqual([1]);
+      expect(w.vm.chipState.albums.removals).toHaveLength(0);
+    });
+
+    it("is a silent no-op for an unknown field key", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      w.vm.chipState.labels.removals = [1];
+      expect(() => w.vm.undoChipRemovals("nope")).not.toThrow();
+      expect(w.vm.chipState.labels.removals).toEqual([1]);
+    });
+  });
+
+  // Auto-commit on navigation/close: when the lightbox calls
+  // confirmDiscardPending() (slide change, close, keyboard navigation),
+  // pending chip removals commit silently first — mirroring the inline-
+  // text auto-commit on blur. The discard dialog only fires for state
+  // the user could still want to keep (marker drafts, typed combobox text,
+  // open Add-name confirmation).
+  describe("auto-commit chip removals on confirmDiscardPending", () => {
+    it("fires confirmLabels when labels have pending removals", async () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      const spy = vi.spyOn(w.vm, "confirmLabels");
+      w.vm.chipState.labels.removals = [42];
+
+      const result = w.vm.confirmDiscardPending();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(w.vm.discardDialog.visible).toBe(false);
+      await expect(result).resolves.toBe(true);
+    });
+
+    it("fires confirmAlbums when albums have pending removals", async () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      const spy = vi.spyOn(w.vm, "confirmAlbums");
+      w.vm.chipState.albums.removals = ["alb-x"];
+
+      const result = w.vm.confirmDiscardPending();
+
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(w.vm.discardDialog.visible).toBe(false);
+      await expect(result).resolves.toBe(true);
+    });
+
+    it("skips confirmLabels / confirmAlbums when there are no pending removals", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      const labelsSpy = vi.spyOn(w.vm, "confirmLabels");
+      const albumsSpy = vi.spyOn(w.vm, "confirmAlbums");
+
+      w.vm.confirmDiscardPending();
+
+      expect(labelsSpy).not.toHaveBeenCalled();
+      expect(albumsSpy).not.toHaveBeenCalled();
+    });
+
+    it("still opens the discard dialog when typed combobox text remains after auto-commit", () => {
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+      w.vm.chipState.labels.removals = [42];
+      w.vm.chipState.labels.search = "alpha";
+
+      w.vm.confirmDiscardPending();
+
+      // Removals were auto-committed (cleared synchronously by confirmLabels),
+      // but the typed text remained, so the dialog had to open.
+      expect(w.vm.chipState.labels.removals).toHaveLength(0);
+      expect(w.vm.discardDialog.visible).toBe(true);
+      // Resolve so the test doesn't hang.
+      w.vm.onDiscardCancel();
+    });
+  });
+
   // L9: onChipEscape clears the typed text and pending removals for one
   // field — independent of any inline-text editingField that might be
   // active in the sidebar.

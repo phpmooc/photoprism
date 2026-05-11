@@ -350,13 +350,6 @@
     opacity: 1;
 }
 
-.p-lightbox__container > .p-lightbox__sidebar .meta-chip--pending-remove {
-    background-color: rgba(var(--v-theme-error), 0.3);
-    color: rgb(var(--v-theme-error));
-    box-shadow: none;
-    opacity: 1;
-}
-
 /* Person row in sidebar */
 .p-lightbox__container > .p-lightbox__sidebar .metadata__person-row {
     min-height: 44px;
