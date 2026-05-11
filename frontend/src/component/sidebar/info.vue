@@ -455,6 +455,7 @@
 <script>
 import { DateTime } from "luxon";
 import * as formats from "options/formats";
+import { FaceMarkerDraw } from "options/face-marker";
 
 import * as media from "common/media";
 import typeaheadCache from "common/typeahead-cache";
@@ -578,11 +579,16 @@ export default {
     context() {
       return this.view?.context;
     },
+    // Derived from the lightbox's faceMarkerMode state machine (F2-1):
+    // null = no overlay, 'display' = read-only markers, 'draw' = Add Face.
+    // Reading via `view.faceMarkerMode` keeps the sidebar template stable
+    // (the eye / + icons still toggle on these two booleans) while the
+    // canonical state lives as a single field on the lightbox $data.
     markersVisible() {
-      return Boolean(this.view?.markersVisible);
+      return this.view?.faceMarkerMode != null;
     },
     addingMarker() {
-      return Boolean(this.view?.addingMarker);
+      return this.view?.faceMarkerMode === FaceMarkerDraw;
     },
     markersBusy() {
       return Boolean(this.view?.markersBusy);

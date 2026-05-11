@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { nextTick } from "vue";
 import PFaceMarkerOverlay from "component/photo/face-marker-overlay.vue";
+import { FaceMarkerDisplay, FaceMarkerDraw } from "options/face-marker";
 
 // Stub image bounds on the page.
 const IMAGE_RECT = { left: 100, top: 50, width: 400, height: 300, right: 500, bottom: 350 };
@@ -32,8 +33,8 @@ function mountOverlay(props = {}, listeners = {}) {
       markers: [],
       pswp,
       // Default to draw mode so the existing pointer-driven tests work
-      // unchanged. Display-mode tests pass `mode: "display"` explicitly.
-      mode: "draw",
+      // unchanged. Display-mode tests pass `mode: FaceMarkerDisplay`.
+      mode: FaceMarkerDraw,
       ...props,
       // Forward listeners as props so `wrapper.emitted()` limitations
       // don't matter — the component calls `this.$emit(name, ...)`, which
@@ -460,7 +461,7 @@ describe("PFaceMarkerOverlay", () => {
   // capture the pointer, so PhotoSwipe pan/zoom keeps working.
   it("does not start drafting on pointer down in display mode", () => {
     const onCreate = vi.fn();
-    const { wrapper } = mountOverlay({ mode: "display" }, { onCreate });
+    const { wrapper } = mountOverlay({ mode: FaceMarkerDisplay }, { onCreate });
     wrapper.vm.onPointerDown({
       button: 0,
       pointerId: 1,
@@ -476,7 +477,7 @@ describe("PFaceMarkerOverlay", () => {
 
   it("renders existing markers in display mode", async () => {
     const markers = [{ UID: "m1", Name: "Jane", X: 0.1, Y: 0.1, W: 0.2, H: 0.2 }];
-    const { wrapper } = mountOverlay({ mode: "display", markers });
+    const { wrapper } = mountOverlay({ mode: FaceMarkerDisplay, markers });
     await nextTick();
     await flushPromises();
     const rects = wrapper.element.querySelectorAll("rect");
@@ -488,7 +489,7 @@ describe("PFaceMarkerOverlay", () => {
       { UID: "m1", Name: "Jane", X: 0.1, Y: 0.1, W: 0.2, H: 0.2 },
       { UID: "m2", Name: "", X: 0.5, Y: 0.5, W: 0.1, H: 0.1 },
     ];
-    const { wrapper } = mountOverlay({ mode: "display", markers });
+    const { wrapper } = mountOverlay({ mode: FaceMarkerDisplay, markers });
     await nextTick();
     await flushPromises();
     const labels = wrapper.element.querySelectorAll("text.p-face-markers__label");
@@ -502,7 +503,7 @@ describe("PFaceMarkerOverlay", () => {
 
   it("does not render visible name labels while in draw mode", async () => {
     const markers = [{ UID: "m1", Name: "Jane", X: 0.1, Y: 0.1, W: 0.2, H: 0.2 }];
-    const { wrapper } = mountOverlay({ mode: "draw", markers });
+    const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers });
     await nextTick();
     await flushPromises();
     const labels = wrapper.element.querySelectorAll("text.p-face-markers__label");
@@ -523,7 +524,7 @@ describe("PFaceMarkerOverlay", () => {
     wrapper.vm.onPointerUp({ pointerId: 21 });
     expect(wrapper.vm.pending).not.toBeNull();
 
-    await wrapper.setProps({ mode: "display" });
+    await wrapper.setProps({ mode: FaceMarkerDisplay });
     expect(wrapper.vm.pending).toBeNull();
     expect(wrapper.vm.draft).toBeNull();
     expect(wrapper.vm.interaction).toBeNull();
@@ -779,7 +780,7 @@ describe("PFaceMarkerOverlay", () => {
   it("is inert for the full pointer cycle in display mode", async () => {
     const onCreate = vi.fn();
     const markers = [{ UID: "m1", Name: "Jane", X: 0.1, Y: 0.1, W: 0.2, H: 0.2 }];
-    const { wrapper } = mountOverlay({ mode: "display", markers }, { onCreate });
+    const { wrapper } = mountOverlay({ mode: FaceMarkerDisplay, markers }, { onCreate });
     wrapper.vm.onPointerDown({
       button: 0,
       pointerId: 2,

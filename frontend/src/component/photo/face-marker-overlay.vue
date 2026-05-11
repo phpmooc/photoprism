@@ -68,8 +68,18 @@
 </template>
 
 <script>
+import { FaceMarkerDisplay, FaceMarkerDraw, isFaceMarkerMode } from "options/face-marker";
+
 // Minimum side length of a drawable square, in screen pixels.
 const MIN_DRAW_SIZE = 16;
+
+// Internal pointer-interaction kinds used by the overlay's draw / move /
+// resize gestures. Named separately from the public face-marker mode
+// constants so the same word "draw" can carry distinct semantics in each
+// scope without confusion.
+const InteractionDraw = "draw";
+const InteractionMove = "move";
+const InteractionResize = "resize";
 
 export default {
   name: "PFaceMarkerOverlay",
@@ -84,8 +94,8 @@ export default {
     },
     mode: {
       type: String,
-      default: "display",
-      validator: (v) => v === "display" || v === "draw",
+      default: FaceMarkerDisplay,
+      validator: isFaceMarkerMode,
     },
     busy: {
       type: Boolean,
@@ -98,7 +108,7 @@ export default {
       bounds: null,
       draft: null,
       pending: null,
-      interaction: null, // null | "draw" | "move" | "resize"
+      interaction: null, // null | InteractionDraw | InteractionMove | InteractionResize
       resizeCorner: null,
       hoverCursor: null,
       pointerId: null,
@@ -109,7 +119,7 @@ export default {
   },
   computed: {
     isDrawMode() {
-      return this.mode === "draw";
+      return this.mode === FaceMarkerDraw;
     },
     svgStyle() {
       if (!this.bounds) return { display: "none" };
@@ -141,7 +151,7 @@ export default {
   },
   watch: {
     mode(newVal) {
-      if (newVal !== "draw") {
+      if (newVal !== FaceMarkerDraw) {
         this.cancelActiveDraft();
       }
     },
@@ -324,7 +334,7 @@ export default {
 
       this.stopEventFromPswp(ev);
       this.pending = null;
-      this.interaction = "draw";
+      this.interaction = InteractionDraw;
       this.pointerId = ev.pointerId;
       this.dragStart = { clientX: ev.clientX, clientY: ev.clientY, local };
       this.draft = { x: local.x, y: local.y, w: 0, h: 0 };
@@ -339,7 +349,7 @@ export default {
       const cx = Math.max(0, Math.min(this.bounds.width, local.x));
       const cy = Math.max(0, Math.min(this.bounds.height, local.y));
 
-      if (this.interaction === "move") {
+      if (this.interaction === InteractionMove) {
         const origin = this.dragStart.pending;
         if (!origin) return;
         const dx = local.x - this.dragStart.local.x;
@@ -364,7 +374,7 @@ export default {
       const signX = dx < 0 ? -1 : 1;
       const signY = dy < 0 ? -1 : 1;
 
-      if (this.interaction === "resize" && side < MIN_DRAW_SIZE) {
+      if (this.interaction === InteractionResize && side < MIN_DRAW_SIZE) {
         side = MIN_DRAW_SIZE;
       }
 
@@ -400,7 +410,7 @@ export default {
       if (sw < 0) sw = 0;
       if (sh < 0) sh = 0;
 
-      if (this.interaction === "resize") {
+      if (this.interaction === InteractionResize) {
         this.pending = { x: sx, y: sy, w: sw, h: sh };
       } else {
         this.draft = { x: sx, y: sy, w: sw, h: sh };
@@ -423,7 +433,7 @@ export default {
 
       // Move/resize have already written the up-to-date `pending`; only
       // the draw path needs to promote its draft into pending.
-      if (wasInteraction !== "draw") return;
+      if (wasInteraction !== InteractionDraw) return;
 
       if (!draft || !this.bounds || draft.w < MIN_DRAW_SIZE || draft.h < MIN_DRAW_SIZE) {
         return;
@@ -481,7 +491,7 @@ export default {
     // `frontend/src/common/README.md` for the documented keyboard
     // pattern (Vuetify v-dialog `@keydown.esc.exact` + `onShortCut`).
     handleEscape() {
-      if (this.interaction === "draw") {
+      if (this.interaction === InteractionDraw) {
         this.interaction = null;
         this.pointerId = null;
         this.dragStart = null;
@@ -489,7 +499,7 @@ export default {
         this.detachWindowPointerListeners();
         return true;
       }
-      if (this.interaction === "move" || this.interaction === "resize") {
+      if (this.interaction === InteractionMove || this.interaction === InteractionResize) {
         const snapshot = this.dragStart && this.dragStart.pending;
         if (snapshot) this.pending = { ...snapshot };
         this.interaction = null;
@@ -548,7 +558,7 @@ export default {
       else anchor = { x: p.x, y: p.y };
 
       this.stopEventFromPswp(ev);
-      this.interaction = "resize";
+      this.interaction = InteractionResize;
       this.resizeCorner = corner;
       this.pointerId = ev.pointerId;
       this.dragStart = {
@@ -589,7 +599,7 @@ export default {
       const p = this.pending;
       if (!p) return;
       this.stopEventFromPswp(ev);
-      this.interaction = "move";
+      this.interaction = InteractionMove;
       this.resizeCorner = null;
       this.pointerId = ev.pointerId;
       this.dragStart = {

@@ -8,6 +8,7 @@ import Thumb from "model/thumb";
 import Album from "model/album";
 import $util from "common/util";
 import { buildNamespace } from "common/storage";
+import { FaceMarkerDisplay, FaceMarkerDraw } from "options/face-marker";
 import clientConfig from "../config";
 
 const storagePrefix = buildNamespace(clientConfig.storageNamespace);
@@ -382,16 +383,18 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       expect(ctx.playVideo).toHaveBeenCalledWith(videoEl, true);
     });
 
-    // P1-10 — closing the sidebar while draw mode is active exits draw mode
-    // too. The ✓ Done button lives in the sidebar, so without this hook the
-    // overlay stays drawing-enabled with no way to cancel and any paused
-    // playback never resumes.
-    it("hideInfo cancels addingMarker so the draw overlay tears down and playback resumes", async () => {
+    // P1-10 — closing the sidebar while face-marker UI is active fully
+    // exits it. The eye and ✓ Done controls live in the sidebar, so a
+    // closed sidebar would otherwise leave the overlay mounted with no
+    // way to disable it (and any paused playback would never restore).
+    it("hideInfo exits face-marker UI so the overlay tears down and playback resumes", async () => {
       const wrapper = mountLightbox();
+      const exitFaceMarkerMode = vi.fn();
       const ctx = {
         visible: true,
         info: true,
-        addingMarker: true,
+        faceMarkerMode: FaceMarkerDraw,
+        exitFaceMarkerMode,
         confirmDiscardSidebar: () => Promise.resolve(true),
         $nextTick: (cb) => Promise.resolve().then(cb),
         resize: vi.fn(),
@@ -399,17 +402,19 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       };
       await wrapper.vm.$options.methods.hideInfo.call(ctx);
       expect(ctx.info).toBe(false);
-      expect(ctx.addingMarker).toBe(false);
+      expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
     });
 
-    // Guard: hideInfo does not flip addingMarker if the user cancels out of
-    // the discard prompt. Sidebar (and overlay) stay open.
-    it("hideInfo keeps addingMarker when confirmDiscardSidebar resolves false", async () => {
+    // Guard: hideInfo does not exit face-marker UI if the user cancels
+    // out of the discard prompt. Sidebar (and overlay) stay open.
+    it("hideInfo keeps face-marker UI when confirmDiscardSidebar resolves false", async () => {
       const wrapper = mountLightbox();
+      const exitFaceMarkerMode = vi.fn();
       const ctx = {
         visible: true,
         info: true,
-        addingMarker: true,
+        faceMarkerMode: FaceMarkerDraw,
+        exitFaceMarkerMode,
         confirmDiscardSidebar: () => Promise.resolve(false),
         $nextTick: (cb) => Promise.resolve().then(cb),
         resize: vi.fn(),
@@ -417,31 +422,40 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       };
       await wrapper.vm.$options.methods.hideInfo.call(ctx);
       expect(ctx.info).toBe(true);
-      expect(ctx.addingMarker).toBe(true);
+      expect(ctx.faceMarkerMode).toBe(FaceMarkerDraw);
+      expect(exitFaceMarkerMode).not.toHaveBeenCalled();
     });
 
-    // Wiring: the addingMarker watcher delegates to the pause/restore pair
-    // on every flip, so every call site (toggle, cancelAddingMarker,
-    // resetFaceMarkers, sidebar-emitted toggle) is covered uniformly.
-    // We exercise the watcher function directly to keep the test
-    // deterministic instead of leaning on Vue's reactivity timing.
-    it("addingMarker watcher routes through pause on entry and restore on exit", () => {
+    // Wiring: the faceMarkerMode watcher routes the pause / restore pair
+    // off the transitions in/out of 'draw'. Display-mode flips (e.g. eye
+    // toggle null ↔ 'display') don't touch playback.
+    it("faceMarkerMode watcher routes through pause on entering draw and restore on exiting draw", () => {
       const wrapper = mountLightbox();
-      const watcher = wrapper.vm.$options.watch.addingMarker;
+      const watcher = wrapper.vm.$options.watch.faceMarkerMode;
       const ctx = {
         pausePlaybackForAddingMarker: vi.fn(),
         restorePlaybackAfterAddingMarker: vi.fn(),
       };
-      watcher.call(ctx, true, false);
+      // null → draw enters; restore not called.
+      watcher.call(ctx, FaceMarkerDraw, null);
       expect(ctx.pausePlaybackForAddingMarker).toHaveBeenCalledTimes(1);
       expect(ctx.restorePlaybackAfterAddingMarker).not.toHaveBeenCalled();
-      watcher.call(ctx, false, true);
+      // draw → null exits; restore called.
+      watcher.call(ctx, null, FaceMarkerDraw);
       expect(ctx.restorePlaybackAfterAddingMarker).toHaveBeenCalledTimes(1);
-      // Same-value transitions (false → false, true → true) are no-ops.
+      // display → draw enters from display (eye then +); pause again.
       ctx.pausePlaybackForAddingMarker.mockClear();
       ctx.restorePlaybackAfterAddingMarker.mockClear();
-      watcher.call(ctx, true, true);
-      watcher.call(ctx, false, false);
+      watcher.call(ctx, FaceMarkerDraw, FaceMarkerDisplay);
+      expect(ctx.pausePlaybackForAddingMarker).toHaveBeenCalledTimes(1);
+      // draw → display exits draw (rare, but valid); restore.
+      watcher.call(ctx, FaceMarkerDisplay, FaceMarkerDraw);
+      expect(ctx.restorePlaybackAfterAddingMarker).toHaveBeenCalledTimes(1);
+      // Non-draw transitions (null ↔ display) are no-ops.
+      ctx.pausePlaybackForAddingMarker.mockClear();
+      ctx.restorePlaybackAfterAddingMarker.mockClear();
+      watcher.call(ctx, FaceMarkerDisplay, null);
+      watcher.call(ctx, null, FaceMarkerDisplay);
       expect(ctx.pausePlaybackForAddingMarker).not.toHaveBeenCalled();
       expect(ctx.restorePlaybackAfterAddingMarker).not.toHaveBeenCalled();
     });
@@ -457,29 +471,28 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     it("delegates to the face-marker overlay first when it has a pending rect", () => {
       const wrapper = mountLightbox();
       const handleEscape = vi.fn().mockReturnValue(true);
-      const cancelAddingMarker = vi.fn();
+      const exitFaceMarkerMode = vi.fn();
       const close = vi.fn();
       const ctx = {
         $refs: { faceMarkerOverlay: { handleEscape } },
-        addingMarker: true,
-        cancelAddingMarker,
+        faceMarkerMode: FaceMarkerDraw,
+        exitFaceMarkerMode,
         close,
       };
       wrapper.vm.$options.methods.onEscapeKey.call(ctx);
       expect(handleEscape).toHaveBeenCalledTimes(1);
-      expect(cancelAddingMarker).not.toHaveBeenCalled();
+      expect(exitFaceMarkerMode).not.toHaveBeenCalled();
       expect(close).not.toHaveBeenCalled();
     });
 
-    it("hides face-marker UI when the overlay had nothing to cancel and addingMarker is true", () => {
+    it("hides face-marker UI when the overlay had nothing to cancel and draw mode is active", () => {
       const wrapper = mountLightbox();
       const handleEscape = vi.fn().mockReturnValue(false);
       const exitFaceMarkerMode = vi.fn();
       const close = vi.fn();
       const ctx = {
         $refs: { faceMarkerOverlay: { handleEscape } },
-        addingMarker: true,
-        markersVisible: true,
+        faceMarkerMode: FaceMarkerDraw,
         exitFaceMarkerMode,
         close,
       };
@@ -491,14 +504,13 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     // Display-only markers (eye toggle without Add Face) also exit on
     // Escape — consistent with the Add Face path, and saves the user a
     // dedicated "hide markers" gesture.
-    it("hides face-marker UI when only markersVisible is true (display mode)", () => {
+    it("hides face-marker UI when only display mode is active", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
       const close = vi.fn();
       const ctx = {
         $refs: {},
-        addingMarker: false,
-        markersVisible: true,
+        faceMarkerMode: FaceMarkerDisplay,
         exitFaceMarkerMode,
         close,
       };
@@ -511,22 +523,20 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
       const close = vi.fn();
-      const ctx = { $refs: {}, addingMarker: false, markersVisible: false, exitFaceMarkerMode, close };
+      const ctx = { $refs: {}, faceMarkerMode: null, exitFaceMarkerMode, close };
       wrapper.vm.$options.methods.onEscapeKey.call(ctx);
       expect(close).toHaveBeenCalledTimes(1);
       expect(exitFaceMarkerMode).not.toHaveBeenCalled();
     });
 
-    // Exiting Add Face mode must also hide already-displayed markers
-    // (`markersVisible`) because their coordinates anchor to the JPG
-    // cover — leaving them visible would paint stale boxes over the
-    // now-resuming video.
-    it("exitFaceMarkerMode fully resets addingMarker + markersVisible + faceMarkers", () => {
+    // exitFaceMarkerMode clears the state machine flag AND the local
+    // markers array — display-mode markers anchor to the JPG cover, so
+    // leaving them visible would paint stale boxes over a resumed video.
+    it("exitFaceMarkerMode resets faceMarkerMode and clears faceMarkers", () => {
       const wrapper = mountLightbox();
-      const ctx = { addingMarker: true, markersVisible: true, faceMarkers: [{ UID: "m1" }] };
+      const ctx = { faceMarkerMode: FaceMarkerDraw, faceMarkers: [{ UID: "m1" }] };
       wrapper.vm.$options.methods.exitFaceMarkerMode.call(ctx);
-      expect(ctx.addingMarker).toBe(false);
-      expect(ctx.markersVisible).toBe(false);
+      expect(ctx.faceMarkerMode).toBeNull();
       expect(ctx.faceMarkers).toEqual([]);
     });
 
@@ -534,7 +544,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
       const ctx = {
-        addingMarker: true,
+        faceMarkerMode: FaceMarkerDraw,
         markersBusy: false,
         shouldShowEditButton: () => true,
         exitFaceMarkerMode,
@@ -543,11 +553,17 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
     });
 
-    it("cancelAddingMarker routes through exitFaceMarkerMode (Escape path)", () => {
+    // toggleMarkersVisible also routes through exitFaceMarkerMode when any
+    // mode is active — the same "fully exit on toggle" rule applies.
+    it("toggleMarkersVisible's exit path routes through exitFaceMarkerMode (eye toggle off)", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
-      const ctx = { exitFaceMarkerMode };
-      wrapper.vm.$options.methods.cancelAddingMarker.call(ctx);
+      const ctx = {
+        faceMarkerMode: FaceMarkerDisplay,
+        shouldShowEditButton: () => true,
+        exitFaceMarkerMode,
+      };
+      wrapper.vm.$options.methods.toggleMarkersVisible.call(ctx);
       expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
     });
 

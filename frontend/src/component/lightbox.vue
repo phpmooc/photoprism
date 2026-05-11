@@ -42,14 +42,14 @@
       >
         <div ref="lightbox" tabindex="-1" class="p-lightbox__pswp no-transition"></div>
         <p-face-marker-overlay
-          v-if="shouldShowEditButton() && featPeople && markersVisible && pswp()"
+          v-if="shouldShowEditButton() && featPeople && faceMarkerMode && pswp()"
           ref="faceMarkerOverlay"
-          :mode="addingMarker ? 'draw' : 'display'"
+          :mode="faceMarkerMode"
           :markers="faceMarkers"
           :pswp="pswp()"
           :busy="markersBusy"
           @create="onCreateFaceMarker"
-          @cancel="cancelAddingMarker"
+          @cancel="exitFaceMarkerMode"
         ></p-face-marker-overlay>
         <div v-show="video.controls && controlsShown !== 0" ref="controls" tabindex="-1" class="p-lightbox__controls" @click.stop.prevent>
           <div :title="video.error" class="video-control video-control--play">
@@ -123,6 +123,7 @@ import { Album } from "model/album";
 import * as media from "common/media";
 import { getAppSessionStorage, getAppStorage } from "common/storage";
 import * as contexts from "options/contexts";
+import { FaceMarkerDisplay, FaceMarkerDraw } from "options/face-marker";
 
 const VIDEO_EVENT_TYPES = [
   "loadstart",
@@ -206,8 +207,15 @@ export default {
       contextAllowsEdit: true,
       contextAllowsSelect: true,
       featPeople: this.$config.feature("people"),
-      markersVisible: false,
-      addingMarker: false,
+      // Face-marker UI state machine. Three valid states (`null`, `'display'`,
+      // `'draw'`) replace the legacy `markersVisible` + `addingMarker`
+      // booleans (which encoded one invalid combination: draw mode without
+      // markers visible). Transitions: toggleMarkersVisible flips between
+      // null ↔ 'display'; toggleAddingMarker flips between current ↔ 'draw'
+      // and auto-promotes null to draw when entering; resetFaceMarkers and
+      // exitFaceMarkerMode set null. Sidebar reads via `view.faceMarkerMode`
+      // (see `info.vue` computeds `markersVisible` / `addingMarker`).
+      faceMarkerMode: null,
       markersBusy: false,
       faceMarkers: [],
       pendingNameMarkerUid: null,
@@ -252,17 +260,17 @@ export default {
     };
   },
   watch: {
-    // Pauses playable media (regular video, Live Photo, Animated) while
-    // the user is drawing a face region, then restores playback when
-    // they exit the draw mode. Drawing on a moving frame leads to
-    // wrong-rectangle saves (P1-10) and Live / Animated never expose
-    // video controls, so the user can't pause manually. Covers every
-    // path that flips addingMarker (toggle, cancel, resetFaceMarkers,
-    // sidebar onToggleAddingMarker).
-    addingMarker(now, was) {
-      if (now && !was) {
+    // Pauses playable media (regular video, Live Photo, Animated) when the
+    // user enters draw mode, then restores playback on exit. Drawing on a
+    // moving frame leads to wrong-rectangle saves (P1-10), and Live /
+    // Animated never expose video controls so the user can't pause
+    // manually. Watching `faceMarkerMode` covers every entry path (toggle,
+    // sidebar onToggleAddingMarker) and every exit path (✓ Done, Escape,
+    // resetFaceMarkers, hideInfo).
+    faceMarkerMode(now, was) {
+      if (now === FaceMarkerDraw && was !== FaceMarkerDraw) {
         this.pausePlaybackForAddingMarker();
-      } else if (!now && was) {
+      } else if (now !== FaceMarkerDraw && was === FaceMarkerDraw) {
         this.restorePlaybackAfterAddingMarker();
       }
     },
@@ -1756,63 +1764,55 @@ export default {
       if (!this.shouldShowEditButton()) {
         return;
       }
-      if (this.markersVisible) {
-        this.markersVisible = false;
-        this.addingMarker = false;
-        this.faceMarkers = [];
+      if (this.faceMarkerMode) {
+        this.exitFaceMarkerMode();
         return;
       }
-      this.markersVisible = true;
+      this.faceMarkerMode = FaceMarkerDisplay;
       this.reloadFaceMarkers();
     },
     toggleAddingMarker() {
       if (!this.shouldShowEditButton() || this.markersBusy) {
         return;
       }
-      if (this.addingMarker) {
+      if (this.faceMarkerMode === FaceMarkerDraw) {
         this.exitFaceMarkerMode();
         return;
       }
-      this.markersVisible = true;
-      this.addingMarker = true;
+      this.faceMarkerMode = FaceMarkerDraw;
       this.reloadFaceMarkers();
       if (this.$refs.menu) {
         this.$refs.menu.hide();
       }
     },
-    cancelAddingMarker() {
-      this.exitFaceMarkerMode();
-    },
-    // Fully exits face-marker UI: turns off draw mode AND hides any
-    // already-displayed markers. Display-mode markers anchor to the
-    // JPG cover's coordinate system, so leaving them visible after the
-    // user finished / canceled "Add Face" would paint stale boxes over
-    // a now-resuming video. The ✓ Done button (toggleAddingMarker) and
-    // Escape (via onEscapeKey → cancelAddingMarker) both route here.
+    // Fully exits face-marker UI by clearing the state-machine flag and the
+    // local markers array. The ✓ Done button (toggleAddingMarker exit),
+    // the eye-toggle when active (toggleMarkersVisible exit), Escape (via
+    // onEscapeKey), and hideInfo all route through here so a resumed
+    // video is never painted with stale boxes anchored to the JPG cover.
     // Re-enabling display-only review is one click away via the eye
     // toggle in the sidebar.
     exitFaceMarkerMode() {
-      this.addingMarker = false;
-      this.markersVisible = false;
+      this.faceMarkerMode = null;
       this.faceMarkers = [];
     },
     // Shared Escape handler. Delegated to from both the v-dialog template
     // (`@keydown.esc.exact.stop="onEscapeKey"`) and the global
     // `$view.onShortCut(ev)` forwarder (see `frontend/src/common/README.md`
-    // for the documented keyboard pattern). Routing priority:
+    // for the documented keyboard pattern). Priority chain:
     //
     // 1. If the face-marker overlay has an in-flight draft / pending rect,
     //    let it cancel that without exiting draw mode.
-    // 2. Else, if any face-marker UI is active (`addingMarker` OR
-    //    `markersVisible`), hide the overlay — closing the lightbox would
-    //    skip a step the user can plausibly still want to undo.
+    // 2. Else, if any face-marker UI is active (faceMarkerMode non-null),
+    //    hide the overlay — closing the lightbox would skip a step the
+    //    user can plausibly still want to undo.
     // 3. Else, close the lightbox normally.
     onEscapeKey() {
       const overlay = this.$refs.faceMarkerOverlay;
       if (overlay && typeof overlay.handleEscape === "function" && overlay.handleEscape()) {
         return;
       }
-      if (this.addingMarker || this.markersVisible) {
+      if (this.faceMarkerMode) {
         this.exitFaceMarkerMode();
         return;
       }
@@ -1826,8 +1826,7 @@ export default {
       }
     },
     resetFaceMarkers() {
-      this.markersVisible = false;
-      this.addingMarker = false;
+      this.faceMarkerMode = null;
       this.markersBusy = false;
       this.faceMarkers = [];
       this.pendingNameMarkerUid = null;
@@ -2887,10 +2886,11 @@ export default {
         this.focusContent();
       });
     },
-    // Hides the lightbox sidebar, if visible. Also exits face-marker draw
-    // mode (the ✓ Done button lives in the sidebar, so a closed sidebar
-    // would otherwise leave `addingMarker` stuck-on with the draw overlay
-    // active and any paused playback unrestored — see P1-10).
+    // Hides the lightbox sidebar, if visible. Also fully exits face-marker
+    // UI when active — the eye and ✓ Done controls live in the sidebar,
+    // so a closed sidebar would otherwise leave the overlay mounted over
+    // a resumed video with no UI to disable it (and the paused playback
+    // would never restore for draw mode — see P1-10).
     async hideInfo() {
       if (!this.visible || !this.info) {
         return;
@@ -2900,8 +2900,8 @@ export default {
       if (!ok) return;
 
       this.info = false;
-      if (this.addingMarker) {
-        this.addingMarker = false;
+      if (this.faceMarkerMode) {
+        this.exitFaceMarkerMode();
       }
 
       appStorage.setItem("lightbox.info", `${this.info.toString()}`);

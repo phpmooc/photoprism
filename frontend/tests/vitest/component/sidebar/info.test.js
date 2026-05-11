@@ -46,6 +46,16 @@ const validationUtil = {
 // `mount(PSidebarInfo, ` -> `mountSidebar(` renamed.
 function mountSidebar(options = {}) {
   const props = { ...(options.props || {}) };
+  // Translate the legacy boolean props (`markersVisible` / `addingMarker`)
+  // into the new state-machine value (F2-1: `faceMarkerMode`). Tests
+  // pre-dating the enum still set the booleans; new tests can pass
+  // `faceMarkerMode` directly.
+  let faceMarkerMode = props.faceMarkerMode;
+  if (faceMarkerMode === undefined) {
+    if (props.addingMarker) faceMarkerMode = "draw";
+    else if (props.markersVisible) faceMarkerMode = "display";
+    else faceMarkerMode = null;
+  }
   const legacy = {
     model: props.modelValue,
     photo: props.photo,
@@ -53,8 +63,7 @@ function mountSidebar(options = {}) {
     contextAllowsEdit: true,
     collection: props.collection,
     context: props.context,
-    markersVisible: props.markersVisible,
-    addingMarker: props.addingMarker,
+    faceMarkerMode,
     markersBusy: props.markersBusy,
     pendingNameMarkerUid: props.newMarkerUid,
   };
@@ -67,6 +76,7 @@ function mountSidebar(options = {}) {
   delete props.context;
   delete props.markersVisible;
   delete props.addingMarker;
+  delete props.faceMarkerMode;
   delete props.markersBusy;
   delete props.newMarkerUid;
 
