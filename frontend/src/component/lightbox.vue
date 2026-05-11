@@ -1770,7 +1770,7 @@ export default {
         return;
       }
       if (this.addingMarker) {
-        this.addingMarker = false;
+        this.exitFaceMarkerMode();
         return;
       }
       this.markersVisible = true;
@@ -1781,7 +1781,20 @@ export default {
       }
     },
     cancelAddingMarker() {
+      this.exitFaceMarkerMode();
+    },
+    // Fully exits face-marker UI: turns off draw mode AND hides any
+    // already-displayed markers. Display-mode markers anchor to the
+    // JPG cover's coordinate system, so leaving them visible after the
+    // user finished / canceled "Add Face" would paint stale boxes over
+    // a now-resuming video. The ✓ Done button (toggleAddingMarker) and
+    // Escape (via onEscapeKey → cancelAddingMarker) both route here.
+    // Re-enabling display-only review is one click away via the eye
+    // toggle in the sidebar.
+    exitFaceMarkerMode() {
       this.addingMarker = false;
+      this.markersVisible = false;
+      this.faceMarkers = [];
     },
     // Shared Escape handler. Delegated to from both the v-dialog template
     // (`@keydown.esc.exact.stop="onEscapeKey"`) and the global
@@ -1790,16 +1803,17 @@ export default {
     //
     // 1. If the face-marker overlay has an in-flight draft / pending rect,
     //    let it cancel that without exiting draw mode.
-    // 2. Else, if the user is in face-draw mode (`addingMarker`), exit
-    //    draw mode — closing the lightbox would lose context.
+    // 2. Else, if any face-marker UI is active (`addingMarker` OR
+    //    `markersVisible`), hide the overlay — closing the lightbox would
+    //    skip a step the user can plausibly still want to undo.
     // 3. Else, close the lightbox normally.
     onEscapeKey() {
       const overlay = this.$refs.faceMarkerOverlay;
       if (overlay && typeof overlay.handleEscape === "function" && overlay.handleEscape()) {
         return;
       }
-      if (this.addingMarker) {
-        this.cancelAddingMarker();
+      if (this.addingMarker || this.markersVisible) {
+        this.exitFaceMarkerMode();
         return;
       }
       this.close();

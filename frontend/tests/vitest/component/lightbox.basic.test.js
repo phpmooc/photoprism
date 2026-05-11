@@ -471,30 +471,84 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       expect(close).not.toHaveBeenCalled();
     });
 
-    it("exits draw mode when the overlay had nothing to cancel and addingMarker is true", () => {
+    it("hides face-marker UI when the overlay had nothing to cancel and addingMarker is true", () => {
       const wrapper = mountLightbox();
       const handleEscape = vi.fn().mockReturnValue(false);
-      const cancelAddingMarker = vi.fn();
+      const exitFaceMarkerMode = vi.fn();
       const close = vi.fn();
       const ctx = {
         $refs: { faceMarkerOverlay: { handleEscape } },
         addingMarker: true,
-        cancelAddingMarker,
+        markersVisible: true,
+        exitFaceMarkerMode,
         close,
       };
       wrapper.vm.$options.methods.onEscapeKey.call(ctx);
-      expect(cancelAddingMarker).toHaveBeenCalledTimes(1);
+      expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
       expect(close).not.toHaveBeenCalled();
     });
 
-    it("closes the lightbox when no overlay is mounted and the user is not in draw mode", () => {
+    // Display-only markers (eye toggle without Add Face) also exit on
+    // Escape — consistent with the Add Face path, and saves the user a
+    // dedicated "hide markers" gesture.
+    it("hides face-marker UI when only markersVisible is true (display mode)", () => {
       const wrapper = mountLightbox();
-      const cancelAddingMarker = vi.fn();
+      const exitFaceMarkerMode = vi.fn();
       const close = vi.fn();
-      const ctx = { $refs: {}, addingMarker: false, cancelAddingMarker, close };
+      const ctx = {
+        $refs: {},
+        addingMarker: false,
+        markersVisible: true,
+        exitFaceMarkerMode,
+        close,
+      };
+      wrapper.vm.$options.methods.onEscapeKey.call(ctx);
+      expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
+      expect(close).not.toHaveBeenCalled();
+    });
+
+    it("closes the lightbox when no face-marker UI is active", () => {
+      const wrapper = mountLightbox();
+      const exitFaceMarkerMode = vi.fn();
+      const close = vi.fn();
+      const ctx = { $refs: {}, addingMarker: false, markersVisible: false, exitFaceMarkerMode, close };
       wrapper.vm.$options.methods.onEscapeKey.call(ctx);
       expect(close).toHaveBeenCalledTimes(1);
-      expect(cancelAddingMarker).not.toHaveBeenCalled();
+      expect(exitFaceMarkerMode).not.toHaveBeenCalled();
+    });
+
+    // Exiting Add Face mode must also hide already-displayed markers
+    // (`markersVisible`) because their coordinates anchor to the JPG
+    // cover — leaving them visible would paint stale boxes over the
+    // now-resuming video.
+    it("exitFaceMarkerMode fully resets addingMarker + markersVisible + faceMarkers", () => {
+      const wrapper = mountLightbox();
+      const ctx = { addingMarker: true, markersVisible: true, faceMarkers: [{ UID: "m1" }] };
+      wrapper.vm.$options.methods.exitFaceMarkerMode.call(ctx);
+      expect(ctx.addingMarker).toBe(false);
+      expect(ctx.markersVisible).toBe(false);
+      expect(ctx.faceMarkers).toEqual([]);
+    });
+
+    it("toggleAddingMarker's exit path routes through exitFaceMarkerMode (Done button)", () => {
+      const wrapper = mountLightbox();
+      const exitFaceMarkerMode = vi.fn();
+      const ctx = {
+        addingMarker: true,
+        markersBusy: false,
+        shouldShowEditButton: () => true,
+        exitFaceMarkerMode,
+      };
+      wrapper.vm.$options.methods.toggleAddingMarker.call(ctx);
+      expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
+    });
+
+    it("cancelAddingMarker routes through exitFaceMarkerMode (Escape path)", () => {
+      const wrapper = mountLightbox();
+      const exitFaceMarkerMode = vi.fn();
+      const ctx = { exitFaceMarkerMode };
+      wrapper.vm.$options.methods.cancelAddingMarker.call(ctx);
+      expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
     });
 
     it("onShortCut Escape routes through onEscapeKey, not close directly", () => {
