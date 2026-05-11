@@ -18,49 +18,49 @@ let themes = {
     title: "Default",
     name: "default",
     colors: {
-      "background": "#19191a",
-      "on-background": "#f9fafb",
-      "surface": "#262628",
-      "on-surface": "#f9fafb",
-      "surface-bright": "#333333",
-      "surface-variant": "#7852cd",
-      "on-surface-variant": "#f6f7e8",
-      "primary": "#9E7BEA",
-      "secondary": "#19191a",
-      "secondary-light": "#202022",
-      "accent": "#303136",
-      "card": "#27272a",
-      "selected": "#5e319b",
-      "highlight": "#5e319b",
-      "switch": "#101112",
-      "button": "#262628",
-      "table": "#202021",
-      "on-table": "#f9fafb",
-      "error": "#e57373",
-      "info": "#00acc1",
-      "success": "#4db6ac",
-      "warning": "#bc9714",
-      "favorite": "#FFD600",
-      "remove": "#da4e4c",
-      "restore": "#00d48a",
-      "album": "#ed9e00",
-      "on-album": "#ffffff",
-      "download": "#00bfa5",
-      "private": "#00b8d4",
-      "edit": "#2196F3",
-      "share": "#3F51B5",
-      "love": "#ef5350",
-      "terminal": "#282730",
-      "navigation": "#19191a",
-      "navigation-home": "#19191a",
+      "background": "#19191a", // Page canvas; the lowest elevation level (cards and data tables fall back to this).
+      "on-background": "#f9fafb", // Text and icon color readable against `background`.
+      "surface": "#262628", // Default container surface for sheets, dialogs, and list items (sits above `background`).
+      "on-surface": "#f9fafb", // Body text and icon color on `surface`, `surface-bright`, and `surface-light`.
+      "surface-bright": "#333333", // Lifted variant of `surface`; raised tiles, hover states, inline editors.
+      "surface-variant": "#7852cd", // Muted brand-purple foreground tone consumed by Vuetify defaults for active dropdown rows, focus rings, and `color="surface-variant"` props.
+      "on-surface-variant": "#f6f7e8", // Text/icon color that contrasts with `surface-variant` when used as a background.
+      "primary": "#9E7BEA", // Brand/identity accent (icons, active-tab text, chip focus ring).
+      "secondary": "#19191a", // Background for secondary panels (tab strips, expansion-panel headers, nav drawer sections).
+      "secondary-light": "#202022", // Lifted variant of `secondary`; used for raised surfaces inside secondary panels.
+      "accent": "#303136", // Small-decoration tint for hover/focus subtleties; not a primary action color.
+      "card": "#27272a", // Dedicated card-container background; a third tier between `surface` and `background`.
+      "selected": "#5e319b", // Active list-item background; pairs with `on-selected` for text inside the row.
+      "highlight": "#5e319b", // Primary call-to-action accent (Confirm/Save/Apply buttons, chips, active toggle).
+      "switch": "#101112", // VSwitch track background when off.
+      "button": "#262628", // Secondary button color (Cancel, dismiss) — the neutral companion to `highlight`.
+      "table": "#202021", // VDataTable row and header background.
+      "on-table": "#f9fafb", // Text and icon color on `table` rows.
+      "error": "#e57373", // Error state for banners, validation errors, and error toasts.
+      "info": "#00acc1", // Informational notification color (snackbars, info-level log icons, neutral badges).
+      "success": "#4db6ac", // Successful-outcome notification color (saved toast, completed-job indicator).
+      "warning": "#bc9714", // Caution / recoverable-concern notification color (warning banners, paused indicators).
+      "favorite": "#FFD600", // Favorite-star color.
+      "remove": "#da4e4c", // Destructive "remove from collection" action color (distinct from `error`, which is a fault state).
+      "restore": "#00d48a", // Restore-from-trash / undo-remove action color.
+      "album": "#ed9e00", // Album identity color (album icons, chips, thumbnail accents).
+      "on-album": "#ffffff", // Text/icon color on album-tinted backgrounds.
+      "download": "#00bfa5", // Download affordance (buttons, progress).
+      "private": "#00b8d4", // Private badge / lock indicator.
+      "edit": "#2196F3", // Edit affordance (usually muted; rarely tinted).
+      "share": "#3F51B5", // Share affordance (share links, share dialog accents).
+      "love": "#ef5350", // Love / heart indicator (emotional emphasis only).
+      "terminal": "#282730", // Background for terminal / code blocks (log views, code samples).
+      "navigation": "#19191a", // App bar / top toolbar background; matches `background` for a flat look in this theme.
+      "navigation-home": "#19191a", // "Home" navigation-state background; matches `navigation` in this theme.
     },
     variables: {
-      "border-color": "#363636",
-      "border-opacity": 0.46,
-      "fill-opacity": 0,
-      "hover-opacity": 0.03,
-      "disabled-opacity": 0.65,
-      "focus-opacity": 0.05,
+      "border-color": "#363636", // Divider and outlined-variant border color.
+      "border-opacity": 0.46, // Alpha applied to `border-color`.
+      "fill-opacity": 0, // Background fill alpha for `solo-filled` inputs (0 = no fill in this theme).
+      "hover-opacity": 0.03, // Hover-overlay alpha on list items, buttons, and rows.
+      "disabled-opacity": 0.65, // Alpha applied to disabled controls.
+      "focus-opacity": 0.05, // Keyboard-focus overlay alpha on inputs and rows.
     },
   },
 
@@ -726,71 +726,45 @@ let themes = {
     title: "Lightbox",
     name: "lightbox",
     colors: {
-      "background": "#040709",
-      "surface": "#040709",
-      "on-surface": "#ffffff",
-      "surface-bright": "#141417",
-      // Contrasting muted grey, used as a text/foreground tone (NOT a
-      // raised surface). Vuetify defaults wire `text-surface-variant`
-      // onto v-combobox/v-autocomplete active rows, v-tab sliders,
-      // outlined alerts, and many `color="surface-variant"` icon/badge
-      // props (see component/defaults.js); the token must therefore
-      // read cleanly against the lightbox's near-black surface AND the
-      // lifted `selected` (#3d3f40) row background. A dark value here
-      // (the previous #242628) blended into the active-row bg and made
-      // matched dropdown items invisible. For raised surfaces inside
-      // the lightbox tree, bind `surface-bright` (#141417) or
-      // `secondary-light` (#1e1e1e) instead.
-      "surface-variant": "#bdbdbd",
-      "on-surface-variant": "#1c1c1c",
-      "card": "#171717",
-      // Mirrors highlight so Vuetify-internal selection surfaces (active
-      // list item, autocomplete-active row, on-selected fallback in
-      // views.css) stay neutral on the near-black sidebar instead of
-      // reading as a near-white block.
-      "selected": "#3d3f40",
-      "table": "#242424", // Variations: 242628, 212325, 1E2022, 1C1D1F, 191A1C, 161718, 131415, 111112
-      "button": "#1D1E1F",
-      "switch": "#101112",
-      "primary": "#ebebeb",
-      // Dark grey so the confirm button on PConfirmDialog reads as a button
-      // (not a flat near-white block) against the lightbox's near-black
-      // surface. The lightbox is grayscale by design — info/success carry
-      // the purple accent — so highlight stays neutral too. No other surface
-      // in the lightbox tree binds the highlight token, so this is scoped to
-      // the modal action button.
-      "highlight": "#3d3f40",
-      "secondary": "#191919",
-      "secondary-light": "#1e1e1e",
-      "accent": "#2D2E2E",
-      "error": "#e57373",
-      "info": "#9E7BEA",
-      "success": "#8763d5",
-      "warning": "#ecc434",
-      "favorite": "#FFD600",
-      "remove": "#da4e4c",
-      "restore": "#00d48a",
-      "album": "#ed9e00",
-      "on-album": "#ffffff",
-      "download": "#00bfa5",
-      "private": "#00b8d4",
-      "edit": "#2196F3",
-      "share": "#3F51B5",
-      "love": "#ef5350",
-      "terminal": "#4A464F",
-      "navigation": "#040709",
-      "navigation-home": "#040709",
+      "background": "#040709", // Page canvas; near-black so the photo dominates the viewer.
+      "surface": "#040709", // Default container surface; matches `background`, so plain `surface` elements vanish — use `surface-bright`, `secondary-light`, or `card` for raised elements.
+      "on-surface": "#ffffff", // Body text and icon color on `surface`, `surface-bright`, and `surface-light`.
+      "surface-bright": "#141417", // Lifted variant of `surface`; raised tiles, hover backgrounds, inline editors.
+      "surface-variant": "#bdbdbd", // Light-grey foreground tone consumed by Vuetify defaults for active dropdown rows, focus rings, and `color="surface-variant"` props.
+      "on-surface-variant": "#1c1c1c", // Inverse pair of `surface-variant`; also painted as the *background* in the scoped lightbox tooltip rule (`css/lightbox.css`).
+      "card": "#171717", // Dedicated card-container background; one tier above `surface` for raised cards.
+      "selected": "#3d3f40", // Active list-item background; mirrors `highlight` so selection stays a neutral grey rather than reading as a near-white block.
+      "table": "#242424", // VDataTable row and header background.
+      "button": "#232425", // Secondary button color, e.g., used in dialogs for "Cancel".
+      "highlight": "#3d3f40", // Primary button color, e.g., used in dialogs for "Save" or "Confirm".
+      "switch": "#101112", // VSwitch track background when off.
+      "primary": "#ebebeb", // Brand/identity accent; desaturated near-white to keep the lightbox grayscale (focus rings, chip outline).
+      "secondary": "#191919", // Background for secondary panels (tab strips, expansion-panel headers, nav drawer sections).
+      "secondary-light": "#1e1e1e", // Lifted variant of `secondary`; used for raised surfaces inside the lightbox sidebar (menus, sub-panels).
+      "accent": "#2D2E2E", // Small-decoration tint for hover/focus subtleties; not a primary action color.
+      "error": "#e57373", // Error state for banners, validation errors, and error toasts.
+      "info": "#9E7BEA", // Informational notification color; the only purple kept inside the lightbox tree (snackbars, info toasts).
+      "success": "#8763d5", // Successful-outcome notification color (matches the `info` purple cast).
+      "warning": "#ecc434", // Caution / recoverable-concern notification color.
+      "favorite": "#FFD600", // Favorite-star color.
+      "remove": "#da4e4c", // Destructive "remove from collection" action color (distinct from `error`, which is a fault state).
+      "restore": "#00d48a", // Restore-from-trash / undo-remove action color.
+      "album": "#ed9e00", // Album identity color (album icons, chips, thumbnail accents).
+      "on-album": "#ffffff", // Text/icon color on album-tinted backgrounds.
+      "download": "#00bfa5", // Download affordance (buttons, progress).
+      "private": "#00b8d4", // Private badge / lock indicator.
+      "edit": "#2196F3", // Edit affordance (usually muted; rarely tinted).
+      "share": "#3F51B5", // Share affordance (share links, share dialog accents).
+      "love": "#ef5350", // Love / heart indicator (emotional emphasis only).
+      "terminal": "#4A464F", // Background for terminal / code blocks (log views, code samples).
+      "navigation": "#040709", // App bar / top toolbar background; matches the page surface for a flat lightbox look.
+      "navigation-home": "#040709", // "Home" navigation-state background; matches `navigation` in this theme.
     },
     variables: {
-      "border-color": "#ffffff",
-      "border-opacity": 0.1,
-      // The lightbox sidebar's autocomplete/combobox dropdowns and v-list
-      // items inherit Vuetify's hover/focus overlay opacities. The dark
-      // defaults (~0.02) over a near-white overlay color leave hovered and
-      // keyboard-focused items barely distinguishable on the lightbox's
-      // near-black surface; bump them so navigation reads cleanly.
-      "hover-opacity": 0.06,
-      "focus-opacity": 0.08,
+      "border-color": "#ffffff", // Divider and outlined-variant border color.
+      "border-opacity": 0.1, // Alpha applied to `border-color`.
+      "hover-opacity": 0.06, // Hover-overlay alpha on list items and rows; bumped above the dark default (~0.02) so hover reads against the near-black surface.
+      "focus-opacity": 0.08, // Keyboard-focus overlay alpha; bumped above the dark default (~0.022) for the same reason.
     },
   },
 
