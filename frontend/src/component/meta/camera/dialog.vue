@@ -7,7 +7,7 @@
     persistent
     scrim
     scrollable
-    class="p-camera-dialog"
+    class="p-meta-camera-dialog"
     @keydown.esc.exact.stop="close"
     @after-enter="afterEnter"
     @after-leave="afterLeave"
@@ -131,7 +131,7 @@
 import { rules } from "common/form";
 
 export default {
-  name: "PCameraDialog",
+  name: "PMetaCameraDialog",
   props: {
     visible: {
       type: Boolean,

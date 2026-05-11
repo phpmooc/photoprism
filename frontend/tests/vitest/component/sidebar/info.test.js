@@ -2945,8 +2945,8 @@ describe("PSidebarInfo component", () => {
     });
   });
 
-  // Pins the template bindings on <p-date-time-dialog>, <p-camera-dialog>,
-  // and <p-location-dialog>. Commit 7a611b6d6 removed the legacy `photo`
+  // Pins the template bindings on <p-meta-date-time-dialog>, <p-meta-camera-dialog>,
+  // and <p-meta-location-dialog>. Commit 7a611b6d6 removed the legacy `photo`
   // prop on PSidebarInfo and routed parent state through `$view.getData()`
   // (exposed via the `photo` computed). The three dialog tags in the sidebar
   // template kept referencing the now-undefined `photo` identifier, so the
@@ -2956,9 +2956,9 @@ describe("PSidebarInfo component", () => {
   // bindings ever regress to a name that does not exist on the component.
   describe("dialog photo prop bindings", () => {
     const dialogStubs = {
-      PDateTimeDialog: { name: "PDateTimeDialog", template: "<div />", props: ["visible", "photo"] },
-      PCameraDialog: { name: "PCameraDialog", template: "<div />", props: ["visible", "photo"] },
-      PLocationDialog: { name: "PLocationDialog", template: "<div />", props: ["visible", "latlng"] },
+      PMetaDateTimeDialog: { name: "PMetaDateTimeDialog", template: "<div />", props: ["visible", "photo"] },
+      PMetaCameraDialog: { name: "PMetaCameraDialog", template: "<div />", props: ["visible", "photo"] },
+      PMetaLocationDialog: { name: "PMetaLocationDialog", template: "<div />", props: ["visible", "latlng"] },
     };
 
     function mountWithDialogStubs(photo) {
@@ -2968,9 +2968,9 @@ describe("PSidebarInfo component", () => {
       });
     }
 
-    it("passes the current photo to <p-date-time-dialog>", () => {
+    it("passes the current photo to <p-meta-date-time-dialog>", () => {
       const w = mountWithDialogStubs(mockPhoto);
-      const dialog = w.findComponent({ name: "PDateTimeDialog" });
+      const dialog = w.findComponent({ name: "PMetaDateTimeDialog" });
       expect(dialog.exists()).toBe(true);
       // Vue 3 wraps `view` (data()) in a reactive proxy, so the dialog
       // sees a proxy of mockPhoto rather than the raw reference. A
@@ -2979,24 +2979,24 @@ describe("PSidebarInfo component", () => {
       expect(dialog.props("photo")).toEqual(mockPhoto);
     });
 
-    it("passes the current photo to <p-camera-dialog>", () => {
+    it("passes the current photo to <p-meta-camera-dialog>", () => {
       const w = mountWithDialogStubs(mockPhoto);
-      const dialog = w.findComponent({ name: "PCameraDialog" });
+      const dialog = w.findComponent({ name: "PMetaCameraDialog" });
       expect(dialog.exists()).toBe(true);
       expect(dialog.props("photo")).toEqual(mockPhoto);
     });
 
-    it("derives <p-location-dialog> latlng from the current photo", () => {
+    it("derives <p-meta-location-dialog> latlng from the current photo", () => {
       const photo = { ...mockPhoto, Lat: 52.52, Lng: 13.405 };
       const w = mountWithDialogStubs(photo);
-      const dialog = w.findComponent({ name: "PLocationDialog" });
+      const dialog = w.findComponent({ name: "PMetaLocationDialog" });
       expect(dialog.exists()).toBe(true);
       expect(dialog.props("latlng")).toEqual([52.52, 13.405]);
     });
 
-    it("falls back to [0, 0] for <p-location-dialog> when the photo has no coordinates", () => {
+    it("falls back to [0, 0] for <p-meta-location-dialog> when the photo has no coordinates", () => {
       const w = mountWithDialogStubs(mockPhoto);
-      const dialog = w.findComponent({ name: "PLocationDialog" });
+      const dialog = w.findComponent({ name: "PMetaLocationDialog" });
       expect(dialog.exists()).toBe(true);
       expect(dialog.props("latlng")).toEqual([0, 0]);
     });

@@ -262,7 +262,7 @@
                   </v-col>
                   <v-col cols="12" class="text-subtitle-2">{{ $gettext(`Location`) }}</v-col>
                   <v-col cols="12" md="6">
-                    <p-location-input
+                    <p-meta-location-input
                       :latlng="currentCoordinates"
                       :placeholder="locationPlaceholder"
                       :persistent-placeholder="true"
@@ -281,7 +281,7 @@
                       @open-map="adjustLocation"
                       @delete="onLocationDelete"
                       @undo="onLocationUndo"
-                    ></p-location-input>
+                    ></p-meta-location-input>
                   </v-col>
                   <v-col cols="12" sm="6" md="3">
                     <v-autocomplete
@@ -486,7 +486,12 @@
         </v-col>
       </v-row>
     </v-card>
-    <p-location-dialog :visible="locationDialog" :latlng="currentCoordinates" @close="locationDialog = false" @confirm="confirmLocation"></p-location-dialog>
+    <p-meta-location-dialog
+      :visible="locationDialog"
+      :latlng="currentCoordinates"
+      @close="locationDialog = false"
+      @confirm="confirmLocation"
+    ></p-meta-location-dialog>
   </v-dialog>
 </template>
 <script>
@@ -495,8 +500,8 @@ import * as contexts from "options/contexts";
 import IconLivePhoto from "../icon/live-photo.vue";
 import { Batch } from "model/batch";
 import Thumb from "model/thumb";
-import PLocationDialog from "component/meta/location/dialog.vue";
-import PLocationInput from "component/meta/location/input.vue";
+import PMetaLocationDialog from "component/meta/location/dialog.vue";
+import PMetaLocationInput from "component/meta/location/input.vue";
 import PInputChipSelector from "component/input/chip-selector.vue";
 import $util from "common/util";
 import typeaheadCache from "common/typeahead-cache";
@@ -508,8 +513,8 @@ export default {
   name: "PPhotoBatchEdit",
   components: {
     IconLivePhoto,
-    PLocationDialog,
-    PLocationInput,
+    PMetaLocationDialog,
+    PMetaLocationInput,
     PInputChipSelector,
   },
   props: {

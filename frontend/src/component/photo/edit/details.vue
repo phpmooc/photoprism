@@ -135,7 +135,7 @@
               ></v-autocomplete>
             </v-col>
             <v-col cols="12" sm="6" md="6">
-              <p-location-input
+              <p-meta-location-input
                 :latlng="[view.model.Lat, view.model.Lng]"
                 :disabled="disabled"
                 hide-details
@@ -149,7 +149,7 @@
                 @update:latlng="updateLatLng"
                 @changed="onLocationChanged"
                 @open-map="adjustLocation"
-              ></p-location-input>
+              ></p-meta-location-input>
             </v-col>
             <v-col cols="12" sm="6" md="4">
               <v-autocomplete
@@ -409,12 +409,12 @@
         </div>
       </div>
     </v-form>
-    <p-location-dialog
+    <p-meta-location-dialog
       :visible="locationDialog"
       :latlng="[view.model.Lat ? Number(view.model.Lat) : 0, view.model.Lng ? Number(view.model.Lng) : 0]"
       @close="locationDialog = false"
       @confirm="confirmLocation"
-    ></p-location-dialog>
+    ></p-meta-location-dialog>
   </div>
 </template>
 
@@ -423,14 +423,14 @@ import countries from "options/countries.json";
 import Thumb from "model/thumb";
 import * as options from "options/options";
 import { rules } from "common/form";
-import PLocationDialog from "component/meta/location/dialog.vue";
-import PLocationInput from "component/meta/location/input.vue";
+import PMetaLocationDialog from "component/meta/location/dialog.vue";
+import PMetaLocationInput from "component/meta/location/input.vue";
 
 export default {
   name: "PTabPhotoDetails",
   components: {
-    PLocationDialog,
-    PLocationInput,
+    PMetaLocationDialog,
+    PMetaLocationInput,
   },
   props: {
     uid: {

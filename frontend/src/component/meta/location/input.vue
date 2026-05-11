@@ -41,7 +41,7 @@
 
 <script>
 export default {
-  name: "PLocationInput",
+  name: "PMetaLocationInput",
   props: {
     isMixed: {
       type: Boolean,

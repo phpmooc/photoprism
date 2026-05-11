@@ -160,13 +160,13 @@ describe("component/photo/batch-edit", () => {
             template: '<div class="v-data-table"></div>',
             props: ["headers", "items"],
           },
-          PLocationInput: {
-            template: '<div class="p-location-input"></div>',
+          PMetaLocationInput: {
+            template: '<div class="p-meta-location-input"></div>',
             props: ["latlng", "label"],
             emits: ["update:latlng", "changed", "open-map", "delete", "undo"],
           },
-          PLocationDialog: {
-            template: '<div class="p-location-dialog"></div>',
+          PMetaLocationDialog: {
+            template: '<div class="p-meta-location-dialog"></div>',
             props: ["visible", "latlng"],
             emits: ["close", "confirm"],
           },

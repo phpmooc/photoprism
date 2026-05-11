@@ -7,7 +7,7 @@
     persistent
     scrim
     scrollable
-    class="p-datetime-dialog"
+    class="p-meta-datetime-dialog"
     @keydown.esc.exact.stop="close"
     @after-enter="afterEnter"
     @after-leave="afterLeave"
@@ -132,7 +132,7 @@ import * as options from "options/options";
 import { rules } from "common/form";
 
 export default {
-  name: "PDateTimeDialog",
+  name: "PMetaDateTimeDialog",
   props: {
     visible: {
       type: Boolean,

@@ -418,14 +418,14 @@
         </template>
       </v-list>
     </div>
-    <p-date-time-dialog :visible="dateTimeDialog" :photo="photo" @close="dateTimeDialog = false" @confirm="confirmDateTime"></p-date-time-dialog>
-    <p-camera-dialog :visible="cameraDialog" :photo="photo" @close="cameraDialog = false" @confirm="confirmCamera"></p-camera-dialog>
-    <p-location-dialog
+    <p-meta-date-time-dialog :visible="dateTimeDialog" :photo="photo" @close="dateTimeDialog = false" @confirm="confirmDateTime"></p-meta-date-time-dialog>
+    <p-meta-camera-dialog :visible="cameraDialog" :photo="photo" @close="cameraDialog = false" @confirm="confirmCamera"></p-meta-camera-dialog>
+    <p-meta-location-dialog
       :visible="locationDialog"
       :latlng="[photo ? Number(photo.Lat) || 0 : 0, photo ? Number(photo.Lng) || 0 : 0]"
       @close="locationDialog = false"
       @confirm="confirmLocation"
-    ></p-location-dialog>
+    ></p-meta-location-dialog>
     <p-confirm-dialog
       :visible="discardDialog.visible"
       icon="mdi-alert-circle-outline"
@@ -453,9 +453,9 @@ import * as media from "common/media";
 import typeaheadCache from "common/typeahead-cache";
 import { Album } from "model/album";
 import PMap from "component/map.vue";
-import PDateTimeDialog from "component/meta/datetime/dialog.vue";
-import PCameraDialog from "component/meta/camera/dialog.vue";
-import PLocationDialog from "component/meta/location/dialog.vue";
+import PMetaDateTimeDialog from "component/meta/datetime/dialog.vue";
+import PMetaCameraDialog from "component/meta/camera/dialog.vue";
+import PMetaLocationDialog from "component/meta/location/dialog.vue";
 import PConfirmDialog from "component/confirm/dialog.vue";
 import PSidebarInlineToolbar from "component/sidebar/inline-toolbar.vue";
 
@@ -463,9 +463,9 @@ export default {
   name: "PSidebarInfo",
   components: {
     PMap,
-    PDateTimeDialog,
-    PCameraDialog,
-    PLocationDialog,
+    PMetaDateTimeDialog,
+    PMetaCameraDialog,
+    PMetaLocationDialog,
     PConfirmDialog,
     PSidebarInlineToolbar,
   },

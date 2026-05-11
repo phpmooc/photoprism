@@ -7,7 +7,7 @@
     persistent
     scrim
     scrollable
-    class="p-location-dialog"
+    class="p-meta-location-dialog"
     @keydown.esc.exact.stop="close"
     @after-enter="afterEnter"
     @after-leave="afterLeave"
@@ -97,7 +97,7 @@
             </div>
 
             <div class="flex-grow-1">
-              <p-location-input
+              <p-meta-location-input
                 :latlng="[currentLat, currentLng]"
                 density="comfortable"
                 :enable-undo="true"
@@ -106,7 +106,7 @@
                 @update:latlng="onLatLngUpdate"
                 @changed="onLocationChanged"
                 @cleared="onLocationCleared"
-              ></p-location-input>
+              ></p-meta-location-input>
             </div>
 
             <div class="action-buttons">
@@ -133,13 +133,13 @@
 </template>
 
 <script>
-import PLocationInput from "component/meta/location/input.vue";
+import PMetaLocationInput from "component/meta/location/input.vue";
 import PMap from "component/map.vue";
 
 export default {
-  name: "PLocationDialog",
+  name: "PMetaLocationDialog",
   components: {
-    PLocationInput,
+    PMetaLocationInput,
     PMap,
   },
   props: {

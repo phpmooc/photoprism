@@ -108,8 +108,8 @@ const makeWrapper = (overrides = {}) => {
         VAutocomplete: { template: "<select></select>" },
         VSelect: { template: "<select></select>" },
         VBtn: { template: "<button><slot /></button>" },
-        PLocationInput: { template: '<div class="p-location-input"></div>' },
-        PLocationDialog: { template: '<div class="p-location-dialog"></div>' },
+        PMetaLocationInput: { template: '<div class="p-meta-location-input"></div>' },
+        PMetaLocationDialog: { template: '<div class="p-meta-location-dialog"></div>' },
       },
     },
     ...overrides,
@@ -362,8 +362,8 @@ describe("component/photo/edit/details", () => {
           },
           stubs: {
             VAutocomplete: false,
-            PLocationInput: { template: '<div class="p-location-input"></div>' },
-            PLocationDialog: { template: '<div class="p-location-dialog"></div>' },
+            PMetaLocationInput: { template: '<div class="p-meta-location-input"></div>' },
+            PMetaLocationDialog: { template: '<div class="p-meta-location-dialog"></div>' },
           },
         },
       });

@@ -1,8 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import PCameraDialog from "component/meta/camera/dialog.vue";
+import PMetaCameraDialog from "component/meta/camera/dialog.vue";
 
-describe("PCameraDialog component", () => {
+describe("PMetaCameraDialog component", () => {
   const mockPhoto = {
     CameraID: 5,
     LensID: 3,
@@ -13,7 +13,7 @@ describe("PCameraDialog component", () => {
   };
 
   it("should load values from photo via loadFromPhoto", () => {
-    const w = mount(PCameraDialog, {
+    const w = mount(PMetaCameraDialog, {
       props: { visible: false, photo: mockPhoto },
     });
 
@@ -30,7 +30,7 @@ describe("PCameraDialog component", () => {
   });
 
   it("should handle null photo gracefully", () => {
-    const w = mount(PCameraDialog, {
+    const w = mount(PMetaCameraDialog, {
       props: { visible: false, photo: null },
     });
 
@@ -43,7 +43,7 @@ describe("PCameraDialog component", () => {
 
   it("should emit close event", () => {
     const onClose = vi.fn();
-    const w = mount(PCameraDialog, {
+    const w = mount(PMetaCameraDialog, {
       props: { visible: false, photo: mockPhoto, onClose },
     });
     w.vm.close();
@@ -52,7 +52,7 @@ describe("PCameraDialog component", () => {
 
   it("should emit confirm with edited values", () => {
     const onConfirm = vi.fn();
-    const w = mount(PCameraDialog, {
+    const w = mount(PMetaCameraDialog, {
       props: { visible: false, photo: mockPhoto, onConfirm },
     });
 
@@ -79,7 +79,7 @@ describe("PCameraDialog component", () => {
   });
 
   it("should use defaults for missing photo fields", () => {
-    const w = mount(PCameraDialog, {
+    const w = mount(PMetaCameraDialog, {
       props: { visible: false, photo: { CameraID: 2 } },
     });
 

@@ -239,7 +239,7 @@
     overflow: hidden;
 }
 
-.p-location-dialog .p-map {
+.p-meta-location-dialog .p-map {
     height: 45vh;
     min-height: 250px;
     width: 100%;

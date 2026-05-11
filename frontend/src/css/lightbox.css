@@ -503,10 +503,10 @@
 /* Keep labels and selection text readable when fields are focused.
    Vuetify 3 applies the focused color via an inline style, so overriding
    it requires !important. */
-.p-camera-dialog .v-field--focused .v-label.v-field-label,
-.p-camera-dialog .v-field--focused .v-label.v-field-label--floating,
-.p-datetime-dialog .v-field--focused .v-label.v-field-label,
-.p-datetime-dialog .v-field--focused .v-label.v-field-label--floating {
+.p-meta-camera-dialog .v-field--focused .v-label.v-field-label,
+.p-meta-camera-dialog .v-field--focused .v-label.v-field-label--floating,
+.p-meta-datetime-dialog .v-field--focused .v-label.v-field-label,
+.p-meta-datetime-dialog .v-field--focused .v-label.v-field-label--floating {
     color: rgb(var(--v-theme-on-surface)) !important;
     opacity: var(--v-medium-emphasis-opacity, 0.7);
 }
