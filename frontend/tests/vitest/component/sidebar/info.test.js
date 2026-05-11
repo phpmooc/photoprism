@@ -1914,6 +1914,37 @@ describe("PSidebarInfo component", () => {
     expect(wrapper.vm.fileInfo).toBe("JPEG, 1920 × 1080, 4.2 MB");
   });
 
+  // fileName resolution prefers the underlying media file (video / Live)
+  // over the generated JPEG cover that primaryFile() returns. Previously
+  // the sidebar showed "...mp4.jpg" for video photos because the JPG was
+  // marked Primary for indexing — the user-facing name should be the
+  // original media file.
+  it("fileName surfaces the original media file for video photos, not the JPEG cover", () => {
+    const videoPhoto = {
+      ...mockPhoto,
+      Type: "video",
+      FileName: "video/tagesschau.mp4.jpg",
+      originalFile: () => ({ Name: "video/tagesschau.mp4", OriginalName: "tagesschau.mp4" }),
+    };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo: videoPhoto, canEdit: true, context: contexts.Photos },
+      global: { stubs: { PMap: true }, mocks: { $util: validationUtil } },
+    });
+    expect(w.vm.fileName).toBe("video/tagesschau.mp4");
+  });
+
+  // For image photos the originalFile() result equals primaryFile() — both
+  // return `this` when Files has fewer than 2 entries — so we fall through
+  // to the existing photo.FileName branch.
+  it("fileName falls back to photo.FileName when originalFile is the photo itself", () => {
+    const photo = { ...mockPhoto, originalFile: function () { return this; }, FileName: "photos/2023/IMG_001.jpg" };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+      global: { stubs: { PMap: true }, mocks: { $util: validationUtil } },
+    });
+    expect(w.vm.fileName).toBe("photos/2023/IMG_001.jpg");
+  });
+
   // Caption and notes HTML
   it("should produce caption and notes HTML via sanitize pipeline", () => {
     expect(wrapper.vm.captionHtml).toBe("Test Caption");

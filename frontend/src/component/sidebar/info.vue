@@ -794,8 +794,18 @@ export default {
       if (!this.photo || !this.photo.Altitude) return "";
       return this.photo.Altitude + " m";
     },
+    // Returns the user-facing file path. For video, Live, and Animated
+    // photos the primary file is the generated JPEG cover (used for
+    // indexing and thumbnails), not the media file the user uploaded —
+    // surface the underlying media file's Name so the sidebar shows the
+    // .mp4 / .mov / .gif instead of "...mp4.jpg". The cards view uses the
+    // same originalFile() routing via Photo.getOriginalName().
     fileName() {
       if (!this.photo) return "";
+      if (typeof this.photo.originalFile === "function") {
+        const original = this.photo.originalFile();
+        if (original && original !== this.photo && original.Name) return original.Name;
+      }
       if (this.photo.FileName) return this.photo.FileName;
       const primary = typeof this.photo.primaryFile === "function" ? this.photo.primaryFile() : null;
       return primary?.Name || "";
