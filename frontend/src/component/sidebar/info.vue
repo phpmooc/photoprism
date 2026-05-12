@@ -1521,10 +1521,26 @@ export default {
       const target = ev && ev.target ? ev.target : null;
       return target && typeof target.value === "string" ? target.value : "";
     },
+    // Enter inside the Labels combobox. Mirrors onAlbumEnter's structure:
+    // empty → no-op; too-long → notify and leave the typed text so the
+    // user can fix it; otherwise hand off to addLabelImmediate (which
+    // does its own normalize + canonicalize + already-on-photo dedup) and
+    // ALWAYS clear the input + bump the key so the menu closes — even
+    // when the label was already on the photo and no API call fired. The
+    // earlier `if (addLabelImmediate(...)) { clear }` shape left the
+    // input populated and the menu open in the already-on-photo case,
+    // which felt unresolved compared to the Albums combobox.
     onLabelEnter(ev) {
-      if (this.addLabelImmediate(this.pendingChipName("labels", ev))) {
-        this.clearChipInput("labels");
+      const search = this.pendingChipName("labels", ev).trim();
+      if (!search) return;
+
+      if (search.length > this.$config.get("clip")) {
+        this.$notify.error(this.$gettext("Name too long"));
+        return;
       }
+
+      this.addLabelImmediate(search);
+      this.clearChipInput("labels");
     },
     // Confirms pending REMOVALS via Photo.removeLabel — additions take the
     // instant-save path (addLabelImmediate) and never reach this method.

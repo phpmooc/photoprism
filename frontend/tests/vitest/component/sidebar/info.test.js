@@ -2269,6 +2269,67 @@ describe("PSidebarInfo component", () => {
     expect(mockPhoto.addLabel).toHaveBeenCalledWith("Rock & Roll");
   });
 
+  // Parity with onAlbumEnter: pressing Enter on non-empty Labels input
+  // ALWAYS clears the input and bumps the key (force-remount closes the
+  // menu), regardless of whether addLabelImmediate fired an API call.
+  // The pre-fix code only cleared on success, which left the input
+  // populated and the menu open when the typed label was already on the
+  // photo — felt unresolved next to Albums.
+  it("clears the input and bumps the key when Enter fires a real add", () => {
+    const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
+    const startKey = w.vm.chipState.labels.key;
+    w.vm.chipState.labels.search = "Brand New Label";
+    w.vm.onLabelEnter();
+    expect(mockPhoto.addLabel).toHaveBeenCalledWith("Brand New Label");
+    expect(w.vm.chipState.labels.search).toBe("");
+    expect(w.vm.chipState.labels.input).toBe(null);
+    expect(w.vm.chipState.labels.key).toBe(startKey + 1);
+  });
+
+  it("clears the input and bumps the key when Enter is pressed on a label already on the photo", () => {
+    const photo = {
+      ...mockPhoto,
+      Labels: [{ Uncertainty: 0, Label: { ID: 99, UID: "lbl99", Name: "Nature", Slug: "nature", CustomSlug: "" } }],
+    };
+    const w = mountInfoForChips({ modelValue: mockModel, photo });
+    const startKey = w.vm.chipState.labels.key;
+    w.vm.chipState.labels.search = "Nature";
+    w.vm.onLabelEnter();
+    // The label is already on the photo — addLabelImmediate short-circuits
+    // and no API call is made.
+    expect(photo.addLabel).not.toHaveBeenCalled();
+    // …but the input must still clear and the menu close so the gesture
+    // feels resolved (matches onAlbumEnter).
+    expect(w.vm.chipState.labels.search).toBe("");
+    expect(w.vm.chipState.labels.input).toBe(null);
+    expect(w.vm.chipState.labels.key).toBe(startKey + 1);
+  });
+
+  it("does not clear or bump the key on empty Enter", () => {
+    const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
+    const startKey = w.vm.chipState.labels.key;
+    w.vm.chipState.labels.search = "   ";
+    w.vm.onLabelEnter();
+    expect(mockPhoto.addLabel).not.toHaveBeenCalled();
+    // Empty/whitespace Enter is a no-op — leave the input alone so the
+    // user can keep typing without losing focus mid-keystroke.
+    expect(w.vm.chipState.labels.key).toBe(startKey);
+  });
+
+  it("does not clear the input when the typed name is too long", () => {
+    const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
+    const startKey = w.vm.chipState.labels.key;
+    const typed = "a".repeat(CLIP_LEN + 10);
+    w.vm.chipState.labels.search = typed;
+    w.vm.onLabelEnter();
+    expect(mockPhoto.addLabel).not.toHaveBeenCalled();
+    expect(w.vm.$notify.error).toHaveBeenCalledWith("Name too long");
+    // Length-validation failures keep the typed text so the user can
+    // shorten it instead of losing the whole entry.
+    expect(w.vm.chipState.labels.search).toBe(typed);
+    expect(w.vm.chipState.labels.key).toBe(startKey);
+  });
+
   // Pending album operations
   it("should toggle album pending removal", () => {
     const w = mountSidebar({
@@ -2514,11 +2575,11 @@ describe("PSidebarInfo component", () => {
     const saveSpy = vi.spyOn(Album.prototype, "save").mockResolvedValue();
     const w = mountInfoForChips({ modelValue: mockModel, photo: mockPhoto });
     w.vm.chipState.albums.options = [{ UID: "alb-hello-cat", Title: "Hello Cat" }];
-    // `hello-cat`, `Hello+Cat`, `HELLO CAT` all normalize to "hello cat", so
-    // they should resolve to the existing "Hello Cat" album. Note that `.`
-    // is stripped (not space-converted) by normalizeTitle, so `hello.CAT`
-    // would map to `hellocat`, NOT `hello cat` — hence excluded here.
-    for (const typed of ["hello-cat", "Hello+Cat", "HELLO CAT"]) {
+    // `hello-cat`, `Hello+Cat`, `hello.CAT`, `HELLO CAT` all normalize to
+    // "hello cat" (every punctuation character is converted to whitespace
+    // by normalizeTitle), so they should resolve to the existing
+    // "Hello Cat" album.
+    for (const typed of ["hello-cat", "Hello+Cat", "hello.CAT", "HELLO CAT"]) {
       mockPhoto.addToAlbum.mockClear();
       w.vm.chipState.albums.search = typed;
       w.vm.onAlbumEnter();
