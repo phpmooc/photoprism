@@ -523,9 +523,11 @@ describe("PSidebarInfo component", () => {
       },
       global: { stubs: { PMap: true } },
     });
-    const icon = w.find(".meta-marker-add");
-    expect(icon.classes()).toContain("mdi-plus");
-    await icon.trigger("click");
+    const btn = w.find(".meta-marker-add");
+    // After the v-icon → v-btn refactor the mdi-* class lives on the
+    // nested <i> inside the button, not on the button itself.
+    expect(btn.find("i.mdi-plus").exists()).toBe(true);
+    await btn.trigger("click");
     expect(onToggle).toHaveBeenCalled();
   });
 
@@ -540,9 +542,9 @@ describe("PSidebarInfo component", () => {
       },
       global: { stubs: { PMap: true } },
     });
-    const icon = w.find(".meta-marker-add");
-    expect(icon.classes()).toContain("is-active");
-    expect(icon.classes()).toContain("mdi-check");
+    const btn = w.find(".meta-marker-add");
+    expect(btn.classes()).toContain("is-active");
+    expect(btn.find("i.mdi-check").exists()).toBe(true);
   });
 
   it("should still emit toggle-adding-marker when addingMarker is true (so the user can exit)", async () => {

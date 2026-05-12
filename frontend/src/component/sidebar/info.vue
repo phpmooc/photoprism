@@ -1,11 +1,11 @@
 <template>
-  <div class="p-sidebar-info metadata">
-    <v-toolbar density="comfortable" color="navigation">
+  <div class="p-sidebar-info bg-background metadata">
+    <v-toolbar density="comfortable" color="background">
       <v-btn :icon="$isRtl ? 'mdi-chevron-left' : 'mdi-chevron-right'" :title="$gettext('Close')" @click.stop="close()"></v-btn>
       <v-toolbar-title>{{ $gettext(`Information`) }}</v-toolbar-title>
     </v-toolbar>
     <div v-if="model.UID">
-      <v-list nav slim tile density="compact" class="metadata__list mt-2">
+      <v-list nav slim tile density="compact" bg-color="background" class="metadata__list mt-2">
         <!-- Title -->
         <v-list-item v-if="editingField === 'title' || model.Title || isEditable" class="metadata__item">
           <v-text-field
@@ -25,15 +25,7 @@
           <div v-else-if="model.Title" class="text-subtitle-2 meta-title">{{ model.Title }}</div>
           <div v-else class="meta-add-prompt" @click.stop="startEditing('title')">{{ $pgettext("Photo", "Add a Title") }}</div>
           <template v-if="isEditable" #append>
-            <v-icon
-              v-if="editingField === 'title'"
-              icon="mdi-check"
-              size="small"
-              class="meta-inline-confirm"
-              @mousedown.prevent
-              @click.stop="confirmField"
-            ></v-icon>
-            <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('title')"></v-icon>
+            <p-sidebar-inline-toolbar :editing="editingField === 'title'" @confirm="confirmField" @start="startEditing('title')" />
           </template>
         </v-list-item>
 
@@ -57,15 +49,7 @@
           <div v-else-if="model.Caption" class="text-body-2 meta-caption meta-scrollable" v-html="captionHtml"></div>
           <div v-else class="meta-add-prompt" @click.stop="startEditing('caption')">{{ $gettext("Add a Caption") }}</div>
           <template v-if="isEditable" #append>
-            <v-icon
-              v-if="editingField === 'caption'"
-              icon="mdi-check"
-              size="small"
-              class="meta-inline-confirm"
-              @mousedown.prevent
-              @click.stop="confirmField"
-            ></v-icon>
-            <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="startEditing('caption')"></v-icon>
+            <p-sidebar-inline-toolbar :editing="editingField === 'caption'" @confirm="confirmField" @start="startEditing('caption')" />
           </template>
         </v-list-item>
 
@@ -74,7 +58,7 @@
         <v-list-item v-if="fileInfo" v-tooltip="fileTypeName" :lines="false" class="metadata__item metadata__file-info text-body-2">
           <span class="break-word">{{ fileInfo }}</span>
         </v-list-item>
-        <v-list-item v-if="!restrictedRole && fileName" :lines="false" class="metadata__item metadata__file-name text-body-2">
+        <v-list-item v-if="!restrictedRole && fileName" class="metadata__item metadata__file-name text-body-2 pb-2">
           <span class="break-word">{{ fileName }}</span>
         </v-list-item>
 
@@ -82,7 +66,15 @@
 
         <v-list-item v-tooltip="$gettext(`Taken`)" :title="formatTime(model)" prepend-icon="mdi-calendar" class="metadata__item">
           <template v-if="isEditable" #append>
-            <v-icon icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="dateTimeDialog = true"></v-icon>
+            <v-btn
+              icon="mdi-pencil-outline"
+              density="compact"
+              variant="plain"
+              size="x-small"
+              class="meta-inline-pencil"
+              :title="$gettext('Edit')"
+              @click.stop="dateTimeDialog = true"
+            ></v-btn>
           </template>
         </v-list-item>
 
@@ -94,7 +86,15 @@
           class="metadata__item"
         >
           <template v-if="isEditable" #append>
-            <v-icon icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="cameraDialog = true"></v-icon>
+            <v-btn
+              icon="mdi-pencil-outline"
+              density="compact"
+              variant="plain"
+              size="x-small"
+              class="meta-inline-pencil"
+              :title="$gettext('Edit')"
+              @click.stop="cameraDialog = true"
+            ></v-btn>
           </template>
         </v-list-item>
 
@@ -111,12 +111,15 @@
             class="metadata__item"
           >
             <template v-if="isEditable && featPlaces && !(model.Lat && model.Lng)" #append>
-              <v-icon
+              <v-btn
                 icon="mdi-pencil-outline"
-                size="small"
+                density="compact"
+                variant="plain"
+                size="x-small"
                 class="meta-inline-pencil meta-inline-pencil--location"
+                :title="$gettext('Edit')"
                 @click.stop.prevent="locationDialog = true"
-              ></v-icon>
+              ></v-btn>
             </template>
           </v-list-item>
           <template v-if="model.Lat && model.Lng">
@@ -127,12 +130,15 @@
               @click.stop="model.copyLatLng()"
             >
               <template v-if="isEditable && featPlaces" #append>
-                <v-icon
+                <v-btn
                   icon="mdi-pencil-outline"
-                  size="small"
+                  density="compact"
+                  variant="plain"
+                  size="x-small"
                   class="meta-inline-pencil meta-inline-pencil--location"
+                  :title="$gettext('Edit')"
                   @click.stop.prevent="locationDialog = true"
-                ></v-icon>
+                ></v-btn>
               </template>
             </v-list-item>
             <v-list-item v-if="featPlaces" class="mx-0 px-0">
@@ -146,26 +152,30 @@
           <v-list-item class="metadata__item">
             <div class="text-subtitle-2">{{ $gettext("People") }}</div>
             <template v-if="isEditable" #append>
-              <v-icon
+              <v-btn
                 :icon="markersVisible ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-                size="small"
+                density="compact"
+                variant="plain"
+                size="x-small"
                 class="meta-markers-toggle"
                 :class="{ 'is-active': markersVisible }"
                 :title="markersVisible ? $gettext('Hide face markers') : $gettext('Show face markers')"
                 :disabled="markersBusy"
                 @mousedown.prevent
                 @click.stop="onToggleMarkersVisible"
-              ></v-icon>
-              <v-icon
+              ></v-btn>
+              <v-btn
                 :icon="addingMarker ? 'mdi-check' : 'mdi-plus'"
-                size="small"
+                density="compact"
+                variant="plain"
+                size="x-small"
                 class="meta-marker-add"
                 :class="{ 'is-active': addingMarker }"
                 :title="addingMarker ? $gettext('Done') : $gettext('Add face')"
                 :disabled="markersBusy"
                 @mousedown.prevent
                 @click.stop="onToggleAddingMarker"
-              ></v-icon>
+              ></v-btn>
             </template>
           </v-list-item>
           <v-list-item v-for="m in people" :key="m.UID || m.CropID" :data-marker-uid="m.UID" class="metadata__item metadata__person-row">
@@ -209,26 +219,30 @@
               @click.stop
             >
               <template #append-inner>
-                <v-icon
+                <v-btn
                   v-if="m.SubjUID"
                   icon="mdi-eject"
+                  density="compact"
+                  variant="plain"
                   size="x-small"
                   class="meta-marker-eject"
                   :title="$gettext('Remove Name')"
                   :disabled="markersBusy"
                   @mousedown.prevent
                   @click.stop="onEjectMarker(m)"
-                ></v-icon>
-                <v-icon
+                ></v-btn>
+                <v-btn
                   v-else
                   icon="mdi-close"
+                  density="compact"
+                  variant="plain"
                   size="x-small"
                   class="meta-marker-remove"
                   :title="$gettext('Remove')"
                   :disabled="markersBusy"
                   @mousedown.prevent
                   @click.stop="onRemoveMarker(m)"
-                ></v-icon>
+                ></v-btn>
               </template>
             </v-combobox>
             <v-list-item-title v-else-if="m.Name" class="meta-person__name">{{ m.Name }}</v-list-item-title>
@@ -1586,8 +1600,8 @@ export default {
       const options = this.chipState.albums.options;
 
       // Normalized exact-match against the full known-albums list first.
-      // normalizeTitle ignores case, strips punctuation, and treats
-      // `+` / `_` / `-` as space, so `Hello Cat`, `hello-cat`, and
+      // normalizeTitle ignores case and converts every punctuation character
+      // to whitespace, so `Hello Cat`, `hello-cat`, `hello,cat`, and
       // `hello.CAT` all resolve to the same canonical album. This mirrors
       // the Labels validation pipeline. Substring fuzzy matching is
       // intentionally NOT applied here — typing `test` must not silently

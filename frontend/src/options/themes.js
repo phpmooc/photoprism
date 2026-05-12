@@ -70,8 +70,8 @@ let themes = {
     title: "Lightbox",
     name: "lightbox",
     colors: {
-      "background": "#040709", // Page canvas; near-black so the photo dominates the viewer.
-      "surface": "#040709", // Default container surface; matches `background`, so plain `surface` elements vanish — use `surface-bright`, `secondary-light`, or `card` for raised elements.
+      "background": "#0c0d0d", // Page canvas; near-black so the photo dominates the viewer.
+      "surface": "#111313", // Default container surface; only one brightness step above `background`, so plain `surface` elements still read as nearly indistinct — use `surface-bright`, `secondary-light`, or `card` for visibly raised elements.
       "on-surface": "#ffffff", // Body text and icon color on `surface`, `surface-bright`, and `surface-light`.
       "surface-bright": "#141417", // Lifted variant of `surface`; raised tiles, hover backgrounds, inline editors.
       "surface-variant": "#bdbdbd", // Light-grey foreground tone consumed by Vuetify defaults for active dropdown rows, focus rings, and `color="surface-variant"` props.
@@ -101,14 +101,16 @@ let themes = {
       "share": "#3F51B5", // Share affordance (share links, share dialog accents).
       "love": "#ef5350", // Love / heart indicator (emotional emphasis only).
       "terminal": "#4A464F", // Background for terminal / code blocks (log views, code samples).
-      "navigation": "#040709", // App bar / top toolbar background; matches the page surface for a flat lightbox look.
-      "navigation-home": "#040709", // "Home" navigation-state background; matches `navigation` in this theme.
+      "navigation": "#0c0d0d", // App bar / top toolbar background; matches `background` for a flat lightbox look.
+      "navigation-home": "#0c0d0d", // "Home" navigation-state background; matches `navigation` / `background` in this theme.
     },
     variables: {
       "border-color": "#ffffff", // Divider and outlined-variant border color.
       "border-opacity": 0.1, // Alpha applied to `border-color`.
       "hover-opacity": 0.06, // Hover-overlay alpha on list items and rows; bumped above the dark default (~0.02) so hover reads against the near-black surface.
       "focus-opacity": 0.08, // Keyboard-focus overlay alpha; bumped above the dark default (~0.022) for the same reason.
+      "overlay-color": "#141417", // v-overlay scrim color used behind modals (v-dialog, v-menu); set explicitly so backdrops sit at a deliberate dark tint over the near-black viewer instead of the Vuetify dark-default.
+      "overlay-opacity": 0.6, // Alpha applied to `overlay-color`; tuned so the underlying photo is dimmed but still visible behind sidebar dialogs.
     },
   },
 

@@ -18,23 +18,55 @@
     @paste="pastePosition"
   >
     <template v-if="icon" #prepend-inner>
-      <v-icon
+      <v-btn
         v-if="showMapButton"
-        variant="plain"
         :icon="icon"
+        density="compact"
+        variant="plain"
         :title="mapButtonTitle"
         :disabled="mapButtonDisabled"
         class="action-map"
         @click.stop="$emit('open-map')"
-      >
-      </v-icon>
-      <v-icon v-else variant="plain" :icon="icon" class="text-disabled"> </v-icon>
+      ></v-btn>
+      <v-icon v-else :icon="icon" class="text-disabled"></v-icon>
     </template>
     <template #append-inner>
-      <v-icon v-if="isDeleted" variant="plain" icon="mdi-undo" class="action-undo" @click.stop="$emit('undo')"></v-icon>
-      <v-icon v-else-if="isMixed" :icon="iconClear" variant="plain" class="action-delete" @click.stop="$emit('delete')"></v-icon>
-      <v-icon v-else-if="showUndoButton" variant="plain" :icon="iconUndo" class="action-undo" @click.stop="undoClear"></v-icon>
-      <v-icon v-else-if="coordinateInput" :icon="iconClear" variant="plain" class="action-delete" @click.stop="clearCoordinates"></v-icon>
+      <v-btn
+        v-if="isDeleted"
+        icon="mdi-undo"
+        density="compact"
+        variant="plain"
+        class="action-undo"
+        :title="$gettext('Undo')"
+        @click.stop="$emit('undo')"
+      ></v-btn>
+      <v-btn
+        v-else-if="isMixed"
+        :icon="iconClear"
+        density="compact"
+        variant="plain"
+        class="action-delete"
+        :title="$gettext('Clear')"
+        @click.stop="$emit('delete')"
+      ></v-btn>
+      <v-btn
+        v-else-if="showUndoButton"
+        :icon="iconUndo"
+        density="compact"
+        variant="plain"
+        class="action-undo"
+        :title="$gettext('Undo')"
+        @click.stop="undoClear"
+      ></v-btn>
+      <v-btn
+        v-else-if="coordinateInput"
+        :icon="iconClear"
+        density="compact"
+        variant="plain"
+        class="action-delete"
+        :title="$gettext('Clear')"
+        @click.stop="clearCoordinates"
+      ></v-btn>
     </template>
   </v-text-field>
 </template>

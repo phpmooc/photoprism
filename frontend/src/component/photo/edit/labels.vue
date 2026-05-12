@@ -292,8 +292,8 @@ export default {
       // Apply the same canonical-match dedup the sidebar uses for L3:
       // typing `Hello Cat` resolves to an existing `hello-cat` label so
       // the backend isn't asked to create a near-duplicate. normalizeTitle
-      // ignores case, strips punctuation, and treats `+`/`_`/`-` as
-      // space.
+      // ignores case and converts every punctuation character to
+      // whitespace.
       const normalize = (s) => (this.$util.normalizeTitle ? this.$util.normalizeTitle(s) : (s || "").toLowerCase());
       const norm = normalize(typed);
       let finalName = typed;

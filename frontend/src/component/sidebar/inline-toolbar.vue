@@ -1,15 +1,38 @@
 <template>
-  <v-icon
-    v-if="editing && canUndo"
-    icon="mdi-undo-variant"
-    size="small"
-    class="meta-inline-undo"
-    :title="$gettext('Undo')"
-    @mousedown.prevent
-    @click.stop="$emit('undo')"
-  ></v-icon>
-  <v-icon v-if="editing" icon="mdi-check" size="small" class="meta-inline-confirm" @mousedown.prevent @click.stop="$emit('confirm')"></v-icon>
-  <v-icon v-else icon="mdi-pencil-outline" size="small" class="meta-inline-pencil" @click.stop="$emit('start')"></v-icon>
+  <div class="p-sidebar-inline-toolbar d-flex">
+    <v-btn
+      v-if="editing && canUndo"
+      icon="mdi-undo-variant"
+      density="compact"
+      variant="plain"
+      size="x-small"
+      class="meta-inline-undo"
+      :title="$gettext('Undo')"
+      @mousedown.prevent
+      @click.stop="$emit('undo')"
+    ></v-btn>
+    <v-btn
+      v-if="editing"
+      icon="mdi-content-save"
+      density="compact"
+      variant="plain"
+      size="x-small"
+      class="meta-inline-confirm"
+      :title="$gettext('Save')"
+      @mousedown.prevent
+      @click.stop="$emit('confirm')"
+    ></v-btn>
+    <v-btn
+      v-else
+      icon="mdi-pencil-outline"
+      density="compact"
+      variant="plain"
+      size="x-small"
+      :title="$gettext('Edit')"
+      class="meta-inline-pencil"
+      @click.stop="$emit('start')"
+    ></v-btn>
+  </div>
 </template>
 
 <script>
@@ -20,10 +43,7 @@ export default {
       type: Boolean,
       default: false,
     },
-    // Show an Undo icon next to the confirm check when true. Only takes
-    // effect while `editing` is also true. Consumers that batch staged
-    // mutations (e.g., chip-section removals) pass `canUndo` so users can
-    // revert before the parent commits.
+    // Shows an Undo icon when true and `editing` is also true.
     canUndo: {
       type: Boolean,
       default: false,
