@@ -207,6 +207,7 @@
               single-line
               open-on-clear
               append-icon=""
+              :menu-icon="m.SubjUID ? '' : undefined"
               autocomplete="off"
               density="compact"
               variant="plain"

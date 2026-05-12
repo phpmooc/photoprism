@@ -726,6 +726,30 @@ describe("PSidebarInfo component", () => {
     expect(unnamedInput.element.readOnly).toBe(false);
   });
 
+  // The named marker combobox is readonly — picking a different person
+  // requires ejecting first. The default dropdown chevron
+  // (`.v-combobox__menu-icon`) would suggest otherwise, so it's gated
+  // off via `:menu-icon='m.SubjUID ? "" : undefined'`. Unnamed markers
+  // keep the chevron so users can browse the knownPeople list.
+  // Vuetify only renders the chevron when `items.length > 0`, so the
+  // mock $config supplies one known person.
+  it("should hide the v-combobox menu-icon on a named marker and keep it on an unnamed marker", () => {
+    const config = {
+      ...validationConfig,
+      values: { people: [{ UID: "sXYZ", Name: "Alice Smith" }] },
+    };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+      global: { mocks: { $config: config, $util: validationUtil } },
+    });
+    const personRows = w.findAll(".metadata__person-row");
+    // First row: Jane Doe (SubjUID set) — chevron must be absent.
+    expect(personRows[0].find(".v-combobox__menu-icon").exists()).toBe(false);
+    // Second row: unnamed marker — chevron stays so the knownPeople
+    // dropdown is discoverable.
+    expect(personRows[1].find(".v-combobox__menu-icon").exists()).toBe(true);
+  });
+
   it("should refuse to emit eject-marker on a marker without SubjUID", () => {
     const onEject = vi.fn();
     const w = mountSidebar({
