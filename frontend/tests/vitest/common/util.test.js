@@ -223,6 +223,39 @@ describe("common/util", () => {
     it("replaces underscores with spaces", () => {
       expect($util.normalizeTitle("hello_world")).toBe("hello world");
     });
+    it("replaces hyphens with spaces", () => {
+      expect($util.normalizeTitle("hello-world")).toBe("hello world");
+    });
+    it("replaces pluses with spaces", () => {
+      expect($util.normalizeTitle("hello+world")).toBe("hello world");
+    });
+    it("replaces periods with spaces", () => {
+      expect($util.normalizeTitle("hello.cat")).toBe("hello cat");
+      expect($util.normalizeTitle("photoprism.app")).toBe("photoprism app");
+      expect($util.normalizeTitle("2024.07.15")).toBe("2024 07 15");
+    });
+    it("treats all punctuation as word separators for case-insensitive comparison", () => {
+      // All punctuation (`.`, `,`, `;`, `:`, `!`, `?`, `/`, …) collapses
+      // to whitespace so the dedup comparison ignores it. Letters, digits,
+      // and emoji are preserved.
+      expect($util.normalizeTitle("foo,bar")).toBe("foo bar");
+      expect($util.normalizeTitle("foo;bar")).toBe("foo bar");
+      expect($util.normalizeTitle("foo:bar")).toBe("foo bar");
+      expect($util.normalizeTitle("foo!bar?baz")).toBe("foo bar baz");
+      expect($util.normalizeTitle("Mr. Smith")).toBe("mr smith");
+    });
+    it("collapses runs of mixed word separators into a single space", () => {
+      expect($util.normalizeTitle("hello._-+cat")).toBe("hello cat");
+      expect($util.normalizeTitle("hello . cat")).toBe("hello cat");
+      expect($util.normalizeTitle("foo,,, bar")).toBe("foo bar");
+    });
+    it("normalizes hello.cat, hello-cat, hello_cat, hello,cat, and Hello Cat to the same value", () => {
+      expect($util.normalizeTitle("hello.cat")).toBe("hello cat");
+      expect($util.normalizeTitle("hello-cat")).toBe("hello cat");
+      expect($util.normalizeTitle("hello_cat")).toBe("hello cat");
+      expect($util.normalizeTitle("hello,cat")).toBe("hello cat");
+      expect($util.normalizeTitle("Hello Cat")).toBe("hello cat");
+    });
     it("preserves emoji", () => {
       expect($util.normalizeTitle("🌅")).toBe("🌅");
     });
@@ -247,11 +280,23 @@ describe("common/util", () => {
     it("preserves CJK characters", () => {
       expect($util.normalizeTitle("猫")).toBe("猫");
     });
-    it("strips punctuation but keeps emoji and text", () => {
+    it("converts punctuation to whitespace and keeps emoji and text", () => {
       expect($util.normalizeTitle("hello! 🌅 world")).toBe("hello 🌅 world");
     });
     it("returns empty for punctuation-only input", () => {
+      // Punctuation-only inputs collapse to a single space and then trim,
+      // so they normalize to empty — a title made entirely of punctuation
+      // characters cannot be created or matched.
       expect($util.normalizeTitle("!!!")).toBe("");
+      expect($util.normalizeTitle("...")).toBe("");
+      expect($util.normalizeTitle("---")).toBe("");
+      expect($util.normalizeTitle("+_-.")).toBe("");
+      expect($util.normalizeTitle(",;:!?")).toBe("");
+    });
+    it("trims leading and trailing whitespace", () => {
+      expect($util.normalizeTitle("  hello cat  ")).toBe("hello cat");
+      expect($util.normalizeTitle(".hello-cat.")).toBe("hello cat");
+      expect($util.normalizeTitle("!!!hello!!!")).toBe("hello");
     });
     it("returns empty for null", () => {
       expect($util.normalizeTitle(null)).toBe("");

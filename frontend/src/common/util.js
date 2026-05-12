@@ -97,23 +97,26 @@ const debug = window.__CONFIG__?.debug || window.__CONFIG__?.trace;
 export default class $util {
   // Canonical-form normalizer for short identifiers that are user-typed
   // and dedup-compared (label names, album titles, and similar). Lowercases,
-  // expands `&` to `and`, treats `+` / `_` / `-` as whitespace, strips other
-  // punctuation, and collapses runs of whitespace. Letters, digits, and
-  // emoji sequences (incl. ZWJ + skin-tone modifiers + regional indicators)
-  // are preserved so user-defined emoji-only titles round-trip.
+  // expands `&` to `and`, converts every non-letter / non-digit / non-emoji
+  // character to whitespace (so `hello.cat`, `hello,cat`, `hello-cat`,
+  // `hello_cat`, and `Hello Cat` all normalize to `hello cat`), collapses
+  // runs of whitespace, and trims leading and trailing whitespace.
+  // Letters, digits, and emoji sequences (incl. ZWJ + skin-tone modifiers +
+  // regional indicators) are preserved so user-defined emoji-only titles
+  // round-trip. Inputs consisting only of punctuation normalize to the
+  // empty string, so they cannot be created or matched.
   static normalizeTitle(s) {
     if (s === null || s === undefined) return "";
     return (
       String(s)
         .toLowerCase()
         .replace(/&/g, "and")
-        .replace(/[+_-]+/g, " ")
         // ZWJ (U+200D), VS-15/16 (U+FE0E/F), and the keycap combining mark (U+20E3) sit in this
         // class on purpose so composite emoji sequences survive normalization; eslint flags them as
         // a "misleading character class" because they only carry meaning when paired with the
         // pictographic ranges already listed above.
         // eslint-disable-next-line no-misleading-character-class
-        .replace(/[^\p{L}\p{N}\p{Extended_Pictographic}\p{Emoji_Component}\p{Regional_Indicator}\p{Emoji_Modifier}\u200d\ufe0e\ufe0f\u20e3 ]+/gu, "")
+        .replace(/[^\p{L}\p{N}\p{Extended_Pictographic}\p{Emoji_Component}\p{Regional_Indicator}\p{Emoji_Modifier}\u200d\ufe0e\ufe0f\u20e3 ]+/gu, " ")
         .replace(/\s+/g, " ")
         .trim()
     );
