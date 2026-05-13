@@ -366,20 +366,60 @@ export function setFocus(el, selector, scroll) {
   return false;
 }
 
-// Prevents the default navigation touch gestures.
+// Edge band (px) where iOS / browser navigation gestures originate.
+// Touches inside these bands trigger preventDefault below;
+// inner-area touches are left alone so legitimate UI gestures
+// (sidebar scroll, button taps, marker drawing, etc.) work normally.
+const NavGestureEdgeBand = 30;
+
+// Selector for tap-actionable elements that must respond to taps
+// regardless of where they sit on screen. Buttons and other
+// interactive widgets that happen to land inside an edge band
+// (Back button in the face-marker overlay top-left corner, sidebar
+// action buttons flush against the right edge in LTR, top-bar
+// buttons inside the top 30 px band) would otherwise have their
+// taps eaten by the edge preventDefault. Browser navigation
+// gestures originate on bare canvas / scrim regions, not on
+// pressable widgets.
+const InteractiveTargetSelector = 'button, input, textarea, select, a[href], [role="button"]';
+
+// True when the touch event's target is (or sits inside) a
+// tap-actionable element. Defensive against missing closest support
+// and DocumentFragment / Window targets.
+function isInteractiveTarget(target) {
+  if (!target || typeof target.closest !== "function") return false;
+  return target.closest(InteractiveTargetSelector) !== null;
+}
+
+// Prevents the default navigation touch gestures originating at the
+// screen edges. Registered against `window` while the lightbox view
+// is active (see View.apply), so this handler fires for every touch
+// on the page — its job is to suppress iOS swipe-back, browser
+// pull-to-refresh, and accidental horizontal navigation that would
+// otherwise close PhotoPrism mid-gesture while the user is using
+// PhotoSwipe (whose internal pan/swipe gestures collide with the
+// browser's defaults).
+//
+// The handler is scoped to edge bands ONLY: a touchstart or touchmove
+// inside the leftmost / rightmost / topmost `NavGestureEdgeBand`
+// pixels of the viewport is treated as a potential navigation
+// gesture and preventDefault()-ed. Inner-area touches are not blocked
+// (the previous implementation blocked every non-button touchmove,
+// which broke sidebar scroll on iPad). Taps on interactive widgets
+// (buttons, inputs, links) inside the bands are exempted so the
+// Back button in the overlay's top-left and the sidebar's right-edge
+// action buttons stay tap-reliable on iPad.
 export function preventNavigationTouchEvent(ev) {
-  if (ev instanceof TouchEvent && ev.cancelable) {
-    // console.log(`${ev.type} @ ${ev.touches[0].clientX.toString()} x ${ev.touches[0].clientY.toString()}`, ev.target);
-    if (ev.type === TouchStartEvent && (isMediaElement(ev.target) || ev.touches[0].clientX <= 30)) {
-      if (window.innerHeight - ev.touches[0].clientY > 128 || ev.touches[0].clientX <= 30) {
-        ev.preventDefault();
-        // console.log(`prevented ${ev.type} @ ${ev.touches[0].clientX.toString()} x ${ev.touches[0].clientY.toString()}`);
-      }
-    } else if (ev.type === TouchMoveEvent && !isInputElement(ev.target)) {
-      ev.preventDefault();
-      // console.log(`prevented ${ev.type} @ ${ev.touches[0].clientX.toString()} x ${ev.touches[0].clientY.toString()}`);
-    }
-  }
+  if (!(ev instanceof TouchEvent) || !ev.cancelable) return;
+  if (ev.type !== TouchStartEvent && ev.type !== TouchMoveEvent) return;
+  const touch = ev.touches[0] || (ev.changedTouches && ev.changedTouches[0]);
+  if (!touch) return;
+  const atLeftEdge = touch.clientX <= NavGestureEdgeBand;
+  const atRightEdge = touch.clientX >= window.innerWidth - NavGestureEdgeBand;
+  const atTopEdge = touch.clientY <= NavGestureEdgeBand;
+  if (!atLeftEdge && !atRightEdge && !atTopEdge) return;
+  if (isInteractiveTarget(ev.target)) return;
+  ev.preventDefault();
 }
 
 // Returns a random string that can be used as an identifier.

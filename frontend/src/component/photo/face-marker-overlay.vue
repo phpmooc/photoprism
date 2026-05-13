@@ -7,6 +7,7 @@
     @pointerdown="onPointerDown"
     @pointermove="onHoverMove"
     @pointerleave="onHoverLeave"
+    @wheel="onWheel"
   >
     <svg v-if="bounds" class="p-face-markers__svg" :style="svgStyle" :viewBox="`0 0 ${bounds.width} ${bounds.height}`">
       <g v-for="m in markers" :key="m.UID || m.CropID">
@@ -730,6 +731,43 @@ export default {
     },
     onHoverLeave() {
       if (this.hoverCursor !== null) this.hoverCursor = null;
+    },
+    // In draw / edit mode the overlay root has `pointer-events: auto`
+    // (it has to, to catch the @pointerdown drag-to-draw gesture).
+    // That capture also swallows wheel events that the user expects
+    // to drive PhotoSwipe's zoom. Re-dispatch a synthetic WheelEvent
+    // on PhotoSwipe's container element so wheel-to-zoom keeps working
+    // identically to display mode. In display mode the root has
+    // `pointer-events: none` so wheel events pass through naturally;
+    // the early return below makes this a no-op there.
+    onWheel(ev) {
+      if (!this.isDrawMode) return;
+      const pswpEl = this.pswp?.element;
+      if (!pswpEl) return;
+      // preventDefault on the original event so the browser's default
+      // wheel handling (page scroll, accidental gesture) doesn't fire
+      // in parallel with the re-dispatched PhotoSwipe handler. The
+      // overlay is already inside a non-scrolling modal so this is
+      // strictly a defensive measure.
+      if (typeof ev.preventDefault === "function" && ev.cancelable !== false) {
+        ev.preventDefault();
+      }
+      pswpEl.dispatchEvent(
+        new WheelEvent("wheel", {
+          deltaX: ev.deltaX,
+          deltaY: ev.deltaY,
+          deltaZ: ev.deltaZ,
+          deltaMode: ev.deltaMode,
+          clientX: ev.clientX,
+          clientY: ev.clientY,
+          bubbles: true,
+          cancelable: true,
+          ctrlKey: ev.ctrlKey,
+          shiftKey: ev.shiftKey,
+          altKey: ev.altKey,
+          metaKey: ev.metaKey,
+        })
+      );
     },
     beginMove(local, ev) {
       const p = this.pending;
