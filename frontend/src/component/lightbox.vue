@@ -51,6 +51,7 @@
           :busy="faceMarkers.busy"
           @create="onCreateFaceMarker"
           @cancel="exitFaceMarkerMode"
+          @remove="onRemoveFaceMarker"
         ></p-face-marker-overlay>
         <div v-show="video.controls && controlsShown !== 0" ref="controls" tabindex="-1" class="p-lightbox__controls" @click.stop.prevent>
           <div :title="video.error" class="video-control video-control--play">
@@ -93,7 +94,6 @@
           @close="hideInfo"
           @toggle-face-marker-mode="toggleFaceMarkerMode"
           @toggle-face-marker-draw="toggleFaceMarkerDraw"
-          @remove-marker="onRemoveFaceMarker"
           @eject-marker="onEjectFaceMarker"
           @reload-markers="onReloadFaceMarkers"
           @naming-started="faceMarkers.setPendingNameMarkerUid('')"
@@ -1940,10 +1940,13 @@ export default {
       if (marker) this.syncMarkerInFile(marker);
       if (this.photo.UID) Photo.evictCache(this.photo.UID);
     },
-    // Handles the sidebar's `remove-marker` emit (× button on an unnamed
-    // marker). Rejects the marker via the backend, removes its raw
-    // entry from `file.Markers` on success, and evicts the Photo cache;
-    // the overlay re-renders via the `markers` computed.
+    // Handles the overlay's `remove` emit (✓ on the inline confirm pill
+    // that appears when the user clicks an unnamed marker in edit mode).
+    // Rejects the marker via the backend, removes its raw entry from
+    // `file.Markers` on success, and evicts the Photo cache; the
+    // overlay re-renders via the `markers` computed. Named markers
+    // never reach this handler — the overlay's hit-test skips them and
+    // the backend gate (`marker.SubjUID` truthy) is a defense in depth.
     onRemoveFaceMarker(marker) {
       if (!this.photo.UID || !this.shouldShowEditButton() || this.faceMarkers.busy) return;
       if (!marker || marker.SubjUID || typeof marker.reject !== "function") return;

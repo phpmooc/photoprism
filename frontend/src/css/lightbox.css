@@ -112,6 +112,15 @@
     pointer-events: none;
 }
 
+/* Visual emphasis on a marker that the user has clicked for removal —
+   the inline remove-confirm pill is anchored below it. Red stroke
+   plus a faint red fill makes the destructive intent obvious. */
+.p-face-markers__rect--removing {
+    stroke: rgba(244, 67, 54, 0.95);
+    fill: rgba(244, 67, 54, 0.16);
+    stroke-width: 2.5px;
+}
+
 .p-face-markers__handle {
     fill: rgba(167, 139, 250, 1);
     stroke: rgba(70, 40, 140, 0.95);
@@ -132,7 +141,8 @@
     dominant-baseline: hanging;
 }
 
-.p-face-markers__confirm {
+.p-face-markers__confirm,
+.p-face-markers__remove-confirm {
     display: flex;
     gap: 8px;
     pointer-events: auto;
@@ -163,6 +173,10 @@
 
 .p-face-markers__btn--cancel {
     background: rgba(90, 90, 90, 0.95);
+}
+
+.p-face-markers__btn--remove {
+    background: rgba(211, 47, 47, 0.95);
 }
 
 /* Back button — always present whenever the overlay is mounted (display

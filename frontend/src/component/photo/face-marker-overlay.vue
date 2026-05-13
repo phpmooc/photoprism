@@ -12,7 +12,10 @@
       <g v-for="m in markers" :key="m.UID || m.CropID">
         <rect
           class="p-face-markers__rect"
-          :class="{ 'p-face-markers__rect--named': !!m.Name }"
+          :class="{
+            'p-face-markers__rect--named': !!m.Name,
+            'p-face-markers__rect--removing': removingMarker && removingMarker.UID === m.UID,
+          }"
           :x="m.X * bounds.width"
           :y="m.Y * bounds.height"
           :width="m.W * bounds.width"
@@ -21,7 +24,7 @@
           <title v-if="m.Name">{{ m.Name }}</title>
         </rect>
         <text
-          v-if="m.Name && !isDrawMode"
+          v-if="m.Name"
           class="p-face-markers__label"
           text-anchor="middle"
           :x="m.X * bounds.width + (m.W * bounds.width) / 2"
@@ -59,6 +62,25 @@
         </svg>
       </button>
       <button type="button" class="p-face-markers__btn p-face-markers__btn--cancel" :title="$gettext('Cancel')" @click.stop="onCancelPending">
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
+        </svg>
+      </button>
+    </div>
+    <div v-if="removingMarker && bounds" class="p-face-markers__remove-confirm" :style="removeConfirmStyle" @pointerdown.stop @pointerup.stop>
+      <button
+        type="button"
+        class="p-face-markers__btn p-face-markers__btn--remove"
+        :class="{ 'is-disabled': busy }"
+        :disabled="busy"
+        :title="$gettext('Remove Face')"
+        @click.stop="onConfirmRemove"
+      >
+        <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+          <path fill="currentColor" d="M9,3V4H4V6H5V19A2,2 0 0,0 7,21H17A2,2 0 0,0 19,19V6H20V4H15V3H9M7,6H17V19H7V6M9,8V17H11V8H9M13,8V17H15V8H13Z"></path>
+        </svg>
+      </button>
+      <button type="button" class="p-face-markers__btn p-face-markers__btn--cancel" :title="$gettext('Cancel')" @click.stop="onCancelRemove">
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
           <path fill="currentColor" d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"></path>
         </svg>
@@ -116,7 +138,7 @@ export default {
       default: false,
     },
   },
-  emits: ["create", "cancel"],
+  emits: ["create", "cancel", "remove"],
   data() {
     return {
       bounds: null,
@@ -129,6 +151,12 @@ export default {
       dragStart: null,
       rafHandle: null,
       resizeObserver: null,
+      // The unnamed marker the user clicked in edit mode. While set, an
+      // inline confirm pill anchors below it; ✓ emits `remove`, ✕ clears.
+      // Named markers (m.SubjUID truthy) cannot be removed via this path
+      // because the backend's `marker.reject()` only accepts unnamed
+      // markers — the user has to eject the name first.
+      removingMarker: null,
     };
   },
   computed: {
@@ -162,11 +190,37 @@ export default {
         transform: "translate(-50%, 8px)",
       };
     },
+    // Pixel rect of the marker pending removal, in the overlay's local
+    // coordinate space. Used to anchor the remove-confirm pill and to
+    // highlight the target rectangle.
+    removingMarkerRect() {
+      if (!this.removingMarker || !this.bounds) return null;
+      const m = this.removingMarker;
+      return {
+        x: m.X * this.bounds.width,
+        y: m.Y * this.bounds.height,
+        w: m.W * this.bounds.width,
+        h: m.H * this.bounds.height,
+      };
+    },
+    removeConfirmStyle() {
+      const r = this.removingMarkerRect;
+      if (!r || !this.bounds) return { display: "none" };
+      const left = this.bounds.left + r.x + r.w / 2;
+      const top = this.bounds.top + r.y + r.h;
+      return {
+        position: "absolute",
+        left: `${left}px`,
+        top: `${top}px`,
+        transform: "translate(-50%, 8px)",
+      };
+    },
   },
   watch: {
     mode(newVal) {
       if (newVal !== FaceMarkerDraw) {
         this.cancelActiveDraft();
+        this.removingMarker = null;
       }
     },
   },
@@ -346,6 +400,24 @@ export default {
         }
       }
 
+      // Hit-test against existing unnamed marker rects BEFORE starting a
+      // new draft. If the pointer landed inside one, open the remove-
+      // confirm pill for it; the user explicitly clicked an existing
+      // marker, not empty space. Named markers (m.SubjUID truthy) are
+      // not removable via this path (`marker.reject()` only accepts
+      // unnamed markers; the user must eject the name first).
+      const target = this.findMarkerAt(local);
+      if (target) {
+        this.stopEventFromPswp(ev);
+        this.removingMarker = target;
+        return;
+      }
+
+      // Clicking outside a marker cancels any pending remove pill so a
+      // fresh draw can start from the same gesture without a prior
+      // click "stealing" focus.
+      if (this.removingMarker) this.removingMarker = null;
+
       this.stopEventFromPswp(ev);
       this.pending = null;
       this.interaction = InteractionDraw;
@@ -354,6 +426,35 @@ export default {
       this.draft = { x: local.x, y: local.y, w: 0, h: 0 };
 
       this.attachWindowPointerListeners();
+    },
+    // Returns the first unnamed marker whose pixel rect contains the
+    // given local point, or null if none. Named markers are skipped.
+    findMarkerAt(local) {
+      if (!this.bounds || !Array.isArray(this.markers)) return null;
+      for (const m of this.markers) {
+        if (!m || m.SubjUID) continue;
+        const rect = {
+          x: m.X * this.bounds.width,
+          y: m.Y * this.bounds.height,
+          w: m.W * this.bounds.width,
+          h: m.H * this.bounds.height,
+        };
+        if (this.insidePending(local, rect)) return m;
+      }
+      return null;
+    },
+    // ✓ in the remove-confirm pill. Emits `remove` with the marker so
+    // the lightbox can call marker.reject() and re-derive the overlay
+    // from the updated photo state.
+    onConfirmRemove() {
+      const m = this.removingMarker;
+      if (!m) return;
+      this.removingMarker = null;
+      this.$emit("remove", m);
+    },
+    // ✕ in the remove-confirm pill. Dismisses without mutation.
+    onCancelRemove() {
+      this.removingMarker = null;
     },
     onPointerMove(ev) {
       if (!this.interaction || !this.dragStart || !this.bounds) return;
@@ -536,6 +637,10 @@ export default {
         this.pending = null;
         return true;
       }
+      if (this.removingMarker) {
+        this.removingMarker = null;
+        return true;
+      }
       return false;
     },
     stopEventFromPswp(ev) {
@@ -594,7 +699,7 @@ export default {
     },
     onHoverMove(ev) {
       if (!this.isDrawMode || this.interaction) return;
-      if (!this.pending || !this.bounds) {
+      if (!this.bounds) {
         if (this.hoverCursor !== null) this.hoverCursor = null;
         return;
       }
@@ -603,14 +708,22 @@ export default {
         if (this.hoverCursor !== null) this.hoverCursor = null;
         return;
       }
-      const corner = this.hitTestCorner(local, this.pending);
-      if (corner) {
-        const c = corner === "tl" || corner === "br" ? "nwse-resize" : "nesw-resize";
-        if (this.hoverCursor !== c) this.hoverCursor = c;
-        return;
+      if (this.pending) {
+        const corner = this.hitTestCorner(local, this.pending);
+        if (corner) {
+          const c = corner === "tl" || corner === "br" ? "nwse-resize" : "nesw-resize";
+          if (this.hoverCursor !== c) this.hoverCursor = c;
+          return;
+        }
+        if (this.insidePending(local, this.pending)) {
+          if (this.hoverCursor !== "move") this.hoverCursor = "move";
+          return;
+        }
       }
-      if (this.insidePending(local, this.pending)) {
-        if (this.hoverCursor !== "move") this.hoverCursor = "move";
+      // Hovering an unnamed marker rect: signal it is clickable for
+      // removal. Named markers fall through to the default cursor.
+      if (this.findMarkerAt(local)) {
+        if (this.hoverCursor !== "pointer") this.hoverCursor = "pointer";
         return;
       }
       if (this.hoverCursor !== null) this.hoverCursor = null;

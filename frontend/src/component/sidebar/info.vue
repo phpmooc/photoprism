@@ -172,13 +172,13 @@
                 @click.stop="onToggleFaceMarkerMode"
               ></v-btn>
               <v-btn
-                :icon="addingMarker ? 'mdi-check' : 'mdi-plus'"
+                :icon="addingMarker ? 'mdi-pencil-off-outline' : 'mdi-pencil-outline'"
                 density="compact"
                 variant="plain"
                 size="x-small"
-                class="meta-marker-add"
+                class="meta-faces-edit"
                 :class="{ 'is-active': addingMarker }"
-                :title="addingMarker ? $gettext('Done') : $gettext('Add face')"
+                :title="addingMarker ? $gettext('Done') : $gettext('Edit Faces')"
                 :disabled="markersBusy"
                 @mousedown.prevent
                 @click.stop="onToggleFaceMarkerDraw"
@@ -226,9 +226,8 @@
               @blur="confirmMarkerName(m, 'blur')"
               @click.stop
             >
-              <template #append-inner>
+              <template v-if="m.SubjUID" #append-inner>
                 <v-btn
-                  v-if="m.SubjUID"
                   icon="mdi-eject"
                   density="compact"
                   variant="plain"
@@ -238,18 +237,6 @@
                   :disabled="markersBusy"
                   @mousedown.prevent
                   @click.stop="onEjectMarker(m)"
-                ></v-btn>
-                <v-btn
-                  v-else
-                  icon="mdi-close"
-                  density="compact"
-                  variant="plain"
-                  size="x-small"
-                  class="meta-marker-remove"
-                  :title="$gettext('Remove')"
-                  :disabled="markersBusy"
-                  @mousedown.prevent
-                  @click.stop="onRemoveMarker(m)"
                 ></v-btn>
               </template>
             </v-combobox>
@@ -515,7 +502,7 @@ export default {
       default: "",
     },
   },
-  emits: ["close", "toggle-face-marker-mode", "toggle-face-marker-draw", "remove-marker", "eject-marker", "reload-markers", "naming-started"],
+  emits: ["close", "toggle-face-marker-mode", "toggle-face-marker-draw", "eject-marker", "reload-markers", "naming-started"],
   data() {
     return {
       // Live reactive handle to the parent lightbox's $data, captured once at
@@ -525,11 +512,15 @@ export default {
       // write through to the parent and don't trigger vue/no-mutating-props.
       view: this.$view.getData(),
       // Reactive handle to the shared face-marker state singleton
-      // (`common/face-markers.js`). Drives the eye/+ toggles, the inline
-      // naming flow, and the markersBusy gates. Sidebar emits transition
-      // requests via `toggle-face-marker-mode` / `toggle-face-marker-draw`
-      // / `remove-marker` / `eject-marker` / `reload-markers`; the
-      // lightbox is the policy owner and performs the actual writes.
+      // (`common/face-markers.js`). Drives the eye / pencil toggles,
+      // the inline naming flow, and the markersBusy gates. Sidebar
+      // emits transition requests via `toggle-face-marker-mode` /
+      // `toggle-face-marker-draw` / `eject-marker` / `reload-markers`;
+      // the lightbox is the policy owner and performs the actual writes.
+      // Marker removal lives on the face-marker overlay (click an
+      // unnamed marker in edit mode → inline confirm pill) — not in
+      // the sidebar — so the per-row `mdi-close` button that used to
+      // sit inside the combobox was retired.
       faceMarkers: $faceMarkers,
       actions: [],
       featPeople: this.$config.feature("people"),
@@ -1093,22 +1084,13 @@ export default {
       if (!this.isEditable || this.markersBusy) return;
       this.$emit("toggle-face-marker-draw");
     },
-    onRemoveMarker(marker) {
-      if (!this.isEditable || this.markersBusy || !marker || marker.SubjUID) return;
-      // The @mousedown.prevent on the × icon keeps focus on the combobox,
-      // but the row tears down once reject() invalidates the marker — that
-      // fires @blur, which would otherwise re-enter confirmMarkerName with
-      // a doomed marker reference. The timestamp lets confirmMarkerName
-      // bail when an icon click triggered the unmount (P1-7).
-      this._lastDestructiveMarkerActionAt = Date.now();
-      this.$emit("remove-marker", marker);
-    },
     onEjectMarker(marker) {
       if (!this.isEditable || this.markersBusy || !marker || !marker.SubjUID) return;
-      // See onRemoveMarker — same race when the user types a fresh name
-      // and clicks ⏏ on the eject icon: clearSubject flips SubjUID, the
-      // combobox re-renders editable, and the implicit @blur from the
-      // re-render would commit the typed name we just rejected.
+      // When the user types a fresh name and clicks ⏏ on the eject icon:
+      // clearSubject flips SubjUID, the combobox re-renders editable, and
+      // the implicit @blur from the re-render would commit the typed name
+      // we just rejected. The timestamp lets confirmMarkerName bail when
+      // an icon click triggered the unmount (P1-7).
       this._lastDestructiveMarkerActionAt = Date.now();
       this.$emit("eject-marker", marker);
     },

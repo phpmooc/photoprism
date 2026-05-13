@@ -461,7 +461,7 @@ describe("PSidebarInfo component", () => {
     });
     expect(w.html()).toContain("People");
     expect(w.find(".meta-markers-toggle").exists()).toBe(true);
-    expect(w.find(".meta-marker-add").exists()).toBe(true);
+    expect(w.find(".meta-faces-edit").exists()).toBe(true);
   });
 
   it("should render the People header with only the + button when there are no markers, when editable", () => {
@@ -475,13 +475,13 @@ describe("PSidebarInfo component", () => {
     // once there is at least one marker to show / hide.
     expect(w.html()).toContain("People");
     expect(w.find(".meta-markers-toggle").exists()).toBe(false);
-    expect(w.find(".meta-marker-add").exists()).toBe(true);
+    expect(w.find(".meta-faces-edit").exists()).toBe(true);
   });
 
   it("should not render the show/hide or + icons when not editable", () => {
     // The default wrapper is mounted without canEdit → isEditable false.
     expect(wrapper.find(".meta-markers-toggle").exists()).toBe(false);
-    expect(wrapper.find(".meta-marker-add").exists()).toBe(false);
+    expect(wrapper.find(".meta-faces-edit").exists()).toBe(false);
   });
 
   it("should still list named people when not editable but the photo has markers", () => {
@@ -541,15 +541,18 @@ describe("PSidebarInfo component", () => {
       },
       global: { stubs: { PMap: true } },
     });
-    const btn = w.find(".meta-marker-add");
+    const btn = w.find(".meta-faces-edit");
     // After the v-icon → v-btn refactor the mdi-* class lives on the
-    // nested <i> inside the button, not on the button itself.
-    expect(btn.find("i.mdi-plus").exists()).toBe(true);
+    // nested <i> inside the button, not on the button itself. The
+    // "Edit Faces" toggle uses pencil / pencil-off icons (was +/check
+    // when the toggle's role was "Add face"; now it enters edit mode
+    // which covers add AND remove via the overlay).
+    expect(btn.find("i.mdi-pencil-outline").exists()).toBe(true);
     await btn.trigger("click");
     expect(onToggle).toHaveBeenCalled();
   });
 
-  it("should swap the add icon to a check while addingMarker is true", () => {
+  it("should swap the edit icon to pencil-off while addingMarker is true", () => {
     const w = mountSidebar({
       props: {
         modelValue: mockModel,
@@ -560,9 +563,9 @@ describe("PSidebarInfo component", () => {
       },
       global: { stubs: { PMap: true } },
     });
-    const btn = w.find(".meta-marker-add");
+    const btn = w.find(".meta-faces-edit");
     expect(btn.classes()).toContain("is-active");
-    expect(btn.find("i.mdi-check").exists()).toBe(true);
+    expect(btn.find("i.mdi-pencil-off-outline").exists()).toBe(true);
   });
 
   it("should still emit toggle-face-marker-draw when addingMarker is true (so the user can exit)", async () => {
@@ -578,74 +581,30 @@ describe("PSidebarInfo component", () => {
       },
       global: { stubs: { PMap: true } },
     });
-    await w.find(".meta-marker-add").trigger("click");
+    await w.find(".meta-faces-edit").trigger("click");
     expect(onToggle).toHaveBeenCalled();
   });
 
-  it("should not render the per-row remove icon on a named marker", () => {
+  // The per-row mdi-close button (formerly .meta-marker-remove inside
+  // the combobox's #append-inner slot) was retired: it looked like a
+  // "clear input" affordance but rejected the marker on the backend
+  // without confirmation. Removal now lives on the face-marker overlay
+  // — see tests/vitest/component/photo/face-marker-overlay.test.js for
+  // the click-to-remove + confirm-pill flow.
+  it("should not render a per-row remove icon on any person row", () => {
     const w = mountSidebar({
       props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
     const personRows = w.findAll(".metadata__person-row");
-    // First row is "Jane Doe" with SubjUID — no remove icon.
-    expect(personRows[0].find(".meta-marker-remove").exists()).toBe(false);
+    for (const row of personRows) {
+      expect(row.find(".meta-marker-remove").exists()).toBe(false);
+    }
   });
 
-  it("should render the per-row remove icon on an unnamed marker when editable", () => {
-    const w = mountSidebar({
-      props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
-      global: { stubs: { PMap: true } },
-    });
-    const personRows = w.findAll(".metadata__person-row");
-    // Second row is the unnamed marker.
-    expect(personRows[1].find(".meta-marker-remove").exists()).toBe(true);
-  });
-
-  it("should not render the per-row remove icon when not editable", () => {
-    // wrapper is mounted without canEdit.
-    const personRows = wrapper.findAll(".metadata__person-row");
-    expect(personRows[1].find(".meta-marker-remove").exists()).toBe(false);
-  });
-
-  it("should emit remove-marker with the marker when the remove icon is clicked", async () => {
-    const onRemove = vi.fn();
-    const w = mountSidebar({
-      props: {
-        "modelValue": mockModel,
-        "photo": mockPhoto,
-        "canEdit": true,
-        "context": contexts.Photos,
-        "onRemove-marker": onRemove,
-      },
-      global: { stubs: { PMap: true } },
-    });
-    const personRows = w.findAll(".metadata__person-row");
-    await personRows[1].find(".meta-marker-remove").trigger("click");
-    expect(onRemove).toHaveBeenCalledTimes(1);
-    expect(onRemove.mock.calls[0][0].UID).toBe("m2");
-  });
-
-  it("should refuse to emit remove-marker on a marker that has a SubjUID", () => {
-    const onRemove = vi.fn();
-    const w = mountSidebar({
-      props: {
-        "modelValue": mockModel,
-        "photo": mockPhoto,
-        "canEdit": true,
-        "context": contexts.Photos,
-        "onRemove-marker": onRemove,
-      },
-      global: { stubs: { PMap: true } },
-    });
-    w.vm.onRemoveMarker({ UID: "mNamed", SubjUID: "subjX", Name: "Alice" });
-    expect(onRemove).not.toHaveBeenCalled();
-  });
-
-  it("should refuse to emit toggle-face-marker-mode / toggle-face-marker-draw / remove-marker while markersBusy is true", () => {
+  it("should refuse to emit toggle-face-marker-mode / toggle-face-marker-draw while markersBusy is true", () => {
     const onToggleMode = vi.fn();
     const onToggleDraw = vi.fn();
-    const onRemove = vi.fn();
     const w = mountSidebar({
       props: {
         "modelValue": mockModel,
@@ -655,16 +614,13 @@ describe("PSidebarInfo component", () => {
         "markersBusy": true,
         "onToggle-face-marker-mode": onToggleMode,
         "onToggle-face-marker-draw": onToggleDraw,
-        "onRemove-marker": onRemove,
       },
       global: { stubs: { PMap: true } },
     });
     w.vm.onToggleFaceMarkerMode();
     w.vm.onToggleFaceMarkerDraw();
-    w.vm.onRemoveMarker({ UID: "mX", SubjUID: "" });
     expect(onToggleMode).not.toHaveBeenCalled();
     expect(onToggleDraw).not.toHaveBeenCalled();
-    expect(onRemove).not.toHaveBeenCalled();
   });
 
   it("should render an inline name input for every marker when canEdit is true", () => {
@@ -699,7 +655,7 @@ describe("PSidebarInfo component", () => {
     });
     expect(w.html()).not.toContain("People");
     expect(w.find(".meta-markers-toggle").exists()).toBe(false);
-    expect(w.find(".meta-marker-add").exists()).toBe(false);
+    expect(w.find(".meta-faces-edit").exists()).toBe(false);
     expect(w.find(".metadata__person-row").exists()).toBe(false);
   });
 
@@ -1255,17 +1211,10 @@ describe("PSidebarInfo component", () => {
     expect(setName).toHaveBeenCalledTimes(1);
   });
 
-  // P1-7 — onRemoveMarker / onEjectMarker arm the destructive-action stamp
-  // even when emitting upward; the parent lightbox owns the actual mutation.
-  it("onRemoveMarker arms _lastDestructiveMarkerActionAt before emitting", () => {
-    const marker = { UID: "m2", Name: "", SubjUID: "", thumbnailUrl: () => "/svg/portrait" };
-    const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
-    const w = mountInfoForChips({ modelValue: mockModel, photo });
-    expect(w.vm._lastDestructiveMarkerActionAt).toBeFalsy();
-    w.vm.onRemoveMarker(marker);
-    expect(w.vm._lastDestructiveMarkerActionAt).toBeGreaterThan(0);
-  });
-
+  // P1-7 — onEjectMarker arms the destructive-action stamp even when
+  // emitting upward; the parent lightbox owns the actual mutation. The
+  // sibling onRemoveMarker path was retired when the combobox's
+  // mdi-close hazard moved to the overlay's edit-mode click-to-remove.
   it("onEjectMarker arms _lastDestructiveMarkerActionAt before emitting", () => {
     const marker = { UID: "m1", Name: "Jane Doe", SubjUID: "subj1", thumbnailUrl: () => "/t/x/p/tile_160" };
     const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
@@ -3357,7 +3306,7 @@ describe("PSidebarInfo component", () => {
       it("renders pencil icons and face-marker controls", () => {
         expect(w.findAll(".meta-inline-pencil").length).toBeGreaterThanOrEqual(10);
         expect(w.find(".meta-markers-toggle").exists()).toBe(true);
-        expect(w.find(".meta-marker-add").exists()).toBe(true);
+        expect(w.find(".meta-faces-edit").exists()).toBe(true);
       });
     });
 
@@ -3413,7 +3362,7 @@ describe("PSidebarInfo component", () => {
         expect(w.find(".meta-inline-edit").exists()).toBe(false);
         expect(w.find(".meta-add-prompt").exists()).toBe(false);
         expect(w.find(".meta-markers-toggle").exists()).toBe(false);
-        expect(w.find(".meta-marker-add").exists()).toBe(false);
+        expect(w.find(".meta-faces-edit").exists()).toBe(false);
         expect(w.find(".meta-marker-remove").exists()).toBe(false);
       });
     });
@@ -3501,7 +3450,7 @@ describe("PSidebarInfo component", () => {
       expect(w.vm.isEditable).toBe(false);
       expect(w.find(".meta-inline-pencil").exists()).toBe(false);
       expect(w.find(".meta-markers-toggle").exists()).toBe(false);
-      expect(w.find(".meta-marker-add").exists()).toBe(false);
+      expect(w.find(".meta-faces-edit").exists()).toBe(false);
     });
 
     // featPeople = false must hide the People section even for an
@@ -3525,7 +3474,7 @@ describe("PSidebarInfo component", () => {
       const html = w.html();
       expect(html).not.toContain(TEXT.peopleHeader);
       expect(w.find(".meta-markers-toggle").exists()).toBe(false);
-      expect(w.find(".meta-marker-add").exists()).toBe(false);
+      expect(w.find(".meta-faces-edit").exists()).toBe(false);
     });
   });
 

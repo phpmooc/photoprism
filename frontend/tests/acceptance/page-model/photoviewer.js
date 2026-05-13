@@ -23,7 +23,7 @@ export default class Page {
     this.sidebar = Selector("div.p-lightbox__sidebar", { timeout: 15000 });
     this.sidebarInfo = Selector("div.p-sidebar-info", { timeout: 15000 });
     this.markersVisibilityToggle = Selector(".meta-markers-toggle", { timeout: 15000 });
-    this.markerAddButton = Selector(".meta-marker-add", { timeout: 15000 });
+    this.markerAddButton = Selector(".meta-faces-edit", { timeout: 15000 });
     this.markerRemoveButton = Selector(".meta-marker-remove", { timeout: 5000 });
     this.faceMarkerOverlay = Selector("div.p-face-markers", { timeout: 15000 });
     this.faceMarkerRect = Selector("rect.p-face-markers__rect", { timeout: 15000 });

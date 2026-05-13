@@ -41,6 +41,7 @@ function mountOverlay(props = {}, listeners = {}) {
       // Vue then dispatches to the `on<Event>` prop provided here.
       onCreate: listeners.onCreate || (() => {}),
       onCancel: listeners.onCancel || (() => {}),
+      onRemove: listeners.onRemove || (() => {}),
     },
     attachTo: document.body,
   });
@@ -501,13 +502,18 @@ describe("PFaceMarkerOverlay", () => {
     expect(labelY).toBeGreaterThan(rectBottom);
   });
 
-  it("does not render visible name labels while in draw mode", async () => {
+  it("also renders visible name labels in draw / edit mode", async () => {
+    // Names stay visible during edit mode so the user can distinguish
+    // named markers (untouchable via overlay-click) from unnamed ones
+    // (clickable for removal). Previously hidden in draw mode for
+    // visual quiet; the trade-off flipped once click-to-remove arrived.
     const markers = [{ UID: "m1", Name: "Jane", X: 0.1, Y: 0.1, W: 0.2, H: 0.2 }];
     const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers });
     await nextTick();
     await flushPromises();
     const labels = wrapper.element.querySelectorAll("text.p-face-markers__label");
-    expect(labels.length).toBe(0);
+    expect(labels.length).toBe(1);
+    expect(labels[0].textContent).toBe("Jane");
   });
 
   it("discards an active draft when the mode changes from draw to display", async () => {
@@ -828,5 +834,120 @@ describe("PFaceMarkerOverlay", () => {
     expect(onCancel).toHaveBeenCalledTimes(1);
     expect(wrapper.vm.pending).toBeNull();
     expect(wrapper.vm.draft).toBeNull();
+  });
+
+  // Click-to-remove flow: in edit mode, clicking an unnamed marker rect
+  // opens an inline confirm pill. ✓ emits `remove` with the marker; ✕
+  // dismisses without mutation. Named markers (m.SubjUID truthy) are
+  // not removable via this path — the backend gate (marker.reject only
+  // accepts unnamed markers) is mirrored in the overlay's hit-test.
+  describe("edit-mode click-to-remove", () => {
+    const unnamed = { UID: "m2", Name: "", X: 0.2, Y: 0.2, W: 0.2, H: 0.2 };
+    const named = { UID: "m1", Name: "Jane", SubjUID: "subj1", X: 0.6, Y: 0.6, W: 0.2, H: 0.2 };
+
+    function clickAt(wrapper, normX, normY) {
+      // Convert normalized marker coords (0..1 within the image) back to
+      // client coords on the stubbed image rect. Click the centre of
+      // the rect at (normX, normY).
+      const clientX = IMAGE_RECT.left + normX * IMAGE_RECT.width;
+      const clientY = IMAGE_RECT.top + normY * IMAGE_RECT.height;
+      wrapper.vm.onPointerDown({
+        button: 0,
+        pointerId: 99,
+        clientX,
+        clientY,
+        stopPropagation: () => {},
+        preventDefault: () => {},
+      });
+    }
+
+    it("clicking an unnamed marker rect sets removingMarker and skips draft start", () => {
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      expect(wrapper.vm.removingMarker?.UID).toBe(unnamed.UID);
+      expect(wrapper.vm.interaction).toBeNull();
+      expect(wrapper.vm.draft).toBeNull();
+    });
+
+    it("renders an inline confirm pill anchored to the targeted marker", async () => {
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      await nextTick();
+      const pill = wrapper.element.querySelector(".p-face-markers__remove-confirm");
+      expect(pill).not.toBeNull();
+      expect(pill.querySelector("button.p-face-markers__btn--remove")).not.toBeNull();
+    });
+
+    it("highlights the targeted rect with the --removing modifier class", async () => {
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      await nextTick();
+      const rects = wrapper.element.querySelectorAll("rect.p-face-markers__rect");
+      expect(rects[0].classList.contains("p-face-markers__rect--removing")).toBe(true);
+    });
+
+    it("✓ click emits remove with the marker and clears removingMarker", async () => {
+      const onRemove = vi.fn();
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] }, { onRemove });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      await nextTick();
+      wrapper.element.querySelector("button.p-face-markers__btn--remove").click();
+      await nextTick();
+      expect(onRemove).toHaveBeenCalledTimes(1);
+      expect(onRemove.mock.calls[0][0]?.UID).toBe(unnamed.UID);
+      expect(wrapper.vm.removingMarker).toBeNull();
+    });
+
+    it("✕ click in the remove pill clears removingMarker without emitting", async () => {
+      const onRemove = vi.fn();
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] }, { onRemove });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      await nextTick();
+      wrapper.element.querySelector("button.p-face-markers__btn--cancel").click();
+      await nextTick();
+      expect(onRemove).not.toHaveBeenCalled();
+      expect(wrapper.vm.removingMarker).toBeNull();
+    });
+
+    it("named markers are not removable via this path — hit-test skips them", () => {
+      const onRemove = vi.fn();
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [named] }, { onRemove });
+      clickAt(wrapper, named.X + named.W / 2, named.Y + named.H / 2);
+      expect(wrapper.vm.removingMarker).toBeNull();
+      // The click falls through to the draft-start path because no
+      // unnamed marker was hit at that location.
+      expect(wrapper.vm.interaction).not.toBeNull();
+    });
+
+    it("clicking empty space cancels any pending remove pill", () => {
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      expect(wrapper.vm.removingMarker?.UID).toBe(unnamed.UID);
+      clickAt(wrapper, 0.95, 0.95);
+      expect(wrapper.vm.removingMarker).toBeNull();
+    });
+
+    it("display mode ignores marker clicks (overlay is read-only)", () => {
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDisplay, markers: [unnamed] });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      expect(wrapper.vm.removingMarker).toBeNull();
+    });
+
+    it("handleEscape clears a pending remove first", () => {
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      expect(wrapper.vm.removingMarker?.UID).toBe(unnamed.UID);
+      const consumed = wrapper.vm.handleEscape();
+      expect(consumed).toBe(true);
+      expect(wrapper.vm.removingMarker).toBeNull();
+    });
+
+    it("leaving draw mode clears a pending remove", async () => {
+      const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [unnamed] });
+      clickAt(wrapper, unnamed.X + unnamed.W / 2, unnamed.Y + unnamed.H / 2);
+      expect(wrapper.vm.removingMarker?.UID).toBe(unnamed.UID);
+      await wrapper.setProps({ mode: FaceMarkerDisplay });
+      expect(wrapper.vm.removingMarker).toBeNull();
+    });
   });
 });
