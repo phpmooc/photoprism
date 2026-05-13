@@ -149,7 +149,12 @@
             </template>
           </v-list-item>
           <v-list-item v-if="featPlaces && model.Lat && model.Lng" class="mx-0 px-0">
-            <p-map :latlng="[model.Lat, model.Lng]" :animate-duration="0"></p-map>
+            <p-map
+              :latlng="[model.Lat, model.Lng]"
+              :animate-duration="0"
+              :marker-clickable="isEditable"
+              @marker-clicked="openLocationDialog"
+            ></p-map>
           </v-list-item>
         </template>
 

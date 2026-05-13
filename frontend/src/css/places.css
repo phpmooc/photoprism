@@ -239,6 +239,19 @@
     overflow: hidden;
 }
 
+/* MapLibre renders the default marker as a <button>, which the browser
+   styles with `cursor: pointer` by default — misleading when the marker
+   has no click handler attached. Default to the inherited cursor and
+   restore pointer only when the consumer opts in via `markerClickable`
+   (see `component/map.vue`). */
+.p-map .maplibregl-marker {
+    cursor: default;
+}
+
+.p-map.is-marker-clickable .maplibregl-marker {
+    cursor: pointer;
+}
+
 .p-meta-location-dialog .p-map {
     height: 45vh;
     min-height: 250px;
