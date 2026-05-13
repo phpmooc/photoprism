@@ -65,7 +65,7 @@
                 clearable
                 autocomplete="off"
                 no-filter
-                :menu-icon="false"
+                :menu-icon="null"
                 :menu-props="{ maxHeight: 300 }"
                 :list-props="{ density: 'compact' }"
                 @update:search="onSearchQueryChange"

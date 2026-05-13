@@ -236,158 +236,53 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     expect(download.visible).toBe(true);
   });
 
-  // P1-10 — pause playable media while the user is drawing a face
-  // region. Drawing on a moving frame leads to wrong-rectangle saves
-  // and Live / Animated never expose video controls, so the user can't
-  // pause manually. The watcher on `addingMarker` covers every flip
-  // path (toggle, cancel, resetFaceMarkers).
-  describe("pausePlaybackForAddingMarker — face-marker draw mode", () => {
-    // jsdom's real HTMLMediaElement has read-only `paused`. We mock the
-    // subset the lightbox actually touches: `paused` flag + `pause` / `play`
-    // callable methods. pausePlaybackForAddingMarker treats anything with a
-    // truthy `video` and a boolean `paused` as the active element.
-    let videoEl;
-    let getContent;
-    beforeEach(() => {
-      videoEl = {
-        paused: false,
-        pause: vi.fn(function () {
-          this.paused = true;
-        }),
-        play: vi.fn(function () {
-          this.paused = false;
-          return Promise.resolve();
-        }),
-      };
-      getContent = () => ({ video: videoEl, data: { loop: false } });
-    });
-
-    it("pauses the active media element and remembers it was playing", () => {
+  // P1-10 — pause playable media (and any running slideshow) whenever
+  // face-marker mode is entered, whether display or draw. Drawing on a
+  // moving frame leads to wrong-rectangle saves and Live / Animated
+  // never expose video controls, so manual pause isn't an option.
+  // Playback is NOT resumed on exit; the user reopens it explicitly if
+  // they want it back.
+  describe("enterFaceMarkerMode — pauses media on entry into either face-marker mode", () => {
+    it("calls pauseLightbox so video and slideshow both stop", () => {
       const ctx = {
-        _wasPlayingBeforeAddingMarker: false,
-        getContent,
-        pauseVideo: vi.fn((v) => v.pause()),
-        pswp: () => null,
+        pauseLightbox: vi.fn(),
         $refs: {},
         $nextTick: (cb) => Promise.resolve().then(cb),
       };
       const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.pausePlaybackForAddingMarker.call(ctx);
-      expect(ctx._wasPlayingBeforeAddingMarker).toBe(true);
-      expect(ctx.pauseVideo).toHaveBeenCalledWith(videoEl);
+      wrapper.vm.$options.methods.enterFaceMarkerMode.call(ctx);
+      expect(ctx.pauseLightbox).toHaveBeenCalledTimes(1);
     });
 
-    it("adds pswp--adding-marker on the pswp root so the CSS swaps video → still image", () => {
-      const pswpEl = document.createElement("div");
-      const ctx = {
-        _wasPlayingBeforeAddingMarker: false,
-        getContent,
-        pauseVideo: vi.fn(),
-        pswp: () => ({ element: pswpEl }),
-        $refs: {},
-        $nextTick: (cb) => Promise.resolve().then(cb),
-      };
-      const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.pausePlaybackForAddingMarker.call(ctx);
-      expect(pswpEl.classList.contains("pswp--adding-marker")).toBe(true);
-    });
-
-    it("calls scheduleUpdate on the face-marker overlay after the swap so bounds re-anchor", async () => {
+    it("schedules an overlay bounds recompute after the visibility swap", async () => {
       const overlay = { scheduleUpdate: vi.fn() };
       const ctx = {
-        _wasPlayingBeforeAddingMarker: false,
-        getContent,
-        pauseVideo: vi.fn(),
-        pswp: () => ({ element: document.createElement("div") }),
+        pauseLightbox: vi.fn(),
         $refs: { faceMarkerOverlay: overlay },
         $nextTick: (cb) => Promise.resolve().then(cb),
       };
       const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.pausePlaybackForAddingMarker.call(ctx);
+      wrapper.vm.$options.methods.enterFaceMarkerMode.call(ctx);
       await Promise.resolve();
       await Promise.resolve();
       expect(overlay.scheduleUpdate).toHaveBeenCalledTimes(1);
     });
 
-    it("removes pswp--adding-marker on exit even when entry flag was false (user paused manually)", () => {
-      const pswpEl = document.createElement("div");
-      pswpEl.classList.add("pswp--adding-marker");
+    it("is a safe no-op when the face-marker overlay is not mounted", () => {
       const ctx = {
-        _wasPlayingBeforeAddingMarker: false,
-        getContent,
-        playVideo: vi.fn(),
-        pswp: () => ({ element: pswpEl }),
-      };
-      const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.restorePlaybackAfterAddingMarker.call(ctx);
-      expect(pswpEl.classList.contains("pswp--adding-marker")).toBe(false);
-      expect(ctx.playVideo).not.toHaveBeenCalled();
-    });
-
-    it("does NOT re-pause a media element that was already paused", () => {
-      videoEl.paused = true;
-      const ctx = {
-        _wasPlayingBeforeAddingMarker: false,
-        getContent,
-        pauseVideo: vi.fn(),
-        pswp: () => null,
+        pauseLightbox: vi.fn(),
         $refs: {},
         $nextTick: (cb) => Promise.resolve().then(cb),
       };
       const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.pausePlaybackForAddingMarker.call(ctx);
-      expect(ctx._wasPlayingBeforeAddingMarker).toBe(false);
-      expect(ctx.pauseVideo).not.toHaveBeenCalled();
-    });
-
-    it("is a safe no-op when no media element is currently shown", () => {
-      const ctx = {
-        _wasPlayingBeforeAddingMarker: false,
-        getContent: () => ({ video: null, data: null }),
-        pauseVideo: vi.fn(),
-        pswp: () => null,
-        $refs: {},
-        $nextTick: (cb) => Promise.resolve().then(cb),
-      };
-      const wrapper = mountLightbox();
-      expect(() => wrapper.vm.$options.methods.pausePlaybackForAddingMarker.call(ctx)).not.toThrow();
-      expect(ctx._wasPlayingBeforeAddingMarker).toBe(false);
-      expect(ctx.pauseVideo).not.toHaveBeenCalled();
-    });
-
-    it("restorePlaybackAfterAddingMarker resumes when entry flag is true", () => {
-      const ctx = { _wasPlayingBeforeAddingMarker: true, getContent, playVideo: vi.fn(), pswp: () => null };
-      const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.restorePlaybackAfterAddingMarker.call(ctx);
-      expect(ctx.playVideo).toHaveBeenCalledWith(videoEl, false);
-      // Flag clears so a second exit doesn't double-resume.
-      expect(ctx._wasPlayingBeforeAddingMarker).toBe(false);
-    });
-
-    it("restorePlaybackAfterAddingMarker is a no-op when the entry flag is false", () => {
-      const ctx = { _wasPlayingBeforeAddingMarker: false, getContent, playVideo: vi.fn(), pswp: () => null };
-      const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.restorePlaybackAfterAddingMarker.call(ctx);
-      expect(ctx.playVideo).not.toHaveBeenCalled();
-    });
-
-    it("restorePlaybackAfterAddingMarker passes the original loop flag", () => {
-      const ctx = {
-        _wasPlayingBeforeAddingMarker: true,
-        getContent: () => ({ video: videoEl, data: { loop: true } }),
-        playVideo: vi.fn(),
-        pswp: () => null,
-      };
-      const wrapper = mountLightbox();
-      wrapper.vm.$options.methods.restorePlaybackAfterAddingMarker.call(ctx);
-      expect(ctx.playVideo).toHaveBeenCalledWith(videoEl, true);
+      expect(() => wrapper.vm.$options.methods.enterFaceMarkerMode.call(ctx)).not.toThrow();
     });
 
     // P1-10 — closing the sidebar while face-marker UI is active fully
     // exits it. The eye and ✓ Done controls live in the sidebar, so a
     // closed sidebar would otherwise leave the overlay mounted with no
-    // way to disable it (and any paused playback would never restore).
-    it("hideInfo exits face-marker UI so the overlay tears down and playback resumes", async () => {
+    // way to disable it.
+    it("hideInfo exits face-marker UI so the overlay tears down", async () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
       const ctx = {
@@ -426,40 +321,39 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       expect(exitFaceMarkerMode).not.toHaveBeenCalled();
     });
 
-    // Wiring: the faceMarkerMode watcher routes the pause / restore pair
-    // off the transitions in/out of 'draw'. Display-mode flips (e.g. eye
-    // toggle null ↔ 'display') don't touch playback.
-    it("faceMarkerMode watcher routes through pause on entering draw and restore on exiting draw", () => {
+    // Wiring: the faceMarkerMode watcher routes through enterFaceMarkerMode
+    // on null → active transitions and exitFaceMarkerMode on active → null.
+    // Transitions between two truthy modes (display ↔ draw) are no-ops —
+    // playback is already paused and the markers stay on screen.
+    it("faceMarkerMode watcher enters on null → active and exits on active → null", () => {
       const wrapper = mountLightbox();
       const watcher = wrapper.vm.$options.watch.faceMarkerMode;
       const ctx = {
-        pausePlaybackForAddingMarker: vi.fn(),
-        restorePlaybackAfterAddingMarker: vi.fn(),
+        enterFaceMarkerMode: vi.fn(),
+        exitFaceMarkerMode: vi.fn(),
       };
-      // null → draw enters; restore not called.
-      watcher.call(ctx, FaceMarkerDraw, null);
-      expect(ctx.pausePlaybackForAddingMarker).toHaveBeenCalledTimes(1);
-      expect(ctx.restorePlaybackAfterAddingMarker).not.toHaveBeenCalled();
-      // draw → null exits; restore called.
-      watcher.call(ctx, null, FaceMarkerDraw);
-      expect(ctx.restorePlaybackAfterAddingMarker).toHaveBeenCalledTimes(1);
-      // display → draw enters from display (eye then +); pause again.
-      ctx.pausePlaybackForAddingMarker.mockClear();
-      ctx.restorePlaybackAfterAddingMarker.mockClear();
-      watcher.call(ctx, FaceMarkerDraw, FaceMarkerDisplay);
-      expect(ctx.pausePlaybackForAddingMarker).toHaveBeenCalledTimes(1);
-      // draw → display is the ✓ Done path (user steps out of draw but
-      // keeps markers visible); restore playback the same way as a full
-      // exit since the user has stopped drawing.
-      watcher.call(ctx, FaceMarkerDisplay, FaceMarkerDraw);
-      expect(ctx.restorePlaybackAfterAddingMarker).toHaveBeenCalledTimes(1);
-      // Non-draw transitions (null ↔ display) are no-ops.
-      ctx.pausePlaybackForAddingMarker.mockClear();
-      ctx.restorePlaybackAfterAddingMarker.mockClear();
+      // null → display: enters.
       watcher.call(ctx, FaceMarkerDisplay, null);
+      expect(ctx.enterFaceMarkerMode).toHaveBeenCalledTimes(1);
+      expect(ctx.exitFaceMarkerMode).not.toHaveBeenCalled();
+      // null → draw: enters.
+      ctx.enterFaceMarkerMode.mockClear();
+      watcher.call(ctx, FaceMarkerDraw, null);
+      expect(ctx.enterFaceMarkerMode).toHaveBeenCalledTimes(1);
+      // display → null: exits.
       watcher.call(ctx, null, FaceMarkerDisplay);
-      expect(ctx.pausePlaybackForAddingMarker).not.toHaveBeenCalled();
-      expect(ctx.restorePlaybackAfterAddingMarker).not.toHaveBeenCalled();
+      expect(ctx.exitFaceMarkerMode).toHaveBeenCalledTimes(1);
+      // draw → null: exits.
+      ctx.exitFaceMarkerMode.mockClear();
+      watcher.call(ctx, null, FaceMarkerDraw);
+      expect(ctx.exitFaceMarkerMode).toHaveBeenCalledTimes(1);
+      // Truthy → truthy transitions are no-ops (✓ Done step-down + eye-from-draw).
+      ctx.enterFaceMarkerMode.mockClear();
+      ctx.exitFaceMarkerMode.mockClear();
+      watcher.call(ctx, FaceMarkerDisplay, FaceMarkerDraw);
+      watcher.call(ctx, FaceMarkerDraw, FaceMarkerDisplay);
+      expect(ctx.enterFaceMarkerMode).not.toHaveBeenCalled();
+      expect(ctx.exitFaceMarkerMode).not.toHaveBeenCalled();
     });
   });
 
@@ -545,7 +439,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     // ✓ Done steps out of draw mode into display mode — the user was
     // just drawing and likely wants to see the result. The eye toggle
     // (or Escape) handles the full exit to null when desired.
-    it("toggleAddingMarker's exit path steps to FaceMarkerDisplay (Done keeps markers visible)", () => {
+    it("toggleFaceMarkerDraw's exit path steps to FaceMarkerDisplay (Done keeps markers visible)", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
       const ctx = {
@@ -554,15 +448,15 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         shouldShowEditButton: () => true,
         exitFaceMarkerMode,
       };
-      wrapper.vm.$options.methods.toggleAddingMarker.call(ctx);
+      wrapper.vm.$options.methods.toggleFaceMarkerDraw.call(ctx);
       expect(ctx.faceMarkerMode).toBe(FaceMarkerDisplay);
       expect(exitFaceMarkerMode).not.toHaveBeenCalled();
     });
 
-    // toggleMarkersVisible always routes through exitFaceMarkerMode when
+    // toggleFaceMarkerMode always routes through exitFaceMarkerMode when
     // any mode is active — the eye toggle is the "hide everything" gesture
     // and lands on null. Unlike ✓ Done, it doesn't step down to display.
-    it("toggleMarkersVisible's exit path routes through exitFaceMarkerMode from display (eye toggle off)", () => {
+    it("toggleFaceMarkerMode's exit path routes through exitFaceMarkerMode from display (eye toggle off)", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
       const ctx = {
@@ -570,14 +464,14 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         shouldShowEditButton: () => true,
         exitFaceMarkerMode,
       };
-      wrapper.vm.$options.methods.toggleMarkersVisible.call(ctx);
+      wrapper.vm.$options.methods.toggleFaceMarkerMode.call(ctx);
       expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
     });
 
     // Eye toggle from draw mode also fully exits (asymmetric with ✓ Done,
     // which only steps down to display). The eye is the "hide everything"
     // affordance regardless of which mode is currently active.
-    it("toggleMarkersVisible's exit path routes through exitFaceMarkerMode from draw too (eye toggle off mid-draw)", () => {
+    it("toggleFaceMarkerMode's exit path routes through exitFaceMarkerMode from draw too (eye toggle off mid-draw)", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
       const ctx = {
@@ -585,7 +479,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         shouldShowEditButton: () => true,
         exitFaceMarkerMode,
       };
-      wrapper.vm.$options.methods.toggleMarkersVisible.call(ctx);
+      wrapper.vm.$options.methods.toggleFaceMarkerMode.call(ctx);
       expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
     });
 

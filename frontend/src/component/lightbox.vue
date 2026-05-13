@@ -30,6 +30,7 @@
         class="p-lightbox__content no-transition"
         :class="{
           'sidebar-visible': info,
+          'face-marker-mode': faceMarkerMode,
           'slideshow-active': slideshow.active,
           'is-fullscreen': isFullscreen(),
           'is-zoomable': isZoomable,
@@ -90,8 +91,8 @@
           ref="sidebarInfo"
           :uid="model.UID"
           @close="hideInfo"
-          @toggle-markers-visible="toggleMarkersVisible"
-          @toggle-adding-marker="toggleAddingMarker"
+          @toggle-face-marker-mode="toggleFaceMarkerMode"
+          @toggle-face-marker-draw="toggleFaceMarkerDraw"
           @remove-marker="onRemoveFaceMarker"
           @eject-marker="onEjectFaceMarker"
           @reload-markers="onReloadFaceMarkers"
@@ -210,11 +211,14 @@ export default {
       // Face-marker UI state machine. Three valid states (`null`, `'display'`,
       // `'draw'`) replace the legacy `markersVisible` + `addingMarker`
       // booleans (which encoded one invalid combination: draw mode without
-      // markers visible). Transitions: toggleMarkersVisible flips between
-      // null ↔ 'display'; toggleAddingMarker flips between current ↔ 'draw'
+      // markers visible). Transitions: toggleFaceMarkerMode flips between
+      // null ↔ 'display'; toggleFaceMarkerDraw flips between current ↔ 'draw'
       // and auto-promotes null to draw when entering; resetFaceMarkers and
-      // exitFaceMarkerMode set null. Sidebar reads via `view.faceMarkerMode`
-      // (see `info.vue` computeds `markersVisible` / `addingMarker`).
+      // exitFaceMarkerMode set null. Entering any non-null state pauses
+      // playback via `enterFaceMarkerMode` (the `faceMarkerMode` watcher);
+      // exit does NOT resume — the user reopens playback explicitly if
+      // wanted. Sidebar reads via `view.faceMarkerMode` (see `info.vue`
+      // computeds `markersVisible` / `addingMarker`).
       faceMarkerMode: null,
       markersBusy: false,
       faceMarkers: [],
@@ -260,20 +264,11 @@ export default {
     };
   },
   watch: {
-    // Pauses playable media (regular video, Live Photo, Animated) when the
-    // user enters draw mode, then restores playback on exit. Drawing on a
-    // moving frame leads to wrong-rectangle saves (P1-10), and Live /
-    // Animated never expose video controls so the user can't pause
-    // manually. Watching `faceMarkerMode` covers every entry path (toggle,
-    // sidebar onToggleAddingMarker) and every exit path — ✓ Done
-    // (draw → display), eye toggle (→ null), Escape, resetFaceMarkers,
-    // hideInfo — because we gate on `now/was === FaceMarkerDraw`, the
-    // restore fires regardless of which non-draw mode we land in.
     faceMarkerMode(now, was) {
-      if (now === FaceMarkerDraw && was !== FaceMarkerDraw) {
-        this.pausePlaybackForAddingMarker();
-      } else if (now !== FaceMarkerDraw && was === FaceMarkerDraw) {
-        this.restorePlaybackAfterAddingMarker();
+      if (!was && now) {
+        this.enterFaceMarkerMode();
+      } else if (was && !now) {
+        this.exitFaceMarkerMode();
       }
     },
   },
@@ -1762,7 +1757,44 @@ export default {
         })
         .catch(() => {});
     },
-    toggleMarkersVisible() {
+    // Pauses any actively playing media or slideshow when the user enters
+    // either face-marker mode (display or draw). The CSS class
+    // `face-marker-mode` on `.p-lightbox__content` swaps `<video>` /
+    // `<live>` / `<animated>` content for the JPEG cover so the overlay's
+    // boxes (positioned by image coordinates) align with the same frame
+    // the detector ran against — a paused `<video>` shows an arbitrary
+    // frame, not the still image. Playback is NOT resumed on exit; the
+    // user reopens it explicitly if desired (see `exitFaceMarkerMode`).
+    enterFaceMarkerMode() {
+      this.pauseLightbox();
+
+      // The visibility swap moves layout from <video> to <img>; the overlay
+      // anchors its bounds on the image element, so schedule a recompute
+      // once the next frame paints (after CSS visibility flips).
+      const overlay = this.$refs.faceMarkerOverlay;
+      if (overlay && typeof overlay.scheduleUpdate === "function") {
+        this.$nextTick(() => overlay.scheduleUpdate());
+      }
+    },
+    // Fully exits face-marker UI by clearing the state-machine flag and
+    // the local markers array. The eye-toggle when active
+    // (toggleFaceMarkerMode exit), Escape (via onEscapeKey), and hideInfo
+    // all route through here so the overlay can never paint stale boxes
+    // anchored to the JPG cover after teardown. The ✓ Done button
+    // (toggleFaceMarkerDraw exit from draw) deliberately does NOT route
+    // through here — it steps down to FaceMarkerDisplay so markers stay
+    // visible after the user finishes drawing. Re-enabling display-only
+    // review from null is one click away via the eye toggle in the
+    // sidebar.
+    exitFaceMarkerMode() {
+      this.faceMarkerMode = null;
+      this.faceMarkers = [];
+    },
+    // Eye-toggle handler. Flips between `null` (no overlay) and
+    // `FaceMarkerDisplay` (read-only markers): when any face-marker mode
+    // is active this is the "hide everything" gesture and always lands
+    // on `null`.
+    toggleFaceMarkerMode() {
       if (!this.shouldShowEditButton()) {
         return;
       }
@@ -1773,22 +1805,16 @@ export default {
       this.faceMarkerMode = FaceMarkerDisplay;
       this.reloadFaceMarkers();
     },
-    toggleAddingMarker() {
+    // Add-face handler. Enters `FaceMarkerDraw` from any previous state;
+    // pressing ✓ Done while already in draw mode steps down to
+    // `FaceMarkerDisplay` (markers stay visible after the user finishes
+    // drawing) rather than fully exiting — the eye toggle / Escape are
+    // the explicit "hide everything" gestures.
+    toggleFaceMarkerDraw() {
       if (!this.shouldShowEditButton() || this.markersBusy) {
         return;
       }
       if (this.faceMarkerMode === FaceMarkerDraw) {
-        // ✓ Done — step out of draw mode but keep markers visible.
-        // The user was looking at the markers (and may have just drawn
-        // one); landing on FaceMarkerDisplay shows the result instead of
-        // hiding everything. The eye toggle (rendered when at least one
-        // marker exists) fully exits to null when the user wants to hide
-        // the overlay; Escape and slide-nav still route through
-        // `exitFaceMarkerMode`, which also lands on null. The
-        // faceMarkerMode watcher catches the draw→display transition and
-        // runs `restorePlaybackAfterAddingMarker` so paused video / Live
-        // / Animated playback resumes the same way it would on a full
-        // exit.
         this.faceMarkerMode = FaceMarkerDisplay;
         return;
       }
@@ -1798,42 +1824,10 @@ export default {
         this.$refs.menu.hide();
       }
     },
-    // Fully exits face-marker UI by clearing the state-machine flag and
-    // the local markers array. The eye-toggle when active
-    // (toggleMarkersVisible exit), Escape (via onEscapeKey), and hideInfo
-    // all route through here so a resumed video is never painted with
-    // stale boxes anchored to the JPG cover. The ✓ Done button
-    // (toggleAddingMarker exit from draw) deliberately does NOT route
-    // through here — it steps down to FaceMarkerDisplay so markers stay
-    // visible after the user finishes drawing. Re-enabling display-only
-    // review from null is one click away via the eye toggle in the
-    // sidebar.
-    exitFaceMarkerMode() {
-      this.faceMarkerMode = null;
-      this.faceMarkers = [];
-    },
-    // Shared Escape handler. Delegated to from both the v-dialog template
-    // (`@keydown.esc.exact.stop="onEscapeKey"`) and the global
-    // `$view.onShortCut(ev)` forwarder (see `frontend/src/common/README.md`
-    // for the documented keyboard pattern). Priority chain:
-    //
-    // 1. If the face-marker overlay has an in-flight draft / pending rect,
-    //    let it cancel that without exiting draw mode.
-    // 2. Else, if any face-marker UI is active (faceMarkerMode non-null),
-    //    hide the overlay — closing the lightbox would skip a step the
-    //    user can plausibly still want to undo.
-    // 3. Else, close the lightbox normally.
-    onEscapeKey() {
-      const overlay = this.$refs.faceMarkerOverlay;
-      if (overlay && typeof overlay.handleEscape === "function" && overlay.handleEscape()) {
-        return;
-      }
-      if (this.faceMarkerMode) {
-        this.exitFaceMarkerMode();
-        return;
-      }
-      this.close();
-    },
+    // Re-reads markers from the current photo into the local `faceMarkers`
+    // array; used after entering display/draw mode and after mutations
+    // (create / eject / remove) so the overlay re-renders with fresh
+    // server values.
     reloadFaceMarkers() {
       if (this.photo.UID && typeof this.photo.getMarkers === "function") {
         this.faceMarkers = this.photo.getMarkers(true);
@@ -1841,12 +1835,20 @@ export default {
         this.faceMarkers = [];
       }
     },
+    // Hard reset of every face-marker data point — called from `hideDialog`
+    // and slide navigation so a closed lightbox or a different photo never
+    // inherits stale mode, markers, or pending-name UID from the previous
+    // session.
     resetFaceMarkers() {
       this.faceMarkerMode = null;
       this.markersBusy = false;
       this.faceMarkers = [];
       this.pendingNameMarkerUid = null;
     },
+    // Asks the sidebar (if mounted) whether it has unsaved edits, returning
+    // a Promise that resolves true to proceed and false to cancel. Used by
+    // every gesture that would tear the sidebar down (hideInfo, slide nav,
+    // close) so the user is prompted before their in-flight changes disappear.
     confirmDiscardSidebar() {
       const sidebar = this.$refs.sidebarInfo;
       if (sidebar && typeof sidebar.confirmDiscardPending === "function") {
@@ -1854,6 +1856,10 @@ export default {
       }
       return Promise.resolve(true);
     },
+    // Handles the overlay's `create` emit when the user confirms a drawn
+    // face region. Persists the new Marker to the backend, evicts the
+    // Photo cache, refreshes the local marker array, and primes the
+    // sidebar to enter inline naming for the freshly-saved row.
     onCreateFaceMarker(area) {
       if (!this.photo.UID || !this.shouldShowEditButton() || this.markersBusy) return;
 
@@ -1895,6 +1901,10 @@ export default {
           this.markersBusy = false;
         });
     },
+    // Handles the sidebar's `eject-marker` emit (⏏ button on a named
+    // marker). Clears the marker's subject assignment via the backend,
+    // syncs the file's marker entry with fresh server values, evicts
+    // the Photo cache, and reloads the local marker array.
     onEjectFaceMarker(marker) {
       if (!this.photo.UID || !this.shouldShowEditButton() || this.markersBusy) return;
       if (!marker || !marker.SubjUID || typeof marker.clearSubject !== "function") return;
@@ -1927,11 +1937,19 @@ export default {
         file.Markers[idx] = typeof marker.getValues === "function" ? marker.getValues() : { ...file.Markers[idx], ...marker };
       }
     },
+    // Handles the sidebar's `reload-markers` emit (post-name-change).
+    // Syncs the saved marker into the file array, evicts the Photo cache
+    // so future reads see the updated row, and refreshes the local
+    // marker array.
     onReloadFaceMarkers(marker) {
       if (marker) this.syncMarkerInFile(marker);
       if (this.photo.UID) Photo.evictCache(this.photo.UID);
       this.reloadFaceMarkers();
     },
+    // Handles the sidebar's `remove-marker` emit (× button on an unnamed
+    // marker). Rejects the marker via the backend, removes it from the
+    // file's marker array on success, evicts the Photo cache, and
+    // refreshes the local marker array.
     onRemoveFaceMarker(marker) {
       if (!this.photo.UID || !this.shouldShowEditButton() || this.markersBusy) return;
       if (!marker || marker.SubjUID || typeof marker.reject !== "function") return;
@@ -2255,6 +2273,24 @@ export default {
 
       return result;
     },
+    // Stops playback on the specified video element, if any.
+    pauseVideo(video) {
+      if (!video || !(video instanceof HTMLMediaElement)) {
+        return;
+      }
+
+      if (!video.paused) {
+        try {
+          video.pause();
+        } catch (err) {
+          if (this.debug) {
+            this.log("video.pause", { err });
+          }
+        }
+        video.parentElement?.classList.remove("is-playing");
+        this.showControls();
+      }
+    },
     // Finds and pauses an actively playing video, e.g. before closing the lightbox.
     pausePlaying() {
       // Get active video element, if any.
@@ -2438,6 +2474,28 @@ export default {
           break;
       }
     },
+    // Shared Escape handler. Delegated to from both the v-dialog template
+    // (`@keydown.esc.exact.stop="onEscapeKey"`) and the global
+    // `$view.onShortCut(ev)` forwarder (see `frontend/src/common/README.md`
+    // for the documented keyboard pattern). Priority chain:
+    //
+    // 1. If the face-marker overlay has an in-flight draft / pending rect,
+    //    let it cancel that without exiting draw mode.
+    // 2. Else, if any face-marker UI is active (faceMarkerMode non-null),
+    //    hide the overlay — closing the lightbox would skip a step the
+    //    user can plausibly still want to undo.
+    // 3. Else, close the lightbox normally.
+    onEscapeKey() {
+      const overlay = this.$refs.faceMarkerOverlay;
+      if (overlay && typeof overlay.handleEscape === "function" && overlay.handleEscape()) {
+        return;
+      }
+      if (this.faceMarkerMode) {
+        this.exitFaceMarkerMode();
+        return;
+      }
+      this.close();
+    },
     // Bridges PhotoSwipe's dispatched 'keydown' event so printable keys
     // typed into the info sidebar (notably "z" for the Subject textarea)
     // are not swallowed by PhotoSwipe's toggleZoom shortcut. Calling
@@ -2550,78 +2608,6 @@ export default {
       this.seekVideo(video.currentTime + seconds);
 
       return true;
-    },
-    // Pauses any actively playing media element while the user is drawing
-    // a face region (P1-10) and swaps the visible slide content from the
-    // <video> to the JPEG cover (`pswp__image`). A stopped video is NOT a
-    // still image — the frame the browser holds is arbitrary, so the
-    // detected face markers (which were computed against the JPEG cover)
-    // won't visually align with anything. Adding `pswp--adding-marker` to
-    // `pswp.element` flips visibility via the existing CSS rules in
-    // lightbox.css — `.pswp__image` becomes visible, `.pswp__video` and
-    // `.pswp__play` go hidden.
-    //
-    // Remembers the playing state in `_wasPlayingBeforeAddingMarker` so
-    // the matching restore method can resume only when the user had been
-    // actively playing. Covers regular video, Live Photos, and Animated
-    // images — getContent().video resolves to the underlying
-    // HTMLMediaElement for all three.
-    pausePlaybackForAddingMarker() {
-      this._wasPlayingBeforeAddingMarker = false;
-      const pswp = this.pswp();
-      if (pswp?.element?.classList) {
-        pswp.element.classList.add("pswp--adding-marker");
-      }
-      // The visibility swap moves layout from <video> to <img>; the overlay
-      // anchors its bounds on the image element, so schedule a recompute
-      // once the next frame paints (after CSS visibility flips).
-      const overlay = this.$refs.faceMarkerOverlay;
-      if (overlay && typeof overlay.scheduleUpdate === "function") {
-        this.$nextTick(() => overlay.scheduleUpdate());
-      }
-      const { video } = this.getContent();
-      if (!video) return;
-      const playing = !video.paused;
-      this._wasPlayingBeforeAddingMarker = playing;
-      if (playing) {
-        this.pauseVideo(video);
-      }
-    },
-    // Resumes playback after the user exits draw mode (saved a marker,
-    // pressed Done, hit Escape, closed the sidebar, etc.). No-op when the
-    // user had paused the media manually before entering draw mode — we
-    // only restore the auto-play state we interrupted. Always removes
-    // the `pswp--adding-marker` class so the video / play button become
-    // visible again even if the user had paused playback manually.
-    restorePlaybackAfterAddingMarker() {
-      const pswp = this.pswp();
-      if (pswp?.element?.classList) {
-        pswp.element.classList.remove("pswp--adding-marker");
-      }
-      if (!this._wasPlayingBeforeAddingMarker) return;
-      this._wasPlayingBeforeAddingMarker = false;
-      const { video, data } = this.getContent();
-      if (!video) return;
-      const loop = data?.loop === true;
-      this.playVideo(video, loop);
-    },
-    // Stops playback on the specified video element, if any.
-    pauseVideo(video) {
-      if (!video || !(video instanceof HTMLMediaElement)) {
-        return;
-      }
-
-      if (!video.paused) {
-        try {
-          video.pause();
-        } catch (err) {
-          if (this.debug) {
-            this.log("video.pause", { err });
-          }
-        }
-        video.parentElement?.classList.remove("is-playing");
-        this.showControls();
-      }
     },
     // Mutes/unmutes the sound for videos.
     toggleMute() {

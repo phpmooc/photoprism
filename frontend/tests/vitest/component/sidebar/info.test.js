@@ -504,7 +504,7 @@ describe("PSidebarInfo component", () => {
     expect(toggle.classes()).toContain("is-active");
   });
 
-  it("should emit toggle-markers-visible when the eye icon is clicked", async () => {
+  it("should emit toggle-face-marker-mode when the eye icon is clicked", async () => {
     const onToggle = vi.fn();
     const w = mountSidebar({
       props: {
@@ -512,7 +512,7 @@ describe("PSidebarInfo component", () => {
         "photo": mockPhoto,
         "canEdit": true,
         "context": contexts.Photos,
-        "onToggle-markers-visible": onToggle,
+        "onToggle-face-marker-mode": onToggle,
       },
       global: { stubs: { PMap: true } },
     });
@@ -520,7 +520,7 @@ describe("PSidebarInfo component", () => {
     expect(onToggle).toHaveBeenCalled();
   });
 
-  it("should emit toggle-adding-marker when the + icon is clicked", async () => {
+  it("should emit toggle-face-marker-draw when the + icon is clicked", async () => {
     const onToggle = vi.fn();
     const w = mountSidebar({
       props: {
@@ -528,7 +528,7 @@ describe("PSidebarInfo component", () => {
         "photo": mockPhoto,
         "canEdit": true,
         "context": contexts.Photos,
-        "onToggle-adding-marker": onToggle,
+        "onToggle-face-marker-draw": onToggle,
       },
       global: { stubs: { PMap: true } },
     });
@@ -556,7 +556,7 @@ describe("PSidebarInfo component", () => {
     expect(btn.find("i.mdi-check").exists()).toBe(true);
   });
 
-  it("should still emit toggle-adding-marker when addingMarker is true (so the user can exit)", async () => {
+  it("should still emit toggle-face-marker-draw when addingMarker is true (so the user can exit)", async () => {
     const onToggle = vi.fn();
     const w = mountSidebar({
       props: {
@@ -565,7 +565,7 @@ describe("PSidebarInfo component", () => {
         "canEdit": true,
         "context": contexts.Photos,
         "addingMarker": true,
-        "onToggle-adding-marker": onToggle,
+        "onToggle-face-marker-draw": onToggle,
       },
       global: { stubs: { PMap: true } },
     });
@@ -633,9 +633,9 @@ describe("PSidebarInfo component", () => {
     expect(onRemove).not.toHaveBeenCalled();
   });
 
-  it("should refuse to emit toggle-markers-visible / toggle-adding-marker / remove-marker while markersBusy is true", () => {
-    const onToggleVisible = vi.fn();
-    const onToggleAdd = vi.fn();
+  it("should refuse to emit toggle-face-marker-mode / toggle-face-marker-draw / remove-marker while markersBusy is true", () => {
+    const onToggleMode = vi.fn();
+    const onToggleDraw = vi.fn();
     const onRemove = vi.fn();
     const w = mountSidebar({
       props: {
@@ -644,17 +644,17 @@ describe("PSidebarInfo component", () => {
         "canEdit": true,
         "context": contexts.Photos,
         "markersBusy": true,
-        "onToggle-markers-visible": onToggleVisible,
-        "onToggle-adding-marker": onToggleAdd,
+        "onToggle-face-marker-mode": onToggleMode,
+        "onToggle-face-marker-draw": onToggleDraw,
         "onRemove-marker": onRemove,
       },
       global: { stubs: { PMap: true } },
     });
-    w.vm.onToggleMarkersVisible();
-    w.vm.onToggleAddingMarker();
+    w.vm.onToggleFaceMarkerMode();
+    w.vm.onToggleFaceMarkerDraw();
     w.vm.onRemoveMarker({ UID: "mX", SubjUID: "" });
-    expect(onToggleVisible).not.toHaveBeenCalled();
-    expect(onToggleAdd).not.toHaveBeenCalled();
+    expect(onToggleMode).not.toHaveBeenCalled();
+    expect(onToggleDraw).not.toHaveBeenCalled();
     expect(onRemove).not.toHaveBeenCalled();
   });
 
@@ -733,7 +733,7 @@ describe("PSidebarInfo component", () => {
   });
 
   // The default dropdown chevron (`.v-combobox__menu-icon`) is suppressed
-  // unconditionally on every marker combobox via `:menu-icon="false"` —
+  // unconditionally on every marker combobox via `:menu-icon="null"` —
   // both named (readonly) and unnamed rows. Auto-open-on-focus is the
   // discovery affordance for the knownPeople dropdown; the chevron is
   // redundant with the inline edit affordances (× / ⏏ buttons) and was

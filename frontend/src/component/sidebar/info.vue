@@ -149,12 +149,7 @@
             </template>
           </v-list-item>
           <v-list-item v-if="featPlaces && model.Lat && model.Lng" class="mx-0 px-0">
-            <p-map
-              :latlng="[model.Lat, model.Lng]"
-              :animate-duration="0"
-              :marker-clickable="isEditable"
-              @marker-clicked="openLocationDialog"
-            ></p-map>
+            <p-map :latlng="[model.Lat, model.Lng]" :animate-duration="0" :marker-clickable="isEditable" @marker-clicked="openLocationDialog"></p-map>
           </v-list-item>
         </template>
 
@@ -174,7 +169,7 @@
                 :title="markersVisible ? $gettext('Hide face markers') : $gettext('Show face markers')"
                 :disabled="markersBusy"
                 @mousedown.prevent
-                @click.stop="onToggleMarkersVisible"
+                @click.stop="onToggleFaceMarkerMode"
               ></v-btn>
               <v-btn
                 :icon="addingMarker ? 'mdi-check' : 'mdi-plus'"
@@ -186,7 +181,7 @@
                 :title="addingMarker ? $gettext('Done') : $gettext('Add face')"
                 :disabled="markersBusy"
                 @mousedown.prevent
-                @click.stop="onToggleAddingMarker"
+                @click.stop="onToggleFaceMarkerDraw"
               ></v-btn>
             </template>
           </v-list-item>
@@ -218,7 +213,7 @@
               single-line
               open-on-clear
               append-icon=""
-              :menu-icon="false"
+              :menu-icon="null"
               density="compact"
               bg-color="background"
               autocomplete="off"
@@ -308,7 +303,7 @@
               hide-no-data
               single-line
               append-icon=""
-              :menu-icon="false"
+              :menu-icon="null"
               density="compact"
               bg-color="background"
               autocomplete="off"
@@ -368,7 +363,7 @@
               hide-no-data
               single-line
               append-icon=""
-              :menu-icon="false"
+              :menu-icon="null"
               density="compact"
               bg-color="background"
               autocomplete="off"
@@ -520,7 +515,7 @@ export default {
       default: "",
     },
   },
-  emits: ["close", "toggle-markers-visible", "toggle-adding-marker", "remove-marker", "eject-marker", "reload-markers", "naming-started"],
+  emits: ["close", "toggle-face-marker-mode", "toggle-face-marker-draw", "remove-marker", "eject-marker", "reload-markers", "naming-started"],
   data() {
     return {
       // Live reactive handle to the parent lightbox's $data, captured once at
@@ -1076,13 +1071,20 @@ export default {
         if (editor && typeof editor.focus === "function") editor.focus();
       });
     },
-    onToggleMarkersVisible() {
+    // Eye-icon click handler. Emits `toggle-face-marker-mode` so the
+    // lightbox can flip between hidden and FaceMarkerDisplay; guards on
+    // edit permission and the markersBusy lock to keep the gesture inert
+    // while a marker write is in flight.
+    onToggleFaceMarkerMode() {
       if (!this.isEditable || this.markersBusy) return;
-      this.$emit("toggle-markers-visible");
+      this.$emit("toggle-face-marker-mode");
     },
-    onToggleAddingMarker() {
+    // +/Done click handler. Emits `toggle-face-marker-draw` so the
+    // lightbox can flip between FaceMarkerDraw and FaceMarkerDisplay;
+    // same edit/busy guards as the eye-icon path.
+    onToggleFaceMarkerDraw() {
       if (!this.isEditable || this.markersBusy) return;
-      this.$emit("toggle-adding-marker");
+      this.$emit("toggle-face-marker-draw");
     },
     onRemoveMarker(marker) {
       if (!this.isEditable || this.markersBusy || !marker || marker.SubjUID) return;
