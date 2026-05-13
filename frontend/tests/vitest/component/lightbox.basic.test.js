@@ -8,7 +8,7 @@ import Thumb from "model/thumb";
 import Album from "model/album";
 import $util from "common/util";
 import { buildNamespace } from "common/storage";
-import { FaceMarkerDisplay, FaceMarkerDraw } from "options/face-marker";
+import { FaceMarkerDisplay, FaceMarkerEdit } from "options/face-marker";
 import clientConfig from "../config";
 
 // makeFaceMarkers builds a minimal mock of the face-markers singleton.
@@ -21,9 +21,9 @@ const makeFaceMarkers = (overrides = {}) => ({
   pendingNameMarkerUid: "",
   active: false,
   isDisplay: false,
-  isDraw: false,
+  isEdit: false,
   display: vi.fn(),
-  draw: vi.fn(),
+  edit: vi.fn(),
   exit: vi.fn(),
   setMode: vi.fn(),
   setBusy: vi.fn(),
@@ -309,7 +309,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       const ctx = {
         visible: true,
         info: true,
-        faceMarkers: makeFaceMarkers({ active: true, isDraw: true, mode: FaceMarkerDraw }),
+        faceMarkers: makeFaceMarkers({ active: true, isEdit: true, mode: FaceMarkerEdit }),
         exitFaceMarkerMode,
         confirmDiscardSidebar: () => Promise.resolve(true),
         $nextTick: (cb) => Promise.resolve().then(cb),
@@ -326,7 +326,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     it("hideInfo keeps face-marker UI when confirmDiscardSidebar resolves false", async () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
-      const faceMarkers = makeFaceMarkers({ active: true, isDraw: true, mode: FaceMarkerDraw });
+      const faceMarkers = makeFaceMarkers({ active: true, isEdit: true, mode: FaceMarkerEdit });
       const ctx = {
         visible: true,
         info: true,
@@ -339,7 +339,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       };
       await wrapper.vm.$options.methods.hideInfo.call(ctx);
       expect(ctx.info).toBe(true);
-      expect(faceMarkers.mode).toBe(FaceMarkerDraw);
+      expect(faceMarkers.mode).toBe(FaceMarkerEdit);
       expect(exitFaceMarkerMode).not.toHaveBeenCalled();
     });
 
@@ -360,20 +360,20 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       expect(ctx.exitFaceMarkerMode).not.toHaveBeenCalled();
       // null → draw: enters.
       ctx.enterFaceMarkerMode.mockClear();
-      watcher.call(ctx, FaceMarkerDraw, null);
+      watcher.call(ctx, FaceMarkerEdit, null);
       expect(ctx.enterFaceMarkerMode).toHaveBeenCalledTimes(1);
       // display → null: exits.
       watcher.call(ctx, null, FaceMarkerDisplay);
       expect(ctx.exitFaceMarkerMode).toHaveBeenCalledTimes(1);
       // draw → null: exits.
       ctx.exitFaceMarkerMode.mockClear();
-      watcher.call(ctx, null, FaceMarkerDraw);
+      watcher.call(ctx, null, FaceMarkerEdit);
       expect(ctx.exitFaceMarkerMode).toHaveBeenCalledTimes(1);
       // Truthy → truthy transitions are no-ops (✓ Done step-down + eye-from-draw).
       ctx.enterFaceMarkerMode.mockClear();
       ctx.exitFaceMarkerMode.mockClear();
-      watcher.call(ctx, FaceMarkerDisplay, FaceMarkerDraw);
-      watcher.call(ctx, FaceMarkerDraw, FaceMarkerDisplay);
+      watcher.call(ctx, FaceMarkerDisplay, FaceMarkerEdit);
+      watcher.call(ctx, FaceMarkerEdit, FaceMarkerDisplay);
       expect(ctx.enterFaceMarkerMode).not.toHaveBeenCalled();
       expect(ctx.exitFaceMarkerMode).not.toHaveBeenCalled();
     });
@@ -393,7 +393,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       const close = vi.fn();
       const ctx = {
         $refs: { faceMarkerOverlay: { handleEscape } },
-        faceMarkers: makeFaceMarkers({ active: true, isDraw: true, mode: FaceMarkerDraw }),
+        faceMarkers: makeFaceMarkers({ active: true, isEdit: true, mode: FaceMarkerEdit }),
         exitFaceMarkerMode,
         close,
       };
@@ -410,7 +410,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       const close = vi.fn();
       const ctx = {
         $refs: { faceMarkerOverlay: { handleEscape } },
-        faceMarkers: makeFaceMarkers({ active: true, isDraw: true, mode: FaceMarkerDraw }),
+        faceMarkers: makeFaceMarkers({ active: true, isEdit: true, mode: FaceMarkerEdit }),
         exitFaceMarkerMode,
         close,
       };
@@ -452,7 +452,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     // the photo, so no local copy needs resetting).
     it("exitFaceMarkerMode calls faceMarkers.exit()", () => {
       const wrapper = mountLightbox();
-      const faceMarkers = makeFaceMarkers({ active: true, isDraw: true, mode: FaceMarkerDraw });
+      const faceMarkers = makeFaceMarkers({ active: true, isEdit: true, mode: FaceMarkerEdit });
       const ctx = { faceMarkers };
       wrapper.vm.$options.methods.exitFaceMarkerMode.call(ctx);
       expect(faceMarkers.exit).toHaveBeenCalledTimes(1);
@@ -466,19 +466,19 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     // ONLY the pencil), exiting must land on `null` or the toggle
     // gets stuck in the "on" state with no way to leave face-marker
     // mode from the sidebar.
-    it("toggleFaceMarkerDraw exits to null when already active (pencil off)", () => {
+    it("toggleFaceMarkerEdit exits to null when already active (pencil off)", () => {
       const wrapper = mountLightbox();
       const exitFaceMarkerMode = vi.fn();
-      const faceMarkers = makeFaceMarkers({ active: true, isDraw: true, mode: FaceMarkerDraw });
+      const faceMarkers = makeFaceMarkers({ active: true, isEdit: true, mode: FaceMarkerEdit });
       const ctx = {
         faceMarkers,
         shouldShowEditButton: () => true,
         exitFaceMarkerMode,
         $refs: {},
       };
-      wrapper.vm.$options.methods.toggleFaceMarkerDraw.call(ctx);
+      wrapper.vm.$options.methods.toggleFaceMarkerEdit.call(ctx);
       expect(exitFaceMarkerMode).toHaveBeenCalledTimes(1);
-      expect(faceMarkers.draw).not.toHaveBeenCalled();
+      expect(faceMarkers.edit).not.toHaveBeenCalled();
       expect(faceMarkers.display).not.toHaveBeenCalled();
     });
 
@@ -555,7 +555,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       // either case. Parametrized over both modes pins the contract.
       const modes = [
         ["display", { isDisplay: true, mode: FaceMarkerDisplay }],
-        ["draw", { isDraw: true, mode: FaceMarkerDraw }],
+        ["edit", { isEdit: true, mode: FaceMarkerEdit }],
       ];
 
       for (const [label, modeFlags] of modes) {

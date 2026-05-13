@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import { FaceMarkers, $faceMarkers } from "common/face-markers";
-import { FaceMarkerDisplay, FaceMarkerDraw } from "options/face-marker";
+import { FaceMarkerDisplay, FaceMarkerEdit } from "options/face-marker";
 
 describe("common/face-markers", () => {
   describe("FaceMarkers (constructor + helpers)", () => {
@@ -11,19 +11,19 @@ describe("common/face-markers", () => {
       expect(fm.pendingNameMarkerUid).toBe("");
       expect(fm.active).toBe(false);
       expect(fm.isDisplay).toBe(false);
-      expect(fm.isDraw).toBe(false);
+      expect(fm.isEdit).toBe(false);
     });
 
-    it("setMode accepts FaceMarkerDisplay, FaceMarkerDraw, and null", () => {
+    it("setMode accepts FaceMarkerDisplay, FaceMarkerEdit, and null", () => {
       const fm = new FaceMarkers();
       fm.setMode(FaceMarkerDisplay);
       expect(fm.mode).toBe(FaceMarkerDisplay);
       expect(fm.active).toBe(true);
       expect(fm.isDisplay).toBe(true);
-      expect(fm.isDraw).toBe(false);
-      fm.setMode(FaceMarkerDraw);
-      expect(fm.mode).toBe(FaceMarkerDraw);
-      expect(fm.isDraw).toBe(true);
+      expect(fm.isEdit).toBe(false);
+      fm.setMode(FaceMarkerEdit);
+      expect(fm.mode).toBe(FaceMarkerEdit);
+      expect(fm.isEdit).toBe(true);
       expect(fm.isDisplay).toBe(false);
       fm.setMode(null);
       expect(fm.mode).toBeNull();
@@ -38,12 +38,12 @@ describe("common/face-markers", () => {
       expect(fm.mode).toBeNull();
     });
 
-    it("display / draw / exit are convenience setters", () => {
+    it("display / edit / exit are convenience setters", () => {
       const fm = new FaceMarkers();
       fm.display();
       expect(fm.mode).toBe(FaceMarkerDisplay);
-      fm.draw();
-      expect(fm.mode).toBe(FaceMarkerDraw);
+      fm.edit();
+      expect(fm.mode).toBe(FaceMarkerEdit);
       fm.exit();
       expect(fm.mode).toBeNull();
     });
@@ -70,7 +70,7 @@ describe("common/face-markers", () => {
 
     it("reset returns every field to its default", () => {
       const fm = new FaceMarkers();
-      fm.setMode(FaceMarkerDraw);
+      fm.setMode(FaceMarkerEdit);
       fm.setBusy(true);
       fm.setPendingNameMarkerUid("uid1");
       fm.reset();
@@ -92,12 +92,12 @@ describe("common/face-markers", () => {
       expect($faceMarkers.mode).toBeNull();
     });
 
-    it("mode mutations propagate to the active/isDisplay/isDraw getters", () => {
+    it("mode mutations propagate to the active/isDisplay/isEdit getters", () => {
       $faceMarkers.display();
       expect($faceMarkers.active).toBe(true);
       expect($faceMarkers.isDisplay).toBe(true);
-      $faceMarkers.draw();
-      expect($faceMarkers.isDraw).toBe(true);
+      $faceMarkers.edit();
+      expect($faceMarkers.isEdit).toBe(true);
       $faceMarkers.exit();
       expect($faceMarkers.active).toBe(false);
     });

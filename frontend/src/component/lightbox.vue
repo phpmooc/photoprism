@@ -93,7 +93,7 @@
           :uid="model.UID"
           @close="hideInfo"
           @toggle-face-marker-mode="toggleFaceMarkerMode"
-          @toggle-face-marker-draw="toggleFaceMarkerDraw"
+          @toggle-face-marker-edit="toggleFaceMarkerEdit"
           @eject-marker="onEjectFaceMarker"
           @reload-markers="onReloadFaceMarkers"
           @naming-started="faceMarkers.setPendingNameMarkerUid('')"
@@ -212,7 +212,7 @@ export default {
       // `common/face-markers.js`. The lightbox is the policy owner — every
       // write goes through this reactive handle and the sidebar reads
       // from the same singleton (no `view.faceMarkerMode` bridge). Fields:
-      // `mode` (null | FaceMarkerDisplay | FaceMarkerDraw), `busy`
+      // `mode` (null | FaceMarkerDisplay | FaceMarkerEdit), `busy`
       // (in-flight marker mutation lock), `pendingNameMarkerUid` (UID of
       // a freshly-created marker to auto-focus). Entering any non-null
       // mode pauses playback via the watcher on `faceMarkers.mode` and
@@ -1791,7 +1791,7 @@ export default {
     // Fully exits face-marker UI by clearing the singleton's mode flag.
     // The eye-toggle when active (toggleFaceMarkerMode exit), Escape (via
     // onEscapeKey), and hideInfo all route through here. The ✓ Done
-    // button (toggleFaceMarkerDraw exit from draw) deliberately does NOT
+    // button (toggleFaceMarkerEdit exit from draw) deliberately does NOT
     // route through here — it steps down to FaceMarkerDisplay so markers
     // stay visible after the user finishes drawing. Re-enabling display-
     // only review from null is one click away via the eye toggle in the
@@ -1802,7 +1802,7 @@ export default {
     // Eye-toggle handler. Flips between `null` (no overlay) and
     // `FaceMarkerDisplay` (read-only markers). The eye toggle is only
     // rendered for NON-editable users (display mode is read-only by
-    // definition); editable users use `toggleFaceMarkerDraw` below.
+    // definition); editable users use `toggleFaceMarkerEdit` below.
     // Gates on featPeople only — display mode doesn't need edit
     // permission, and the template-level `!restrictedRole` gate keeps
     // restricted sessions out of this path entirely.
@@ -1817,13 +1817,13 @@ export default {
       this.faceMarkers.display();
     },
     // Edit-Faces toggle handler. Flips between `null` (no overlay) and
-    // `FaceMarkerDraw` (markers visible + drag-to-create + click-to-
+    // `FaceMarkerEdit` (markers visible + drag-to-create + click-to-
     // remove). Only rendered for editable users; the gate mirrors that.
     // Previously the exit path stepped down to FaceMarkerDisplay (the
     // historical ✓ Done semantic when the sidebar had two toggles); now
     // that the pencil is the only editable-user toggle, exit must land
     // on `null` so the pencil click actually ends face-marker mode.
-    toggleFaceMarkerDraw() {
+    toggleFaceMarkerEdit() {
       if (!this.shouldShowEditButton() || this.faceMarkers.busy) {
         return;
       }
@@ -1831,7 +1831,7 @@ export default {
         this.exitFaceMarkerMode();
         return;
       }
-      this.faceMarkers.draw();
+      this.faceMarkers.edit();
       if (this.$refs.menu) {
         this.$refs.menu.hide();
       }
@@ -2520,7 +2520,7 @@ export default {
     // for the documented keyboard pattern). Priority chain:
     //
     // 1. If the face-marker overlay has an in-flight draft / pending rect,
-    //    let it cancel that without exiting draw mode.
+    //    let it cancel that without exiting edit mode.
     // 2. Else, if any face-marker UI is active, hide the overlay —
     //    closing the lightbox would skip a step the user can plausibly
     //    still want to undo.
@@ -2929,10 +2929,9 @@ export default {
       });
     },
     // Hides the lightbox sidebar, if visible. Also fully exits face-marker
-    // UI when active — the eye and ✓ Done controls live in the sidebar,
-    // so a closed sidebar would otherwise leave the overlay mounted over
-    // a resumed video with no UI to disable it (and the paused playback
-    // would never restore for draw mode — see P1-10).
+    // UI when active — the eye and pencil controls live in the sidebar,
+    // so a closed sidebar would otherwise leave the overlay mounted with
+    // no UI to disable it (see P1-10).
     async hideInfo() {
       if (!this.visible || !this.info) {
         return;

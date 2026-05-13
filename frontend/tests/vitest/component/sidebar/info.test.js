@@ -54,7 +54,7 @@ function mountSidebar(options = {}) {
   // `faceMarkerMode` directly.
   let faceMarkerMode = props.faceMarkerMode;
   if (faceMarkerMode === undefined) {
-    if (props.addingMarker) faceMarkerMode = "draw";
+    if (props.addingMarker) faceMarkerMode = "edit";
     else if (props.markersVisible) faceMarkerMode = "display";
     else faceMarkerMode = null;
   }
@@ -458,7 +458,7 @@ describe("PSidebarInfo component", () => {
   // them, so a separate eye toggle adds no value. Non-editable users
   // see ONLY the eye/eye-off "Show face markers" toggle and only when
   // there is at least one marker to view. The state machine
-  // (`$faceMarkers`) still has both FaceMarkerDisplay and FaceMarkerDraw;
+  // (`$faceMarkers`) still has both FaceMarkerDisplay and FaceMarkerEdit;
   // each role just exposes one of the two via its button.
   it("should render the People header with only the pencil toggle when editable", () => {
     const w = mountSidebar({
@@ -536,7 +536,7 @@ describe("PSidebarInfo component", () => {
     expect(onToggle).toHaveBeenCalled();
   });
 
-  it("should emit toggle-face-marker-draw when the + icon is clicked", async () => {
+  it("should emit toggle-face-marker-edit when the + icon is clicked", async () => {
     const onToggle = vi.fn();
     const w = mountSidebar({
       props: {
@@ -544,7 +544,7 @@ describe("PSidebarInfo component", () => {
         "photo": mockPhoto,
         "canEdit": true,
         "context": contexts.Photos,
-        "onToggle-face-marker-draw": onToggle,
+        "onToggle-face-marker-edit": onToggle,
       },
       global: { stubs: { PMap: true } },
     });
@@ -575,7 +575,7 @@ describe("PSidebarInfo component", () => {
     expect(btn.find("i.mdi-pencil-off-outline").exists()).toBe(true);
   });
 
-  it("should still emit toggle-face-marker-draw when addingMarker is true (so the user can exit)", async () => {
+  it("should still emit toggle-face-marker-edit when addingMarker is true (so the user can exit)", async () => {
     const onToggle = vi.fn();
     const w = mountSidebar({
       props: {
@@ -584,7 +584,7 @@ describe("PSidebarInfo component", () => {
         "canEdit": true,
         "context": contexts.Photos,
         "addingMarker": true,
-        "onToggle-face-marker-draw": onToggle,
+        "onToggle-face-marker-edit": onToggle,
       },
       global: { stubs: { PMap: true } },
     });
@@ -609,7 +609,7 @@ describe("PSidebarInfo component", () => {
     }
   });
 
-  it("should refuse to emit toggle-face-marker-mode / toggle-face-marker-draw while markersBusy is true", () => {
+  it("should refuse to emit toggle-face-marker-mode / toggle-face-marker-edit while markersBusy is true", () => {
     const onToggleMode = vi.fn();
     const onToggleDraw = vi.fn();
     const w = mountSidebar({
@@ -620,12 +620,12 @@ describe("PSidebarInfo component", () => {
         "context": contexts.Photos,
         "markersBusy": true,
         "onToggle-face-marker-mode": onToggleMode,
-        "onToggle-face-marker-draw": onToggleDraw,
+        "onToggle-face-marker-edit": onToggleDraw,
       },
       global: { stubs: { PMap: true } },
     });
     w.vm.onToggleFaceMarkerMode();
-    w.vm.onToggleFaceMarkerDraw();
+    w.vm.onToggleFaceMarkerEdit();
     expect(onToggleMode).not.toHaveBeenCalled();
     expect(onToggleDraw).not.toHaveBeenCalled();
   });

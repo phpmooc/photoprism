@@ -2,7 +2,7 @@
   <div
     ref="root"
     class="p-face-markers"
-    :class="{ 'is-drawing': isDrawMode, 'is-display': !isDrawMode }"
+    :class="{ 'is-edit': isEditMode, 'is-display': !isEditMode }"
     :style="rootStyle"
     @pointerdown="onPointerDown"
     @pointermove="onHoverMove"
@@ -105,7 +105,7 @@
 </template>
 
 <script>
-import { FaceMarkerDisplay, FaceMarkerDraw, isFaceMarkerMode } from "options/face-marker";
+import { FaceMarkerDisplay, FaceMarkerEdit, isFaceMarkerMode } from "options/face-marker";
 
 // Minimum side length of a drawable square, in screen pixels.
 const MIN_DRAW_SIZE = 16;
@@ -161,8 +161,8 @@ export default {
     };
   },
   computed: {
-    isDrawMode() {
-      return this.mode === FaceMarkerDraw;
+    isEditMode() {
+      return this.mode === FaceMarkerEdit;
     },
     svgStyle() {
       if (!this.bounds) return { display: "none" };
@@ -219,7 +219,7 @@ export default {
   },
   watch: {
     mode(newVal) {
-      if (newVal !== FaceMarkerDraw) {
+      if (newVal !== FaceMarkerEdit) {
         this.cancelActiveDraft();
         this.removingMarker = null;
       }
@@ -377,7 +377,7 @@ export default {
       this.bounds = { left, top, width, height };
     },
     onPointerDown(ev) {
-      if (!this.isDrawMode) return;
+      if (!this.isEditMode) return;
 
       if (!this.bounds) {
         this.updateBounds();
@@ -699,7 +699,7 @@ export default {
       this.attachWindowPointerListeners();
     },
     onHoverMove(ev) {
-      if (!this.isDrawMode || this.interaction) return;
+      if (!this.isEditMode || this.interaction) return;
       if (!this.bounds) {
         if (this.hoverCursor !== null) this.hoverCursor = null;
         return;
@@ -741,7 +741,7 @@ export default {
     // `pointer-events: none` so wheel events pass through naturally;
     // the early return below makes this a no-op there.
     onWheel(ev) {
-      if (!this.isDrawMode) return;
+      if (!this.isEditMode) return;
       const pswpEl = this.pswp?.element;
       if (!pswpEl) return;
       // preventDefault on the original event so the browser's default

@@ -24,7 +24,7 @@ Additional information can be found in our Developer Guide:
 */
 
 import { reactive } from "vue";
-import { FaceMarkerDisplay, FaceMarkerDraw, isFaceMarkerMode } from "options/face-marker";
+import { FaceMarkerDisplay, FaceMarkerEdit, isFaceMarkerMode } from "options/face-marker";
 
 // FaceMarkers carries the reactive UI state for the face-marker overlay
 // and the surrounding controls (sidebar eye-toggle, + button, inline
@@ -35,7 +35,7 @@ import { FaceMarkerDisplay, FaceMarkerDraw, isFaceMarkerMode } from "options/fac
 //
 // Fields:
 //
-//   mode  — null | FaceMarkerDisplay | FaceMarkerDraw. `null` means the
+//   mode  — null | FaceMarkerDisplay | FaceMarkerEdit. `null` means the
 //           overlay is hidden; the two truthy values mirror the
 //           constants in `options/face-marker.js`.
 //   busy  — true while a marker-mutating API call is in flight. Sidebar
@@ -67,9 +67,10 @@ export class FaceMarkers {
     return this.mode === FaceMarkerDisplay;
   }
 
-  // isDraw reports whether the overlay is in draw mode.
-  get isDraw() {
-    return this.mode === FaceMarkerDraw;
+  // isEdit reports whether the overlay is in edit mode (drag-to-create
+  // + click-to-remove gestures active).
+  get isEdit() {
+    return this.mode === FaceMarkerEdit;
   }
 
   // setMode flips the state machine to the specified mode (or `null` to
@@ -85,9 +86,10 @@ export class FaceMarkers {
     this.mode = FaceMarkerDisplay;
   }
 
-  // draw enters draw mode (+ button / Add face).
-  draw() {
-    this.mode = FaceMarkerDraw;
+  // edit enters edit mode (pencil toggle on — drag-to-create new
+  // markers + click-to-remove existing unnamed markers).
+  edit() {
+    this.mode = FaceMarkerEdit;
   }
 
   // exit clears the mode to `null`; the lightbox watcher reacts to this

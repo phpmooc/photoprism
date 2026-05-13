@@ -74,14 +74,14 @@
     inset: 0;
     z-index: 2;
     user-select: none;
-    /* Stays transparent so PhotoSwipe pan/zoom keeps working; .is-drawing
+    /* Stays transparent so PhotoSwipe pan/zoom keeps working; .is-edit
        captures the pointer. */
     pointer-events: none;
     touch-action: auto;
     cursor: default;
 }
 
-.p-face-markers.is-drawing {
+.p-face-markers.is-edit {
     pointer-events: auto;
     touch-action: none;
     cursor: crosshair;

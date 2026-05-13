@@ -183,7 +183,7 @@
                 :title="addingMarker ? $gettext('Done') : $gettext('Edit Faces')"
                 :disabled="markersBusy"
                 @mousedown.prevent
-                @click.stop="onToggleFaceMarkerDraw"
+                @click.stop="onToggleFaceMarkerEdit"
               ></v-btn>
               <v-btn
                 v-else
@@ -517,7 +517,7 @@ export default {
       default: "",
     },
   },
-  emits: ["close", "toggle-face-marker-mode", "toggle-face-marker-draw", "eject-marker", "reload-markers", "naming-started"],
+  emits: ["close", "toggle-face-marker-mode", "toggle-face-marker-edit", "eject-marker", "reload-markers", "naming-started"],
   data() {
     return {
       // Live reactive handle to the parent lightbox's $data, captured once at
@@ -530,7 +530,7 @@ export default {
       // (`common/face-markers.js`). Drives the eye / pencil toggles,
       // the inline naming flow, and the markersBusy gates. Sidebar
       // emits transition requests via `toggle-face-marker-mode` /
-      // `toggle-face-marker-draw` / `eject-marker` / `reload-markers`;
+      // `toggle-face-marker-edit` / `eject-marker` / `reload-markers`;
       // the lightbox is the policy owner and performs the actual writes.
       // Marker removal lives on the face-marker overlay (click an
       // unnamed marker in edit mode → inline confirm pill) — not in
@@ -629,14 +629,14 @@ export default {
     },
     // Derived from the shared face-marker state singleton
     // (`common/face-markers.js`): null = no overlay, 'display' = read-
-    // only markers, 'draw' = Add Face. The sidebar template still binds
-    // to `markersVisible` / `addingMarker` booleans so the eye / + icon
-    // logic stays compact.
+    // only markers, 'edit' = drag-to-create + click-to-remove. The
+    // sidebar template binds to `markersVisible` / `addingMarker`
+    // booleans so the eye / pencil icon logic stays compact.
     markersVisible() {
       return this.faceMarkers.active;
     },
     addingMarker() {
-      return this.faceMarkers.isDraw;
+      return this.faceMarkers.isEdit;
     },
     markersBusy() {
       return this.faceMarkers.busy;
@@ -1094,12 +1094,12 @@ export default {
       if (this.markersBusy) return;
       this.$emit("toggle-face-marker-mode");
     },
-    // Pencil-icon click handler (editable users only — draw mode adds
-    // drag-to-create + click-to-remove). Emits `toggle-face-marker-draw`
-    // so the lightbox can flip between `null` and `FaceMarkerDraw`.
-    onToggleFaceMarkerDraw() {
+    // Pencil-icon click handler (editable users only — edit mode adds
+    // drag-to-create + click-to-remove). Emits `toggle-face-marker-edit`
+    // so the lightbox can flip between `null` and `FaceMarkerEdit`.
+    onToggleFaceMarkerEdit() {
       if (!this.isEditable || this.markersBusy) return;
-      this.$emit("toggle-face-marker-draw");
+      this.$emit("toggle-face-marker-edit");
     },
     onEjectMarker(marker) {
       if (!this.isEditable || this.markersBusy || !marker || !marker.SubjUID) return;
