@@ -64,6 +64,20 @@
         </svg>
       </button>
     </div>
+    <button
+      type="button"
+      class="p-face-markers__btn p-face-markers__btn--back"
+      :title="$gettext('Back')"
+      :aria-label="$gettext('Back')"
+      @click.stop="onBackClick"
+      @pointerdown.stop
+      @pointerup.stop
+    >
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+        <path v-if="$isRtl" fill="currentColor" d="M4 11h12.17l-5.59-5.59L12 4l8 8-8 8-1.41-1.41L16.17 13H4z"></path>
+        <path v-else fill="currentColor" d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20z"></path>
+      </svg>
+    </button>
   </div>
 </template>
 
@@ -463,6 +477,15 @@ export default {
     onCancelPending() {
       this.pending = null;
       this.hoverCursor = null;
+    },
+    // Back-button click. Signals the parent lightbox to exit face-marker
+    // mode entirely (display or draw). Uses the existing `cancel` emit
+    // so the lightbox's `@cancel="exitFaceMarkerMode"` wiring catches
+    // it without a new listener. Distinct from `onCancelPending` —
+    // that one discards a draft rect without exiting draw mode.
+    onBackClick() {
+      this.cancelActiveDraft();
+      this.$emit("cancel");
     },
     // Called by the parent only after a successful save — on failure the
     // parent leaves the rect on screen so the user can retry.

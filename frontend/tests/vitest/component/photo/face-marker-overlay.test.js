@@ -800,4 +800,33 @@ describe("PFaceMarkerOverlay", () => {
     expect(wrapper.element.querySelector("button.p-face-markers__btn--confirm")).toBeNull();
     expect(wrapper.element.querySelector("button.p-face-markers__btn--cancel")).toBeNull();
   });
+
+  // The Back button is the user-facing exit for face-marker mode while
+  // the toolbar chrome is hidden by .face-marker-mode CSS. It must be
+  // present whenever the overlay is mounted (display + draw) and emit
+  // `cancel` so the lightbox routes through exitFaceMarkerMode.
+  it("renders the Back button in display mode and emits cancel on click", async () => {
+    const onCancel = vi.fn();
+    const { wrapper } = mountOverlay({ mode: FaceMarkerDisplay, markers: [] }, { onCancel });
+    const btn = wrapper.element.querySelector("button.p-face-markers__btn--back");
+    expect(btn).not.toBeNull();
+    btn.click();
+    await nextTick();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders the Back button in draw mode and emits cancel + clears any pending draft on click", async () => {
+    const onCancel = vi.fn();
+    const { wrapper } = mountOverlay({ mode: FaceMarkerDraw, markers: [] }, { onCancel });
+    // Stage a pending draft so we can confirm the back click also clears it.
+    wrapper.vm.pending = { x: 10, y: 10, w: 50, h: 50 };
+    await nextTick();
+    const btn = wrapper.element.querySelector("button.p-face-markers__btn--back");
+    expect(btn).not.toBeNull();
+    btn.click();
+    await nextTick();
+    expect(onCancel).toHaveBeenCalledTimes(1);
+    expect(wrapper.vm.pending).toBeNull();
+    expect(wrapper.vm.draft).toBeNull();
+  });
 });
