@@ -726,14 +726,17 @@ describe("PSidebarInfo component", () => {
     expect(unnamedInput.element.readOnly).toBe(false);
   });
 
-  // The named marker combobox is readonly — picking a different person
-  // requires ejecting first. The default dropdown chevron
-  // (`.v-combobox__menu-icon`) would suggest otherwise, so it's gated
-  // off via `:menu-icon='m.SubjUID ? "" : undefined'`. Unnamed markers
-  // keep the chevron so users can browse the knownPeople list.
-  // Vuetify only renders the chevron when `items.length > 0`, so the
-  // mock $config supplies one known person.
-  it("should hide the v-combobox menu-icon on a named marker and keep it on an unnamed marker", () => {
+  // The default dropdown chevron (`.v-combobox__menu-icon`) is suppressed
+  // unconditionally on every marker combobox via `:menu-icon="false"` —
+  // both named (readonly) and unnamed rows. Auto-open-on-focus is the
+  // discovery affordance for the knownPeople dropdown; the chevron is
+  // redundant with the inline edit affordances (× / ⏏ buttons) and was
+  // misleading on named, readonly rows where ejecting is the only path
+  // to a new name. Mock $config supplies one known person because
+  // Vuetify additionally gates the chevron on `items.length > 0`, and
+  // we want a state in which Vuetify *would* render it if it were not
+  // suppressed by the prop.
+  it("should hide the v-combobox menu-icon on every marker row", () => {
     const config = {
       ...validationConfig,
       values: { people: [{ UID: "sXYZ", Name: "Alice Smith" }] },
@@ -743,11 +746,10 @@ describe("PSidebarInfo component", () => {
       global: { mocks: { $config: config, $util: validationUtil } },
     });
     const personRows = w.findAll(".metadata__person-row");
-    // First row: Jane Doe (SubjUID set) — chevron must be absent.
+    // First row: Jane Doe (SubjUID set) — chevron absent.
     expect(personRows[0].find(".v-combobox__menu-icon").exists()).toBe(false);
-    // Second row: unnamed marker — chevron stays so the knownPeople
-    // dropdown is discoverable.
-    expect(personRows[1].find(".v-combobox__menu-icon").exists()).toBe(true);
+    // Second row: unnamed marker — chevron also absent.
+    expect(personRows[1].find(".v-combobox__menu-icon").exists()).toBe(false);
   });
 
   it("should refuse to emit eject-marker on a marker without SubjUID", () => {

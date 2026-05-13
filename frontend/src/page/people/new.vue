@@ -66,6 +66,7 @@
                   item-value="Name"
                   :readonly="readonly"
                   :menu-props="menuProps"
+                  :menu-icon="false"
                   return-object
                   hide-no-data
                   hide-details

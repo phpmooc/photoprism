@@ -65,8 +65,9 @@
                 clearable
                 autocomplete="off"
                 no-filter
-                menu-icon=""
+                :menu-icon="false"
                 :menu-props="{ maxHeight: 300 }"
+                :list-props="{ density: 'compact' }"
                 @update:search="onSearchQueryChange"
                 @update:model-value="onPlaceSelected"
                 @click:clear="clearSearch"
@@ -74,12 +75,12 @@
                 <template #item="{ props }">
                   <v-list-item v-bind="props" density="compact">
                     <template #prepend>
-                      <v-icon>mdi-map-marker</v-icon>
+                      <v-icon size="small">mdi-map-marker</v-icon>
                     </template>
                   </v-list-item>
                 </template>
                 <template #no-data>
-                  <v-list-item v-if="searchQuery && searchQuery.length >= 2 && !searchLoading && searchResults.length === 0">
+                  <v-list-item v-if="searchQuery && searchQuery.length >= 2 && !searchLoading && searchResults.length === 0" density="compact">
                     <v-list-item-title>{{ $gettext("No results") }}</v-list-item-title>
                   </v-list-item>
                 </template>

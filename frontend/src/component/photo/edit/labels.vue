@@ -115,7 +115,7 @@
                             out before the tab geometry settles, which
                             mispositions it). The user clicks the input when
                             they want to type.
-                            menu-icon="" hides the default dropdown chevron
+                            :menu-icon="false" hides the default dropdown chevron
                             because the row's density makes the chevron sit
                             visibly below the input baseline; the auto-open
                             on focus is the discovery affordance instead.
@@ -142,7 +142,7 @@
                             hide-details
                             hide-no-data
                             append-icon=""
-                            menu-icon=""
+                            :menu-icon="false"
                             :menu-props="menuProps"
                             :list-props="{ density: 'compact' }"
                             class="input-label ma-0 pa-0"

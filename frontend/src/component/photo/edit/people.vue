@@ -70,6 +70,7 @@
                 item-value="Name"
                 :disabled="busy"
                 :menu-props="menuProps"
+                :menu-icon="false"
                 return-object
                 hide-no-data
                 hide-details

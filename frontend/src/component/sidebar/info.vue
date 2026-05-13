@@ -5,7 +5,7 @@
       <v-toolbar-title>{{ $gettext(`Information`) }}</v-toolbar-title>
     </v-toolbar>
     <div v-if="model.UID">
-      <v-list nav slim tile density="compact" bg-color="background" class="metadata__list mt-2">
+      <v-list nav slim tile density="compact" bg-color="background" class="metadata__list mt-1">
         <!-- Title -->
         <v-list-item v-if="editingField === 'title' || model.Title || isEditable" class="metadata__item">
           <v-text-field
@@ -13,7 +13,6 @@
             :ref="setInlineEditorRef"
             v-model="photo.Title"
             :rules="[textRule]"
-            variant="plain"
             density="compact"
             hide-details="auto"
             autocomplete="off"
@@ -35,7 +34,6 @@
             v-if="editingField === 'caption'"
             :ref="setInlineEditorRef"
             v-model="photo.Caption"
-            variant="plain"
             density="compact"
             auto-grow
             :max-rows="6"
@@ -53,7 +51,7 @@
           </template>
         </v-list-item>
 
-        <v-divider v-if="editingField === 'title' || editingField === 'caption' || model.Title || model.Caption || isEditable" class="my-4"></v-divider>
+        <v-divider v-if="editingField === 'title' || editingField === 'caption' || model.Title || model.Caption || isEditable" class="my-3"></v-divider>
 
         <v-list-item v-if="fileInfo" v-tooltip="fileTypeName" :lines="false" class="metadata__item metadata__file-info text-body-2">
           <span class="break-word">{{ fileInfo }}</span>
@@ -62,7 +60,7 @@
           <span class="break-word">{{ fileName }}</span>
         </v-list-item>
 
-        <v-divider v-if="(!restrictedRole && fileName) || fileInfo" class="my-4"></v-divider>
+        <v-divider v-if="(!restrictedRole && fileName) || fileInfo" class="my-3"></v-divider>
 
         <v-list-item v-tooltip="$gettext(`Taken`)" :title="formatTime(model)" prepend-icon="mdi-calendar" class="metadata__item">
           <template v-if="isEditable" #append>
@@ -102,7 +100,7 @@
         </v-list-item>
 
         <template v-if="(model.Lat && model.Lng) || (!restrictedRole && isEditable && featPlaces)">
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-3"></v-divider>
           <v-list-item
             v-if="!restrictedRole && (placeName || !(model.Lat && model.Lng))"
             v-tooltip="$gettext('Location')"
@@ -148,7 +146,7 @@
         </template>
 
         <template v-if="!restrictedRole && featPeople && (people.length > 0 || isEditable)">
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-3"></v-divider>
           <v-list-item class="metadata__item">
             <div class="text-subtitle-2">{{ $gettext("People") }}</div>
             <template v-if="isEditable" #append>
@@ -207,10 +205,10 @@
               single-line
               open-on-clear
               append-icon=""
-              :menu-icon="m.SubjUID ? '' : undefined"
-              autocomplete="off"
+              :menu-icon="false"
               density="compact"
-              variant="plain"
+              bg-color="background"
+              autocomplete="off"
               class="meta-inline-edit meta-inline-marker"
               :class="{ 'meta-inline-marker--named': m.SubjUID }"
               @update:model-value="(v) => onPickPerson(m, v)"
@@ -253,7 +251,7 @@
         </template>
 
         <template v-if="!restrictedRole && (labels.length > 0 || isEditable)">
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-3"></v-divider>
           <v-list-item class="metadata__item meta-labels">
             <div class="text-subtitle-2">{{ $gettext("Labels") }}</div>
             <template v-if="isEditable && chipState.labels.removals.length > 0" #append>
@@ -292,12 +290,14 @@
               item-title="Name"
               item-value="Name"
               return-object
-              :placeholder="$gettext('Add label')"
-              variant="plain"
-              density="compact"
+              :placeholder="$gettext('Select or create labels')"
               hide-details
               hide-no-data
+              single-line
               append-icon=""
+              :menu-icon="false"
+              density="compact"
+              bg-color="background"
               autocomplete="off"
               :menu-props="chipMenuProps"
               :list-props="chipListProps"
@@ -311,7 +311,7 @@
         </template>
 
         <template v-if="!restrictedRole && (albums.length > 0 || isEditable)">
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-3"></v-divider>
           <v-list-item class="metadata__item meta-albums">
             <div class="text-subtitle-2">{{ $gettext("Albums") }}</div>
             <template v-if="isEditable && chipState.albums.removals.length > 0" #append>
@@ -350,12 +350,14 @@
               item-title="Title"
               item-value="Title"
               return-object
-              :placeholder="$gettext('Add to album')"
-              variant="plain"
-              density="compact"
+              :placeholder="$gettext('Select or create albums')"
               hide-details
               hide-no-data
+              single-line
               append-icon=""
+              :menu-icon="false"
+              density="compact"
+              bg-color="background"
               autocomplete="off"
               :menu-props="chipMenuProps"
               :list-props="chipListProps"
@@ -369,7 +371,7 @@
         </template>
 
         <template v-if="showDetailsSection">
-          <v-divider class="my-4"></v-divider>
+          <v-divider class="my-3"></v-divider>
           <v-list-item
             v-for="f in detailsFields"
             v-show="shouldShowFieldRow(f)"
@@ -385,7 +387,6 @@
               :model-value="f.read(photo)"
               :placeholder="f.label"
               :rules="[textRule]"
-              variant="plain"
               density="compact"
               auto-grow
               hide-details="auto"
@@ -406,7 +407,7 @@
 
         <template v-for="f in textFields" :key="f.key">
           <template v-if="!restrictedRole && shouldShowFieldRow(f)">
-            <v-divider class="my-4"></v-divider>
+            <v-divider class="my-3"></v-divider>
             <v-list-item class="metadata__item" :class="`meta-${f.key}`">
               <div class="text-subtitle-2">{{ f.label }}</div>
               <template v-if="isEditable" #append>
@@ -419,7 +420,6 @@
                 :ref="setInlineEditorRef"
                 :model-value="f.read(photo)"
                 :placeholder="f.label"
-                variant="plain"
                 density="compact"
                 auto-grow
                 hide-details="auto"

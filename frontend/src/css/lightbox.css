@@ -234,11 +234,6 @@
     hyphens: auto;
 }
 
-.p-lightbox__container > .p-lightbox__sidebar .v-list-item--density-compact,
-.p-lightbox__container > .p-lightbox__sidebar .v-list-item--density-compact.v-list-item--one-line {
-    min-height: 36px;
-}
-
 .p-lightbox__container > .p-lightbox__sidebar .meta-caption,
 .p-lightbox__container > .p-lightbox__sidebar .meta-notes {
     white-space: pre-wrap;
@@ -375,14 +370,34 @@
     margin: 0;
 }
 
-.p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit .v-field__input {
-    padding: 2px 0;
-    min-height: 1.5em;
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    mask-image: none;
+.p-lightbox__container > .p-lightbox__sidebar .v-input--density-compact {
+    --v-input-control-height: 30px;
 }
 
+.p-lightbox__container > .p-lightbox__sidebar .v-input--density-compact .v-field {
+    --v-field-input-padding-top: 6px;
+    --v-field-input-padding-bottom: 6px;
+    --v-field-padding-start: 10px;
+    --v-field-padding-end: 10px;
+    --v-field-padding-after: 0;
+    --v-field-padding-top: 6px;
+    --v-field-padding-bottom: 6px;
+    padding-inline-end: 4px;
+}
+
+.p-lightbox__container > .p-lightbox__sidebar .v-input--density-compact .v-field .v-field__input {
+    min-height: 36px;
+    font-size: 0.875rem;
+}
+
+/* Follow-up: revisit whether the explicit thin/themed scrollbar styling on
+   sidebar textareas (and the matching Webkit pseudo-element rules below)
+   is still needed once we audit which long-text editors actually overflow.
+   The current rule plus its `::-webkit-scrollbar*` companions keeps the
+   scrollbar legible against the near-black surface on Firefox + Chromium;
+   Safari (16.4+) maps `scrollbar-width: thin` to the native overlay
+   scrollbar. Drop both if a fresh visual pass shows the OS defaults are
+   acceptable. */
 .p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit textarea.v-field__input {
     min-height: unset;
     scrollbar-width: thin;
@@ -396,14 +411,6 @@
 .p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit textarea.v-field__input::-webkit-scrollbar-thumb {
     background: rgba(var(--v-theme-on-surface), 0.2);
     border-radius: 2px;
-}
-
-.p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit .v-field {
-    padding-inline-start: 0;
-    padding-inline-end: 0;
-    background: rgb(var(--v-theme-surface-bright, var(--v-theme-surface)));
-    border-radius: 4px;
-    padding: 2px 6px;
 }
 
 .p-lightbox__container > .p-lightbox__sidebar .meta-inline-title .v-field__input {
@@ -471,26 +478,13 @@
     color: rgb(var(--v-theme-on-surface)) !important;
 }
 
-/* Sidebar inline dropdowns (name, labels, albums) render in a body-level
-   overlay so they inherit the lightbox theme. The lightbox `surface`
-   equals `background` (#040709), which would render the menu list
-   invisibly against the sidebar. Lift the inner `.v-list` to
-   `secondary-light` (#1e1e1e) — distinctly above the input's
-   `surface-bright` (#141417) bg so the menu reads as a separate,
-   slightly elevated surface instead of merging into the input it's
-   anchored to. The standard MD elevation shadow provides the edge,
-   matching every other v-select / v-autocomplete menu in the app. */
-.meta-inline-menu .v-list {
-    background: rgb(var(--v-theme-secondary-light)) !important;
-}
-
 /* Vuetify's density="compact" on v-list sizes the row height/padding but
    leaves the title font at the default 16px, which still reads oversized
    next to the sidebar's 0.875rem inline editors. Trim the title font so
    the menu visually matches the rest of the sidebar typography. */
 .meta-inline-menu .v-list-item-title {
     font-size: 0.8125rem;
-    line-height: 1.25rem;
+    line-height: 1.125rem;
 }
 
 /* The lightbox theme's `surface-variant` is a light grey (read by Vuetify

@@ -70,24 +70,24 @@ let themes = {
     title: "Lightbox",
     name: "lightbox",
     colors: {
-      "background": "#0c0d0d", // Page canvas; near-black so the photo dominates the viewer.
-      "surface": "#111313", // Default container surface; only one brightness step above `background`, so plain `surface` elements still read as nearly indistinct — use `surface-bright`, `secondary-light`, or `card` for visibly raised elements.
-      "on-surface": "#ffffff", // Body text and icon color on `surface`, `surface-bright`, and `surface-light`.
-      "surface-bright": "#141417", // Lifted variant of `surface`; raised tiles, hover backgrounds, inline editors.
-      "surface-variant": "#bdbdbd", // Light-grey foreground tone consumed by Vuetify defaults for active dropdown rows, focus rings, and `color="surface-variant"` props.
-      "on-surface-variant": "#1c1c1c", // Inverse pair of `surface-variant`; also painted as the *background* in the scoped lightbox tooltip rule (`css/lightbox.css`).
-      "card": "#171717", // Dedicated card-container background; one tier above `surface` for raised cards.
-      "selected": "#3d3f40", // Active list-item background; mirrors `highlight` so selection stays a neutral grey rather than reading as a near-white block.
+      "background": "#0c0d0d", // Page canvas; near-black so the photo dominates. Also painted onto `navigation` rows.
+      "surface": "#151515", // Default container surface (sidebar, dropdown menus, dialog v-card); one step above `background`.
+      "on-surface": "#ffffff", // Body text and icon color on `surface`, `surface-bright`, `surface-light`, and `card`.
+      "surface-bright": "#171717", // Lifted variant of `surface`; raised tiles, hover backgrounds (matches `card` currently).
+      "surface-variant": "#bdbdbd", // Light-grey tone used by Vuetify defaults for active dropdown rows, focus rings, etc.
+      "on-surface-variant": "#1c1c1c", // Inverse pair of `surface-variant`; also painted as the tooltip background.
+      "card": "#171717", // Dedicated card-container background; raised dialog v-cards inherit this via the VCard default.
+      "selected": "#3d3f40", // Active list-item background; one step above `highlight` for a distinct, neutral grey.
       "table": "#242424", // VDataTable row and header background.
-      "button": "#232425", // Secondary button color, e.g., used in dialogs for "Cancel".
-      "highlight": "#3d3f40", // Primary button color, e.g., used in dialogs for "Save" or "Confirm".
+      "button": "#232425", // Secondary button color (e.g. dialog "Cancel"); the neutral companion to `highlight`.
+      "highlight": "#383838", // Primary button color (Save / Confirm); softened from #3d3f40 on May 13 to keep the action calm.
       "switch": "#101112", // VSwitch track background when off.
-      "primary": "#ebebeb", // Brand/identity accent; desaturated near-white to keep the lightbox grayscale (focus rings, chip outline).
+      "primary": "#ebebeb", // Brand/identity accent; desaturated near-white to keep the lightbox grayscale (focus rings).
       "secondary": "#191919", // Background for secondary panels (tab strips, expansion-panel headers, nav drawer sections).
-      "secondary-light": "#1e1e1e", // Lifted variant of `secondary`; used for raised surfaces inside the lightbox sidebar (menus, sub-panels).
+      "secondary-light": "#1e1e1e", // Lifted variant of `secondary`; backs `.meta-chip` and the chip-selector chips.
       "accent": "#2D2E2E", // Small-decoration tint for hover/focus subtleties; not a primary action color.
       "error": "#e57373", // Error state for banners, validation errors, and error toasts.
-      "info": "#9E7BEA", // Informational notification color; the only purple kept inside the lightbox tree (snackbars, info toasts).
+      "info": "#9E7BEA", // Informational notification color; the only purple kept inside the lightbox tree (info toasts).
       "success": "#8763d5", // Successful-outcome notification color (matches the `info` purple cast).
       "warning": "#ecc434", // Caution / recoverable-concern notification color.
       "favorite": "#FFD600", // Favorite-star color.
@@ -105,12 +105,16 @@ let themes = {
       "navigation-home": "#0c0d0d", // "Home" navigation-state background; matches `navigation` / `background` in this theme.
     },
     variables: {
-      "border-color": "#ffffff", // Divider and outlined-variant border color.
-      "border-opacity": 0.1, // Alpha applied to `border-color`.
-      "hover-opacity": 0.06, // Hover-overlay alpha on list items and rows; bumped above the dark default (~0.02) so hover reads against the near-black surface.
-      "focus-opacity": 0.08, // Keyboard-focus overlay alpha; bumped above the dark default (~0.022) for the same reason.
-      "overlay-color": "#141417", // v-overlay scrim color used behind modals (v-dialog, v-menu); set explicitly so backdrops sit at a deliberate dark tint over the near-black viewer instead of the Vuetify dark-default.
-      "overlay-opacity": 0.6, // Alpha applied to `overlay-color`; tuned so the underlying photo is dimmed but still visible behind sidebar dialogs.
+      "border-color": "#ffffff", // Divider and outlined-variant border color (rendered against `border-opacity`).
+      "border-opacity": 0.1, // Alpha on `border-color`; reads as a barely-there divider against the near-black canvas.
+      "hover-opacity": 0.08, // Hover-overlay alpha; bumped above the Vuetify dark default (~0.04) to read on near-black.
+      "focus-opacity": 0.06, // Keyboard-focus overlay alpha; intentionally below `hover-opacity` so hover+focus don't compound.
+      "fill-opacity": 0.04, // Background-fill alpha for `solo-filled` inputs (the project-wide default; see `defaults.js`).
+      "overlay-color": "#141417", // v-overlay scrim color behind v-dialog / v-menu modals.
+      "overlay-opacity": 0.6, // Alpha on `overlay-color`; the photo stays visible but dimmed behind sidebar dialogs.
+      "theme-overlay-multiplier": 0.16, // Vuetify elevation-overlay multiplier; kept low to keep raised surfaces near-black.
+      "high-emphasis-opacity": 0.96, // Body-text alpha on `surface`; under 1.0 so pure-white doesn't read as harsh.
+      "medium-emphasis-opacity": 0.88, // Secondary-text alpha (captions, helpers); above the 0.7 dark default for legibility.
     },
   },
 
