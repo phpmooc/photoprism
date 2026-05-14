@@ -247,7 +247,15 @@ export default {
           align: "center",
         },
       ],
-      nameRule: (v) => v.length <= this.$config.get("clip") || this.$gettext("Name too long"),
+      // v-combobox with return-object hands the rule one of three
+      // values: null (initial / cleared), a string (free-text entry),
+      // or the selected item object (which carries a Name field).
+      // The rule only meaningfully constrains free-text length, so
+      // collapse the other two cases to an empty-length check.
+      nameRule: (v) => {
+        const name = typeof v === "string" ? v : v && typeof v === "object" ? v.Name || "" : "";
+        return name.length <= this.$config.get("clip") || this.$gettext("Name too long");
+      },
     };
   },
   computed: {

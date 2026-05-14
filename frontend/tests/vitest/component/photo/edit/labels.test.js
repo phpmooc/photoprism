@@ -83,6 +83,58 @@ describe("component/photo/edit/labels", () => {
     vi.restoreAllMocks();
   });
 
+  describe("nameRule", () => {
+    // Regression: the v-combobox initializes with newLabelModel = null
+    // and validates :rules on mount, so nameRule must tolerate null,
+    // strings (free-text entry), and item objects (return-object).
+    // Pre-fix the rule did `v.length` and threw "Cannot read
+    // properties of null (reading 'length')" on every dialog open.
+    //
+    // The global $config mock in tests/vitest/setup.js returns `false`
+    // for every key, so we stub `get("clip")` per test to exercise the
+    // realistic numeric limit. 160 matches the production default.
+    const stubClip = (wrapper, limit = 160) => {
+      wrapper.vm.$config.get = (key) => (key === "clip" ? limit : false);
+    };
+
+    it("returns valid for null without throwing (initial / cleared combobox)", () => {
+      const { wrapper } = mountPhotoLabels();
+      stubClip(wrapper);
+      expect(wrapper.vm.nameRule(null)).toBe(true);
+    });
+
+    it("returns valid for undefined", () => {
+      const { wrapper } = mountPhotoLabels();
+      stubClip(wrapper);
+      expect(wrapper.vm.nameRule(undefined)).toBe(true);
+    });
+
+    it("validates a short typed string as valid", () => {
+      const { wrapper } = mountPhotoLabels();
+      stubClip(wrapper);
+      expect(wrapper.vm.nameRule("hello")).toBe(true);
+    });
+
+    it("returns the error message when a typed string exceeds clip", () => {
+      const { wrapper } = mountPhotoLabels();
+      stubClip(wrapper, 5);
+      expect(wrapper.vm.nameRule("toolong")).toBe("Name too long");
+    });
+
+    it("uses .Name for selected item objects (return-object combobox)", () => {
+      const { wrapper } = mountPhotoLabels();
+      stubClip(wrapper, 10);
+      expect(wrapper.vm.nameRule({ Name: "Flower" })).toBe(true);
+      expect(wrapper.vm.nameRule({ Name: "a really long name" })).toBe("Name too long");
+    });
+
+    it("treats item objects with no .Name as zero-length (valid)", () => {
+      const { wrapper } = mountPhotoLabels();
+      stubClip(wrapper, 10);
+      expect(wrapper.vm.nameRule({})).toBe(true);
+    });
+  });
+
   describe("sourceName", () => {
     it("delegates to $util.sourceName", () => {
       const sourceNameSpy = vi.fn(() => "Human");
