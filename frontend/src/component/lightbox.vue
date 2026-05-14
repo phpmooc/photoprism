@@ -1796,11 +1796,13 @@ export default {
     },
     // Fetches the full Photo model for the given UID using the LRU
     // cache, delegated to the Thumb model so the photo-fetch policy
-    // lives on the slide that owns it (Thumb.loadPhoto). Restricted
-    // roles (guest, visitor, contributor) skip the extra API call
-    // and let the sidebar work with the viewer data (Thumb model).
+    // lives on the slide that owns it (Thumb.loadPhoto). Sessions
+    // without library access (share-link visitors, guests, etc.) skip
+    // the extra API call and let the sidebar work with the viewer
+    // data (Thumb model) — the long-form sidebar fields they would
+    // render are gated by the same ACL anyway.
     fetchPhoto(uid) {
-      if (!uid || this.$session.isSidebarRestricted()) {
+      if (!uid || this.$config.deny("photos", "access_library")) {
         this.photo = new Photo();
         return;
       }
@@ -1850,8 +1852,9 @@ export default {
     // rendered for NON-editable users (display mode is read-only by
     // definition); editable users use `toggleFaceMarkerEdit` below.
     // Gates on featPeople only — display mode doesn't need edit
-    // permission, and the template-level `!restrictedRole` gate keeps
-    // restricted sessions out of this path entirely.
+    // permission, and the template-level `canViewPeople` ACL gate
+    // (via `$config.allow("people", "search")`) keeps sessions without
+    // people-resource access out of this path entirely.
     toggleFaceMarkerMode() {
       if (!this.featPeople) {
         return;
@@ -2025,9 +2028,11 @@ export default {
     // Preloads the next photo's full metadata when the sidebar is visible.
     // Navigation policy lives on Photo so the lightbox only decides "when"
     // to prefetch; "what to prefetch" is owned by the model. See
-    // Photo.prefetchAround in model/photo.js.
+    // Photo.prefetchAround in model/photo.js. Mirrors the fetchPhoto gate
+    // so sessions without library access don't issue prefetch GETs for
+    // long-form sidebar fields they aren't allowed to see anyway.
     preloadNextPhoto() {
-      if (!this.info || !this.models.length || this.$session.isSidebarRestricted()) {
+      if (!this.info || !this.models.length || this.$config.deny("photos", "access_library")) {
         return;
       }
       Photo.prefetchAround(this.models, this.index, { before: 0, after: 1 });

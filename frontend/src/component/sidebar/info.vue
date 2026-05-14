@@ -114,7 +114,7 @@
         </v-list-item>
 
         <v-list-item
-          v-if="!restrictedRole && (cameraInfo || isEditable)"
+          v-if="canViewLibrary && (cameraInfo || isEditable)"
           v-tooltip="$gettext('Camera')"
           :title="cameraInfo || $gettext('Unknown')"
           prepend-icon="mdi-camera"
@@ -135,7 +135,7 @@
         </v-list-item>
 
         <v-list-item
-          v-if="!restrictedRole && lensInfo"
+          v-if="canViewLibrary && lensInfo"
           v-tooltip="$gettext('Lens')"
           :title="lensInfo"
           prepend-icon="mdi-camera-iris"
@@ -171,7 +171,7 @@
           </v-list-item>
         </template>
 
-        <template v-if="!restrictedRole && featPeople && (people.length > 0 || isEditable)">
+        <template v-if="canViewPeople && featPeople && (people.length > 0 || isEditable)">
           <v-divider class="my-3"></v-divider>
           <v-list-item class="metadata__item">
             <div class="text-subtitle-2">{{ $gettext("People") }}</div>
@@ -285,7 +285,7 @@
           </v-list-item>
         </template>
 
-        <template v-if="!restrictedRole && (labels.length > 0 || isEditable)">
+        <template v-if="canViewLabels && (labels.length > 0 || isEditable)">
           <v-divider class="my-3"></v-divider>
           <v-list-item class="metadata__item meta-labels">
             <div class="text-subtitle-2">{{ $gettext("Labels") }}</div>
@@ -345,7 +345,7 @@
           </v-list-item>
         </template>
 
-        <template v-if="!restrictedRole && (albums.length > 0 || isEditable)">
+        <template v-if="canViewAlbums && (albums.length > 0 || isEditable)">
           <v-divider class="my-3"></v-divider>
           <v-list-item class="metadata__item meta-albums">
             <div class="text-subtitle-2">{{ $gettext("Albums") }}</div>
@@ -655,10 +655,41 @@ export default {
       return this.faceMarkers.pendingNameMarkerUid;
     },
     isEditable() {
-      return this.canEdit && this.photo && this.photo.Details && !this.restrictedRole;
+      return this.canEdit && this.photo && this.photo.Details && this.canViewLibrary;
     },
-    restrictedRole() {
-      return this.$session.isSidebarRestricted();
+    // canViewLibrary is true when the current session has full library
+    // access to photos — i.e., admin/user/manager/viewer (full library
+    // members), not visitor/guest/contributor (share-link / restricted).
+    // Gates the photographer-EXIF privacy fields (camera, lens, file
+    // name) and the rights/notes cluster.
+    canViewLibrary() {
+      return this.$config.allow("photos", "access_library");
+    },
+    // canViewPeople gates the People section on the backend's people
+    // resource grant. People is admin/client-only in CE rules (see
+    // internal/auth/acl/rules.go); Plus/Pro/Portal may extend.
+    canViewPeople() {
+      return this.$config.allow("people", "search");
+    },
+    // canViewLabels gates the Labels section on the backend's labels
+    // resource grant. Same shape as canViewPeople.
+    canViewLabels() {
+      return this.$config.allow("labels", "search");
+    },
+    // canViewAlbums gates the Albums section on the backend's albums
+    // resource grant. Visitors and guests have `access_shared` view on
+    // albums via the default grants, so they can see which albums a
+    // shared photo belongs to even though they cannot see people/labels.
+    canViewAlbums() {
+      return this.$config.allow("albums", "search");
+    },
+    // canViewPlaces gates the place name / altitude / location row on
+    // the backend's places resource grant. Visitors / guests already
+    // hold view access on places via GrantViewShared / GrantReactShared,
+    // so they see the place name on shared photos when geolocation is
+    // present — matching the backend's redaction policy.
+    canViewPlaces() {
+      return this.$config.allow("places", "view");
     },
     captionHtml() {
       const raw = this.photo?.Caption ?? this.model?.Caption;
@@ -864,7 +895,7 @@ export default {
       return ["subject", "copyright", "artist", "license", "keywords", "notes"].map((k) => this.fieldRegistry[k]);
     },
     showDetailsSection() {
-      if (this.restrictedRole) return false;
+      if (!this.canViewLibrary) return false;
       if (this.isEditable) return true;
       return this.detailsFields.some((f) => Boolean(f.read(this.photo)));
     },
@@ -901,38 +932,39 @@ export default {
       return this.photo.Altitude + " m";
     },
     // Returns the lat/lng (shortened, with optional altitude) for the
-    // combined Location row. Restricted users see only the lat/lng so
-    // altitude isn't leaked through the sidebar.
+    // combined Location row. Users without places-view ACL see only the
+    // lat/lng so altitude isn't leaked through the sidebar.
     coordinatesLine() {
       if (!this.model?.Lat || !this.model?.Lng) return "";
       const coords = this.model.getLatLngShort();
-      if (this.altitude && !this.restrictedRole) {
+      if (this.altitude && this.canViewPlaces) {
         return `${coords}\u2002${this.altitude}`;
       }
       return coords;
     },
     // True when the combined Location row should render — i.e., the row
-    // has coordinates to display, OR the user is non-restricted and has
-    // a place name / can edit a missing location.
+    // has coordinates to display, OR the user holds places-view ACL and
+    // has a place name / can edit a missing location.
     locationRowVisible() {
       if (this.model?.Lat && this.model?.Lng) return true;
-      if (this.restrictedRole) return false;
+      if (!this.canViewPlaces) return false;
       if (this.placeName) return true;
       return this.isEditable && this.featPlaces;
     },
-    // Returns the merged row's title: the place name when allowed (non-
-    // restricted, available), otherwise the coordinates line so the row
-    // never renders empty when the v-if gate has admitted it.
+    // Returns the merged row's title: the place name when the user holds
+    // places-view ACL and a place name is available; otherwise the
+    // coordinates line so the row never renders empty when the v-if
+    // gate has admitted it.
     locationTitle() {
-      if (!this.restrictedRole && this.placeName) return this.placeName;
+      if (this.canViewPlaces && this.placeName) return this.placeName;
       if (this.coordinatesLine) return this.coordinatesLine;
       return this.$gettext("Unknown");
     },
     // Returns the merged row's subtitle: the coordinates line, but only
     // when the title already shows the place name (so we don't render
-    // the coordinates twice on a restricted / no-placeName row).
+    // the coordinates twice on a no-places-ACL / no-placeName row).
     locationSubtitle() {
-      if (this.restrictedRole) return null;
+      if (!this.canViewPlaces) return null;
       if (this.placeName && this.coordinatesLine) return this.coordinatesLine;
       return null;
     },
@@ -942,7 +974,7 @@ export default {
     locationRowClickable() {
       if (this.isEditable && this.featPlaces) return true;
       if (this.model?.Lat && this.model?.Lng) return true;
-      return !this.restrictedRole && !!this.placeName;
+      return this.canViewPlaces && !!this.placeName;
     },
     // Returns the user-facing file path. For video, Live, and Animated
     // photos the primary file is the generated JPEG cover (used for
@@ -950,14 +982,14 @@ export default {
     // surface the underlying media file's Name so the sidebar shows the
     // .mp4 / .mov / .gif instead of "...mp4.jpg". The cards view uses the
     // same originalFile() routing via Photo.getOriginalName().
-    // Returns `null` (not `""`) for restricted sessions and the
-    // no-data state so the merged file row's `:subtitle` binding skips
-    // rendering an empty `<v-list-item-subtitle>` element — Vuetify
-    // gates the subtitle on `props.subtitle != null`, so an empty
-    // string would still render an empty slot. Keeping the gate in the
-    // computed lets the template stay free of restricted-role checks.
+    // Returns `null` (not `""`) for users without library access and
+    // the no-data state so the merged file row's `:subtitle` binding
+    // skips rendering an empty `<v-list-item-subtitle>` element —
+    // Vuetify gates the subtitle on `props.subtitle != null`, so an
+    // empty string would still render an empty slot. Keeping the gate
+    // in the computed lets the template stay free of ACL checks.
     fileName() {
-      if (this.restrictedRole || !this.photo) return null;
+      if (!this.canViewLibrary || !this.photo) return null;
       if (typeof this.photo.originalFile === "function") {
         const original = this.photo.originalFile();
         if (original && original !== this.photo && original.Name) return original.Name;
@@ -1032,9 +1064,11 @@ export default {
     // The shared cache (common/typeahead-cache.js) deduplicates concurrent
     // callers, so a sidebar mount during an open batch-edit session adds
     // no extra network round-trips.
-    if (this.isEditable && !this.restrictedRole) {
-      this.loadChipOptions("labels");
-      this.loadChipOptions("albums");
+    // isEditable already requires canViewLibrary so we don't repeat the
+    // ACL check here; only preload the lists the user is allowed to see.
+    if (this.isEditable) {
+      if (this.canViewLabels) this.loadChipOptions("labels");
+      if (this.canViewAlbums) this.loadChipOptions("albums");
     }
   },
   methods: {

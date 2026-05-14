@@ -76,6 +76,7 @@ config.global.mocks = {
     get: () => false,
     getSettings: () => ({ features: { edit: true, favorites: true, download: true, archive: true } }),
     allow: () => true,
+    deny: () => false,
     featExperimental: () => false,
     featDevelop: () => false,
     values: {},
@@ -114,9 +115,7 @@ config.global.mocks = {
     thumb: () => ({ src: "/t.jpg", w: 100, h: 100 }),
   },
   $api: { post: vi.fn(), delete: vi.fn(), get: vi.fn() },
-  $session: {
-    isSidebarRestricted: () => false,
-  },
+  $session: {},
 };
 
 config.global.plugins = [vuetify];

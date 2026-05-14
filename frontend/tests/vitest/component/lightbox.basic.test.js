@@ -53,6 +53,17 @@ const mountLightbox = () =>
     },
   });
 
+// allowAllConfig stubs the ACL gates that the lightbox now reads
+// through this.$config.deny("photos", "access_library"). Vue's
+// globalProperties (`$config`, `$session`) are not own properties of
+// `wrapper.vm`, so a `{ ...wrapper.vm, ... }` spread does NOT carry
+// them onto the synthetic test ctx — tests that drive methods like
+// fetchPhoto / preloadNextPhoto via $options.methods.<X>.call(ctx)
+// must add $config (or $session) explicitly. This helper is the
+// "library member" default; suites that exercise the denied path
+// override deny / allow inline.
+const allowAllConfig = { allow: () => true, deny: () => false };
+
 describe("PLightbox (low-mock, jsdom-friendly)", () => {
   beforeEach(() => {
     localStorage.removeItem(infoKey);
@@ -743,34 +754,34 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     expect(caption).not.toContain("<img");
   });
 
-  it("fetchPhoto skips Photo.findCached for restricted roles", () => {
+  it("fetchPhoto skips Photo.findCached when ACL denies photos:access_library", () => {
     const spy = vi.spyOn(Photo, "findCached");
     const wrapper = mountLightbox();
     const ctx = {
       ...wrapper.vm,
       photo: new Photo({ UID: "stale" }),
       model: new Thumb({ UID: "ps6sg6be2lvl0yh7" }),
-      $session: { isSidebarRestricted: () => true },
+      $config: { ...wrapper.vm.$config, deny: () => true, allow: () => false },
     };
 
     wrapper.vm.$options.methods.fetchPhoto.call(ctx, "ps6sg6be2lvl0yh7");
 
-    // Restricted roles get an empty Photo (not null) so the sidebar can read
-    // this.view.photo.X without nullable chains.
+    // Sessions without library access get an empty Photo (not null) so
+    // the sidebar can read this.view.photo.X without nullable chains.
     expect(ctx.photo).toBeInstanceOf(Photo);
     expect(ctx.photo.UID).toBe("");
     expect(spy).not.toHaveBeenCalled();
     spy.mockRestore();
   });
 
-  it("fetchPhoto calls Photo.findCached for unrestricted roles", () => {
+  it("fetchPhoto calls Photo.findCached when ACL allows photos:access_library", () => {
     const spy = vi.spyOn(Photo, "findCached").mockResolvedValue({});
     const wrapper = mountLightbox();
     const ctx = {
       ...wrapper.vm,
       photo: null,
       model: new Thumb({ UID: "ps6sg6be2lvl0yh7" }),
-      $session: { isSidebarRestricted: () => false },
+      $config: { ...wrapper.vm.$config, deny: () => false, allow: () => true },
     };
 
     wrapper.vm.$options.methods.fetchPhoto.call(ctx, "ps6sg6be2lvl0yh7");
@@ -780,10 +791,11 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
   });
 
   // Symmetric to the fetchPhoto bypass above: prefetch must also skip
-  // network for restricted sessions, otherwise share-link visitors and
-  // sidebar-restricted users would issue extra GET /photos/:uid calls
-  // for slides whose data they aren't allowed to see in full.
-  it("preloadNextPhoto skips Photo.prefetchAround for restricted roles", () => {
+  // network for sessions without library access, otherwise share-link
+  // visitors and other restricted sessions would issue extra
+  // GET /photos/:uid calls for slides whose long-form fields they aren't
+  // allowed to see anyway.
+  it("preloadNextPhoto skips Photo.prefetchAround when ACL denies photos:access_library", () => {
     const spy = vi.spyOn(Photo, "prefetchAround");
     const wrapper = mountLightbox();
     const ctx = {
@@ -791,7 +803,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       info: true,
       models: [{ UID: "uid-curr" }, { UID: "uid-next" }],
       index: 0,
-      $session: { isSidebarRestricted: () => true },
+      $config: { ...wrapper.vm.$config, deny: () => true, allow: () => false },
     };
 
     wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
@@ -808,7 +820,6 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       info: false,
       models: [{ UID: "uid-curr" }, { UID: "uid-next" }],
       index: 0,
-      $session: { isSidebarRestricted: () => false },
     };
 
     wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
@@ -826,7 +837,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       info: true,
       models,
       index: 0,
-      $session: { isSidebarRestricted: () => false },
+      $config: allowAllConfig,
     };
 
     wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
@@ -861,8 +872,8 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         photo: placeholder,
         // Start with the user viewing slide N.
         model: new Thumb({ UID: "uid-slide-n" }),
-        $session: { isSidebarRestricted: () => false },
-      };
+        $config: allowAllConfig,
+        };
 
       // Sidebar fetch issued for slide N.
       wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n");
@@ -890,8 +901,8 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         ...wrapper.vm,
         photo: new Photo(),
         model: new Thumb({ UID: "uid-slide-n" }),
-        $session: { isSidebarRestricted: () => false },
-      };
+        $config: allowAllConfig,
+        };
 
       wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n");
       // Drain the resolved Promise + race-guard .then.
@@ -911,8 +922,8 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         ...wrapper.vm,
         photo: placeholder,
         model: new Thumb({ UID: "uid-slide-n" }),
-        $session: { isSidebarRestricted: () => false },
-      };
+        $config: allowAllConfig,
+        };
 
       // Calling fetchPhoto must not throw even when findCached rejects.
       expect(() => wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n")).not.toThrow();
@@ -947,8 +958,8 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         // model.UID intentionally STILL matches — to prove the rejection
         // (not the race-guard) is what protects this.photo here.
         model: new Thumb({ UID: "uid-slide-n" }),
-        $session: { isSidebarRestricted: () => false },
-      };
+        $config: allowAllConfig,
+        };
 
       expect(() => wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n")).not.toThrow();
       await Promise.resolve();
@@ -975,8 +986,8 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         info: true,
         models,
         index: 0,
-        $session: { isSidebarRestricted: () => false },
-      };
+        $config: allowAllConfig,
+        };
 
       wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
 

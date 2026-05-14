@@ -17,6 +17,7 @@ const validationConfig = {
   get: (key) => (key === "clip" ? CLIP_LEN : false),
   getSettings: () => ({ features: { edit: true, favorites: true, download: true, archive: true } }),
   allow: () => true,
+  deny: () => false,
   featExperimental: () => false,
   featDevelop: () => false,
   values: {},
@@ -3131,6 +3132,23 @@ describe("PSidebarInfo component", () => {
   });
 
   describe("restricted-role view", () => {
+    // Returns a $config mock whose ACL grants deny everything when
+    // `restricted` is true (simulating a share-link / visitor session
+    // without library access), or allows everything when false. This
+    // is the new substrate that replaces the static-array session check
+    // — the sidebar now reads each gate through $config.allow().
+    const restrictedConfig = (restricted) => ({
+      feature: () => true,
+      get: () => false,
+      getSettings: () => ({ features: { edit: true, favorites: true, download: true, archive: true } }),
+      allow: () => !restricted,
+      deny: () => !!restricted,
+      featExperimental: () => false,
+      featDevelop: () => false,
+      values: {},
+      dir: () => "ltr",
+    });
+
     const mountRestricted = (isRestricted) =>
       mountSidebar({
         props: {
@@ -3142,9 +3160,7 @@ describe("PSidebarInfo component", () => {
         global: {
           stubs: { PMap: true },
           mocks: {
-            $session: {
-              isSidebarRestricted: () => isRestricted,
-            },
+            $config: restrictedConfig(isRestricted),
           },
         },
       });
@@ -3153,7 +3169,7 @@ describe("PSidebarInfo component", () => {
       const w = mountRestricted(true);
       const html = w.html();
 
-      expect(w.vm.restrictedRole).toBe(true);
+      expect(w.vm.canViewLibrary).toBe(false);
       expect(html).toContain("Test Title");
       expect(html).toContain("Test Caption");
       expect(html).toContain("JPEG, 1920 × 1080, 4.2 MB");
@@ -3201,7 +3217,7 @@ describe("PSidebarInfo component", () => {
       const w = mountRestricted(false);
       const html = w.html();
 
-      expect(w.vm.restrictedRole).toBe(false);
+      expect(w.vm.canViewLibrary).toBe(true);
       expect(html).toContain("Canon EOS R5");
       expect(html).toContain("RF 50mm F1.2L");
       expect(html).toContain("photos/2023/IMG_001.jpg");
@@ -3223,7 +3239,7 @@ describe("PSidebarInfo component", () => {
         global: {
           stubs: { PMap: true },
           mocks: {
-            $session: { isSidebarRestricted: () => true },
+            $config: restrictedConfig(true),
           },
         },
       });
@@ -3262,17 +3278,16 @@ describe("PSidebarInfo component", () => {
     });
   });
 
-  // Exhaustive matrix: for every role (admin, user, guest, visitor,
-  // contributor, and anonymous share-link sessions) assert which fields
-  // the sidebar renders and which edit affordances it exposes, against
-  // both a fully-populated photo and a photo without any metadata.
+  // Exhaustive matrix: against a fully-populated photo and a photo
+  // without any metadata, assert which fields the sidebar renders and
+  // which edit affordances it exposes for each of the two equivalence
+  // classes that drive the gating today: "library access granted" vs
+  // "library access denied" (share-link visitors, guests, etc.).
   //
-  // The matrix mirrors SidebarRestrictedRoles in
-  // frontend/src/model/user.js and the isSidebarRestricted() contract
-  // in frontend/src/common/session.js. Role restriction is mocked
-  // directly on $session because the component reads it from
-  // $session.isSidebarRestricted(); the real role-to-restriction
-  // mapping is covered by the User/Session model unit tests.
+  // Each gate now flows through $config.allow(resource, perm). The
+  // matrix mocks the ACL by injecting a $config whose grants flip with
+  // the `restricted` flag, mirroring what the backend would send in
+  // the client config payload (internal/config/client_config.go).
   describe("role x field visibility matrix", () => {
     // Text fragments the tests look for. Keeping them here so a single
     // change to the fixture (e.g. a label rename) stays localized.
@@ -3386,6 +3401,25 @@ describe("PSidebarInfo component", () => {
       };
     }
 
+    // matrixConfig builds a $config mock whose ACL grants follow the
+    // restricted flag. allow() returns true for every (resource, perm)
+    // pair when unrestricted; deny() is the boolean inverse so the
+    // fetchPhoto / preloadNextPhoto gates also resolve correctly. This
+    // is the substrate that replaced the static-array session check —
+    // it lets the visibility matrix below pivot on one boolean without
+    // re-implementing the role table.
+    const matrixConfig = (restricted) => ({
+      feature: () => true,
+      get: () => false,
+      getSettings: () => ({ features: { edit: true, favorites: true, download: true, archive: true } }),
+      allow: () => !restricted,
+      deny: () => !!restricted,
+      featExperimental: () => false,
+      featDevelop: () => false,
+      values: {},
+      dir: () => "ltr",
+    });
+
     function mountFor({ anonymous, restricted, editable }, shape) {
       return mountSidebar({
         props: {
@@ -3397,26 +3431,14 @@ describe("PSidebarInfo component", () => {
         global: {
           stubs: { PMap: true },
           mocks: {
+            $config: matrixConfig(restricted),
             $session: {
               isAnonymous: () => !!anonymous,
-              isSidebarRestricted: () => !!restricted,
             },
           },
         },
       });
     }
-
-    // Role-string mapping: the component reads the contract through
-    // $session.isSidebarRestricted(), so the visibility matrix below
-    // only needs the two equivalence classes. The concrete role list
-    // lives in `frontend/src/model/user.js` and is covered by the
-    // user/session model's own tests; this guard catches regressions
-    // where a new restricted role is added to the product but not to
-    // the documented list.
-    it("keeps the restricted-role contract in sync with SidebarRestrictedRoles", async () => {
-      const mod = await import("model/user");
-      expect(mod.SidebarRestrictedRoles).toEqual(expect.arrayContaining(["guest", "visitor", "contributor"]));
-    });
 
     describe("editable session (admin/user)", () => {
       let w;
@@ -3425,7 +3447,7 @@ describe("PSidebarInfo component", () => {
       });
 
       it("renders every metadata section and its content", () => {
-        expect(w.vm.restrictedRole).toBe(false);
+        expect(w.vm.canViewLibrary).toBe(true);
         expect(w.vm.isEditable).toBe(true);
         const html = w.html();
         for (const needle of [
@@ -3486,7 +3508,7 @@ describe("PSidebarInfo component", () => {
       });
 
       it("renders only the shared fields and hides every restricted section", () => {
-        expect(w.vm.restrictedRole).toBe(true);
+        expect(w.vm.canViewLibrary).toBe(false);
         expect(w.vm.isEditable).toBe(false);
         const html = w.html();
         // Allow-list.
@@ -3496,7 +3518,7 @@ describe("PSidebarInfo component", () => {
         expect(html).toContain("52.5200°N 13.4050°E");
         // The merged file row's title (type + dimensions + size) is
         // shared with restricted sessions; the filename subtitle is
-        // gated behind `!restrictedRole` and must not appear here.
+        // gated behind `canViewLibrary` and must not appear here.
         const fileRow = w.find(".meta-file");
         expect(fileRow.exists()).toBe(true);
         // Deny-list.
@@ -3549,15 +3571,15 @@ describe("PSidebarInfo component", () => {
 
       it("restricted session renders the minimal shell only", () => {
         const w = mountFor({ anonymous: false, restricted: true, editable: false }, { withMetadata: false });
-        expect(w.vm.restrictedRole).toBe(true);
+        expect(w.vm.canViewLibrary).toBe(false);
         expect(w.find(".meta-inline-pencil").exists()).toBe(false);
         expect(w.find(".meta-markers-toggle").exists()).toBe(false);
       });
     });
 
-    // Parent-driven editor (canEdit=true, Details present, not
-    // restricted, empty fields) must expose "add prompt" affordances
-    // so admins can populate metadata from scratch.
+    // Parent-driven editor (canEdit=true, Details present, library
+    // access granted, empty fields) must expose "add prompt"
+    // affordances so admins can populate metadata from scratch.
     it("shows add-prompt affordances to admins editing an empty Details object", () => {
       const w = mountSidebar({
         props: {
@@ -3573,7 +3595,8 @@ describe("PSidebarInfo component", () => {
         global: {
           stubs: { PMap: true },
           mocks: {
-            $session: { isAnonymous: () => false, isSidebarRestricted: () => false },
+            $config: matrixConfig(false),
+            $session: { isAnonymous: () => false },
           },
         },
       });
@@ -3599,27 +3622,30 @@ describe("PSidebarInfo component", () => {
     });
 
     // Explicit share-link (anonymous) case: the sidebar must behave
-    // identically to a restricted-role session even though the backing
-    // User record is empty.
-    it("treats anonymous share-link sessions as restricted even with canEdit=true", () => {
+    // identically to any other library-access-denied session even
+    // though the backing User record is empty. The backend ships an
+    // ACL with no library-access grant for anonymous sessions, which
+    // is what matrixConfig(true) simulates here.
+    it("treats anonymous share-link sessions as library-denied even with canEdit=true", () => {
       const w = mountSidebar({
         props: {
           modelValue: buildModel({ withMetadata: true }),
           photo: buildPhoto({ withMetadata: true }),
           // Simulate a lightbox that forgot to flip canEdit off: the
           // sidebar must still drop all edit affordances, driven by
-          // restrictedRole alone.
+          // canViewLibrary alone.
           canEdit: true,
           context: contexts.Photos,
         },
         global: {
           stubs: { PMap: true },
           mocks: {
-            $session: { isAnonymous: () => true, isSidebarRestricted: () => true },
+            $config: matrixConfig(true),
+            $session: { isAnonymous: () => true },
           },
         },
       });
-      expect(w.vm.restrictedRole).toBe(true);
+      expect(w.vm.canViewLibrary).toBe(false);
       expect(w.vm.isEditable).toBe(false);
       expect(w.find(".meta-inline-pencil").exists()).toBe(false);
       expect(w.find(".meta-markers-toggle").exists()).toBe(false);
@@ -3640,7 +3666,7 @@ describe("PSidebarInfo component", () => {
           stubs: { PMap: true },
           mocks: {
             $config: { ...validationConfig, feature: (k) => k !== "people" },
-            $session: { isAnonymous: () => false, isSidebarRestricted: () => false },
+            $session: { isAnonymous: () => false },
           },
         },
       });
