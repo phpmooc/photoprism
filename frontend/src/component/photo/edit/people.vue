@@ -17,12 +17,12 @@
               <v-btn
                 v-if="!m.SubjUID && !m.Invalid"
                 :ripple="false"
-                class="input-reject"
+                :title="$gettext('Remove')"
                 icon
                 variant="text"
                 density="comfortable"
                 position="absolute"
-                :title="$gettext('Remove')"
+                class="input-reject"
                 @click.stop.prevent="onReject(m)"
               >
                 <v-icon class="action-reject">mdi-close</v-icon>

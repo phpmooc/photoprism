@@ -178,7 +178,7 @@
             <template v-if="isEditable || people.length > 0" #append>
               <!--
                 Per-role toggle:
-                - Editable users see the pencil / pencil-off "Edit Faces" toggle.
+                - Editable users see the pencil / pencil-off "Edit" toggle.
                   Draw mode is a strict superset of display mode for editable
                   users (boxes + names visible, plus drag-to-create and
                   click-to-remove), so a separate display-mode toggle adds
@@ -198,7 +198,7 @@
                 size="x-small"
                 class="meta-faces-edit"
                 :class="{ 'is-active': addingMarker }"
-                :title="addingMarker ? $gettext('Done') : $gettext('Edit Faces')"
+                :title="addingMarker ? $gettext('Done') : $gettext('Edit')"
                 :disabled="markersBusy"
                 @mousedown.prevent
                 @click.stop="onToggleFaceMarkerEdit"
@@ -268,13 +268,13 @@
             >
               <template v-if="m.SubjUID" #append-inner>
                 <v-btn
+                  :disabled="markersBusy"
+                  :title="$gettext('Unassign')"
                   icon="mdi-eject"
                   density="compact"
                   variant="plain"
                   size="x-small"
                   class="meta-marker-eject"
-                  :title="$gettext('Remove Name')"
-                  :disabled="markersBusy"
                   @mousedown.prevent
                   @click.stop="onEjectMarker(m)"
                 ></v-btn>
