@@ -29,6 +29,7 @@
         tabindex="-1"
         class="p-lightbox__content no-transition"
         :class="{
+          'hide-caption': hideCaption,
           'sidebar-visible': info,
           'face-marker-mode': faceMarkers.active,
           'slideshow-active': slideshow.active,
@@ -155,6 +156,13 @@ import * as src from "common/src";
 
 const appStorage = getAppStorage();
 const appSessionStorage = getAppSessionStorage();
+const viewportPadding = { top: 0, bottom: 0, left: 0, right: 0 };
+
+// shouldHideCaption returns the persisted Ctrl+H caption-hidden flag
+// (#5580). The key stores the visible state ("true" / "false") so the
+// hidden flag is the negation; a missing key resolves to false so
+// first-time users see the caption.
+const shouldHideCaption = () => appStorage.getItem("lightbox.caption") === "false";
 
 export default {
   name: "PLightbox",
@@ -172,6 +180,14 @@ export default {
       busy: false,
       closing: false,
       info: appStorage.getItem("lightbox.info") === "true",
+      // Caption visibility for the PhotoSwipe Dynamic Caption overlay.
+      // Default visible so first-time users see the caption; persisted
+      // to localStorage as "lightbox.caption" (mirrors `info` above) so
+      // the user's choice survives slide nav, lightbox close/reopen,
+      // and page reload. Toggled via Ctrl+H (#5580). The .hide-caption
+      // class on .p-lightbox__content drives the actual hide via the
+      // `display: none` rule next to .sidebar-visible in lightbox.css.
+      hideCaption: shouldHideCaption(),
       menuElement: null,
       menuBgColor: "#252525",
       menuVisible: false,
@@ -453,6 +469,7 @@ export default {
         tapAction: (point, ev) => this.onContentTap(ev),
         imageClickAction: (point, ev) => this.onContentClick(ev),
         bgClickAction: (point, ev) => this.onBgClick(ev),
+        padding: viewportPadding,
         paddingFn: (viewport, data) => this.getPadding(viewport, data),
         getViewportSizeFn: () => this.getViewport(),
         closeTitle: this.$gettext("Close"),
@@ -1092,6 +1109,12 @@ export default {
       this.captionPlugin = new Captions(this.lightbox, {
         type: "below",
         mobileLayoutBreakpoint: 1024,
+        // Gate the plugin's panAreaSize adjustment on the user's
+        // Ctrl+H toggle (#5580). When disabled, the photo gets the
+        // full viewport instead of leaving room for the caption.
+        // toggleCaption() calls pswp.updateSize(true) to force a
+        // re-layout when this flips.
+        enabled: () => !this.hideCaption,
         captionContent: (slide) => {
           if (!slide || !this.models || slide?.index < 0) {
             return "";
@@ -1506,6 +1529,28 @@ export default {
           visible: this.canDownload,
           click: () => {
             this.onDownload();
+          },
+        },
+        {
+          name: "show-caption",
+          icon: "mdi-text-box-outline",
+          text: this.$gettext("Show Caption"),
+          shortcut: "Ctrl-H",
+          visible: !this.info && this.hideCaption,
+          click: () => {
+            this.toggleCaption();
+            this.$refs.menu?.hide();
+          },
+        },
+        {
+          name: "hide-caption",
+          icon: "mdi-text-box-remove-outline",
+          text: this.$gettext("Hide Caption"),
+          shortcut: "Ctrl-H",
+          visible: !this.info && !this.hideCaption,
+          click: () => {
+            this.toggleCaption();
+            this.$refs.menu?.hide();
           },
         },
       ];
@@ -2433,6 +2478,9 @@ export default {
             this.toggleFullscreen();
           }
           break;
+        case "KeyH":
+          this.toggleCaption();
+          return true;
         case "KeyI":
           this.toggleInfo();
           return true;
@@ -2521,6 +2569,7 @@ export default {
         case "Period":
         case "KeyX":
         case "KeyE":
+        case "KeyH":
         case "KeyL":
         case "KeyS":
         case "ArrowLeft":
@@ -2665,6 +2714,42 @@ export default {
       this.seekVideo(video.currentTime + seconds);
 
       return true;
+    },
+    // Toggles visibility of the PhotoSwipe Dynamic Caption overlay
+    // (#5580). Persisted to localStorage as "lightbox.caption" so the
+    // choice survives slide nav, lightbox close/reopen, and page
+    // reload. The actual hide is driven by the .hide-caption class on
+    // .p-lightbox__content via the CSS rule next to .sidebar-visible
+    // in lightbox.css; the matching layout recompute (so the photo
+    // reclaims the caption's reserved pan area) flows through
+    // this.resize(true) — NOT a direct pswp.updateSize() call. The
+    // class binding on .p-lightbox__content is reactive, so the
+    // .hide-caption attribute (and the paddingFn early-return that
+    // reads hideCaption) only flips after Vue flushes; running resize
+    // synchronously would re-measure against the stale DOM. Same
+    // pattern as showInfo() / hideInfo(). No-op when the lightbox is
+    // not visible or the sidebar is open (the sidebar already
+    // suppresses the overlay and renders the caption inline).
+    toggleCaption() {
+      if (!this.visible || this.info) {
+        return;
+      }
+
+      this.hideCaption = !this.hideCaption;
+      appStorage.setItem("lightbox.caption", (!this.hideCaption).toString());
+
+      // Show controls if caption was hidden.
+      if (!this.hideCaption) {
+        this.showControls();
+      }
+
+      // Resize and focus content element.
+      this.$nextTick(() => {
+        this.resize(true).then(() => {
+          this.focusContent();
+          this.resize(true);
+        });
+      });
     },
     // Mutes/unmutes the sound for videos.
     toggleMute() {
@@ -2905,15 +2990,15 @@ export default {
         this.$event.publish("dialog.edit", { selection, album, index });
       });
     },
-    resize(force) {
-      this.$nextTick(() => {
-        if (this.visible && this.getLightboxElement() && !this.isBusy("resize")) {
-          const pswp = this.pswp();
-          if (pswp && pswp?.updateSize) {
-            pswp.updateSize(force);
-          }
+    async resize(force) {
+      await this.$nextTick();
+
+      if (this.visible && this.getLightboxElement() && !this.isBusy("resize")) {
+        const pswp = this.pswp();
+        if (pswp && pswp?.updateSize) {
+          pswp.updateSize(force);
         }
-      });
+      }
     },
     toggleInfo() {
       if (!this.visible) {
@@ -2933,6 +3018,10 @@ export default {
       }
 
       this.info = true;
+      // Captions are rendered in the sidebar while it's open, so the
+      // PhotoSwipe Dynamic Caption overlay no longer needs to reserve
+      // viewport space. hideInfo() restores the persisted user choice.
+      this.hideCaption = true;
       appStorage.setItem("lightbox.info", `${this.info.toString()}`);
 
       // Fetch full photo metadata when sidebar is opened.
@@ -2958,6 +3047,11 @@ export default {
       if (!ok) return;
 
       this.info = false;
+      // Restore the user's persisted caption preference. The sidebar
+      // forced hideCaption=true while it was open (captions render in
+      // the sidebar, so reserving viewport space for them was wasted);
+      // closing returns control to the Ctrl+H toggle (#5580).
+      this.hideCaption = shouldHideCaption();
       if (this.faceMarkers.active) {
         this.exitFaceMarkerMode();
       }
@@ -3092,6 +3186,17 @@ export default {
       // Get viewport size without sidebar, if visible.
       const viewport = this.getViewport();
 
+      // When the caption is hidden (Ctrl+H toggle, or sidebar open —
+      // showInfo() sets hideCaption=true), reserve the full viewport
+      // so the photo can grow into the space the caption would have
+      // taken. Mirrors the getPadding() early-return below.
+      if (this.hideCaption) {
+        return {
+          width: viewport.x * window.devicePixelRatio,
+          height: viewport.y * window.devicePixelRatio,
+        };
+      }
+
       // Subtract viewport padding to get estimated slide size if it is an image or vector graphic.
       if (model && (model.Type === media.Image || model.Type === media.Raw || model.Type === media.Vector)) {
         const padding = this.getPadding(viewport, { width: model.Width, height: model.Height });
@@ -3112,8 +3217,11 @@ export default {
         left = 0,
         right = 0;
 
-      // No lightbox padding if content width or height is not specified.
-      if (!viewport || !data?.width || !data?.height) {
+      // No lightbox padding when the caption is hidden (Ctrl+H toggle
+      // or sidebar visible — both set hideCaption=true) so the photo
+      // can occupy the full viewport, or when content dimensions are
+      // unknown and the size-aware branching below would no-op anyway.
+      if (this.hideCaption || !viewport || !data?.width || !data?.height) {
         return { top, bottom, left, right };
       }
 

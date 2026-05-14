@@ -35,6 +35,7 @@ const makeFaceMarkers = (overrides = {}) => ({
 const storagePrefix = buildNamespace(clientConfig.storageNamespace);
 const infoKey = `${storagePrefix}lightbox.info`;
 const mutedKey = `${storagePrefix}lightbox.muted`;
+const captionKey = `${storagePrefix}lightbox.caption`;
 
 const mountLightbox = () =>
   mount(PLightbox, {
@@ -55,6 +56,7 @@ const mountLightbox = () =>
 describe("PLightbox (low-mock, jsdom-friendly)", () => {
   beforeEach(() => {
     localStorage.removeItem(infoKey);
+    localStorage.removeItem(captionKey);
     sessionStorage.removeItem(mutedKey);
   });
 
@@ -100,6 +102,34 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     expect(localStorage.getItem(infoKey)).toBeNull();
     await wrapper.vm.onShortCut({ code: "KeyI" });
     expect(localStorage.getItem(infoKey)).toBeNull();
+  });
+
+  // Ctrl+H (#5580) toggles the PhotoSwipe Dynamic Caption overlay and
+  // persists the choice to localStorage. Default state is visible
+  // (hideCaption reads "lightbox.caption" with a strict !== "false"
+  // check, so missing-key resolves to true). Mirrors the toggleInfo
+  // pattern so future shortcut additions can copy the same shape.
+  it("toggleCaption updates hideCaption and localStorage when visible", async () => {
+    const wrapper = mountLightbox();
+    await wrapper.setData({ visible: true });
+
+    // Default: missing localStorage entry → hideCaption defaults to true.
+    expect(localStorage.getItem(captionKey)).toBeNull();
+
+    await wrapper.vm.onShortCut({ code: "KeyH" });
+    await nextTick();
+    expect(localStorage.getItem(captionKey)).toBe("false");
+
+    await wrapper.vm.onShortCut({ code: "KeyH" });
+    await nextTick();
+    expect(localStorage.getItem(captionKey)).toBe("true");
+  });
+
+  it("KeyH is ignored when dialog is not visible", async () => {
+    const wrapper = mountLightbox();
+    expect(localStorage.getItem(captionKey)).toBeNull();
+    await wrapper.vm.onShortCut({ code: "KeyH" });
+    expect(localStorage.getItem(captionKey)).toBeNull();
   });
 
   // onShortCut focus guard. Mirrors onPswpKeyDown's pattern: when an
@@ -600,7 +630,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     // mounted contracts are gated to a no-op. Escape / Tab / KeyI /
     // KeyD / KeyF / KeyM stay enabled.
     describe("face-marker mode shortcut gates", () => {
-      const disabled = ["Period", "KeyX", "KeyE", "KeyL", "KeyS", "ArrowLeft", "ArrowRight", "Space"];
+      const disabled = ["Period", "KeyX", "KeyE", "KeyH", "KeyL", "KeyS", "ArrowLeft", "ArrowRight", "Space"];
       const enabled = ["KeyD", "KeyF", "KeyI", "KeyM"];
 
       it("isShortcutDisabledInFaceMarkerMode returns true for every conflicting key and false for the rest", () => {
