@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import "../fixtures";
 import * as media from "common/media";
-import { Photo, BatchSize } from "model/photo";
+import { Photo, BatchSize, MaxLength } from "model/photo";
 import $event from "common/event";
 
 // Drains the pubsub-js async queue so subscribers configured as `async: true`
@@ -9,6 +9,24 @@ import $event from "common/event";
 const flushEvents = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 describe("model/photo", () => {
+  // Pins the per-field length caps to the backend VARCHAR + clip ceilings.
+  // If a backend bump (internal/entity/photo.go or details.go) changes any
+  // of these, this test fails on purpose so the frontend cap moves with it.
+  it("MaxLength mirrors the backend VARCHAR + clip caps", () => {
+    expect(MaxLength).toEqual({
+      Title: 200,
+      Caption: 4096,
+      Subject: 1024,
+      Artist: 1024,
+      Copyright: 1024,
+      License: 1024,
+      Keywords: 2048,
+      Notes: 2048,
+    });
+    // Frozen so consumers can't accidentally mutate per-field caps.
+    expect(Object.isFrozen(MaxLength)).toBe(true);
+  });
+
   it("should get photo entity name", () => {
     const values = { UID: 5, Title: "Crazy Cat" };
     const photo = new Photo(values);

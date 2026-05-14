@@ -411,7 +411,16 @@
 }
 
 .p-lightbox__container > .p-lightbox__sidebar .v-input--density-compact {
-    --v-input-control-height: 30px;
+    /* Drives both the static control height for v-text-field rows
+       (Title) and the floor for auto-grown v-textareas. Vuetify routes
+       this var through `.v-textarea .v-field__field { --v-input-control-height:
+       var(--v-textarea-control-height) }` so when auto-grow writes the
+       calculated control height inline, the v-field__input min-height
+       (which uses `max(var(--v-input-control-height, …), …)`) follows.
+       Pinning a static `min-height` on .v-field__input would shadow that
+       inheritance and freeze the textarea at one row — see the auto-grow
+       regression notes in the May 15 sidebar refinement. */
+    --v-input-control-height: 36px;
 }
 
 .p-lightbox__container > .p-lightbox__sidebar .v-input--density-compact .v-field {
@@ -426,7 +435,6 @@
 }
 
 .p-lightbox__container > .p-lightbox__sidebar .v-input--density-compact .v-field .v-field__input {
-    min-height: 36px;
     font-size: 0.875rem;
 }
 
@@ -439,7 +447,16 @@
    scrollbar. Drop both if a fresh visual pass shows the OS defaults are
    acceptable. */
 .p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit textarea.v-field__input {
-    min-height: unset;
+    /* min-height intentionally NOT unset: Vuetify's stock rule
+       `.v-field__input { min-height: max(var(--v-input-control-height, …), …) }`
+       is what carries the auto-grow signal — when `auto-grow` runs, it
+       writes `--v-textarea-control-height` inline on `.v-field`, and
+       the `.v-textarea .v-field__field { --v-input-control-height:
+       var(--v-textarea-control-height) }` rule rewires it for the
+       textarea's children. Killing min-height here would freeze the
+       textarea at the .v-field floor (~36px) while the calculated
+       height grows in the inline style — see the May 15 sidebar
+       regression notes. */
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--v-theme-on-surface), 0.2) transparent;
 }
@@ -481,6 +498,23 @@
    which carry their own class names) remain reachable. */
 .p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-pencils .metadata__item:hover > .v-list-item__append .meta-inline-pencil,
 .p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-pencils .meta-inline-pencil {
+    display: none;
+}
+
+/* Sidebar toggles for the inline Undo and Save buttons. Both default
+   to ON (buttons hidden) since the keyboard paths are first-class:
+   Enter commits on the commitOnEnter fields, blur commits on Caption
+   + Notes, Escape cancels, and Ctrl+Z reverts inside the focused
+   textarea. Per-user preference or A/B variants flip `hideEditUndo` /
+   `hideEditSave` on the sidebar root to surface the mouse-driven
+   affordances. The chip-section toolbars share these class names, so
+   the same toggles also hide their batched-removal Save / Undo
+   buttons. */
+.p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-undo .meta-inline-undo {
+    display: none;
+}
+
+.p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-save .meta-inline-confirm {
     display: none;
 }
 

@@ -1352,6 +1352,61 @@ describe("PSidebarInfo component", () => {
     expect(w.vm.editingField).toBe("title");
   });
 
+  // onInlineEnter — Enter commits on single-line fields (commitOnEnter:
+  // true) and falls through (no preventDefault) for free-form fields
+  // like Notes / Caption so the textarea can insert a newline. Shift+
+  // Enter always falls through, even on commitOnEnter fields.
+  describe("onInlineEnter (commit-on-Enter for single-line fields)", () => {
+    let w;
+    beforeEach(() => {
+      w = mountSidebar({
+        props: {
+          modelValue: mockModel,
+          photo: { ...mockPhoto, Details: { Subject: "", Notes: "", Keywords: "" }, update: vi.fn(), wasChanged: () => false },
+          canEdit: true,
+          context: contexts.Photos,
+        },
+        global: { stubs: { PMap: true } },
+      });
+    });
+
+    function makeEvent(shiftKey) {
+      return { shiftKey, preventDefault: vi.fn(), stopPropagation: vi.fn() };
+    }
+
+    it("commits and suppresses the newline for commitOnEnter fields", () => {
+      const subject = w.vm.fieldRegistry.subject;
+      expect(subject.commitOnEnter).toBe(true);
+      const ev = makeEvent(false);
+      const confirmSpy = vi.spyOn(w.vm, "confirmField").mockImplementation(() => {});
+      w.vm.onInlineEnter(ev, subject);
+      expect(ev.preventDefault).toHaveBeenCalledTimes(1);
+      expect(ev.stopPropagation).toHaveBeenCalledTimes(1);
+      expect(confirmSpy).toHaveBeenCalledTimes(1);
+    });
+
+    it("falls through (no commit) for fields without commitOnEnter (Notes)", () => {
+      const notes = w.vm.fieldRegistry.notes;
+      expect(notes.commitOnEnter).toBeUndefined();
+      const ev = makeEvent(false);
+      const confirmSpy = vi.spyOn(w.vm, "confirmField").mockImplementation(() => {});
+      w.vm.onInlineEnter(ev, notes);
+      expect(ev.preventDefault).not.toHaveBeenCalled();
+      expect(ev.stopPropagation).not.toHaveBeenCalled();
+      expect(confirmSpy).not.toHaveBeenCalled();
+    });
+
+    it("falls through on Shift+Enter even for commitOnEnter fields", () => {
+      const keywords = w.vm.fieldRegistry.keywords;
+      expect(keywords.commitOnEnter).toBe(true);
+      const ev = makeEvent(true);
+      const confirmSpy = vi.spyOn(w.vm, "confirmField").mockImplementation(() => {});
+      w.vm.onInlineEnter(ev, keywords);
+      expect(ev.preventDefault).not.toHaveBeenCalled();
+      expect(confirmSpy).not.toHaveBeenCalled();
+    });
+  });
+
   it("should still cancel on Escape via cancelEditing", async () => {
     const photo = {
       ...mockPhoto,
@@ -1963,6 +2018,19 @@ describe("PSidebarInfo component", () => {
     expect(wrapper.vm.notesHtml).toBe("Some notes about this photo");
   });
 
+  // The merged single-row detailsFields template must route Notes
+  // through the sanitized v-html branch (display: "html" + htmlValue:
+  // "notesHtml") rather than plain-text interpolation. Catches any
+  // future regression where the html-aware ladder is dropped from the
+  // merged loop and Notes silently falls back to the text branch.
+  it("renders Notes through the sanitized v-html branch in the merged details row", () => {
+    const notesRow = wrapper.find(".meta-notes");
+    expect(notesRow.exists()).toBe(true);
+    const innerNotes = notesRow.find(".meta-scrollable.meta-notes");
+    expect(innerNotes.exists()).toBe(true);
+    expect(innerNotes.html()).toContain("Some notes about this photo");
+  });
+
   it("should return empty caption HTML when no caption", () => {
     const w = mountSidebar({
       props: { modelValue: { ...mockModel, Caption: "" }, photo: mockPhoto, context: contexts.Photos },
@@ -2036,6 +2104,94 @@ describe("PSidebarInfo component", () => {
     w.vm.navigateToPerson({ UID: "m4", Name: "", SubjUID: "" });
     expect(openSpy).not.toHaveBeenCalled();
     openSpy.mockRestore();
+  });
+
+  // inlineEditDirty + undoInlineEdit — Undo affordance for inline-text
+  // editors. The Undo button is always shown while editing, but
+  // disabled until inlineEditDirty flips true; clicking it reverts to
+  // the editOriginal captured at startEditing time without exiting
+  // edit mode (Escape is the revert-AND-exit gesture).
+  describe("inline edit Undo", () => {
+    let w;
+    let photo;
+    beforeEach(() => {
+      photo = {
+        ...mockPhoto,
+        Title: "Original Title",
+        Details: { Subject: "Original Subject", Notes: "", Keywords: "" },
+        update: vi.fn(),
+        wasChanged: () => true,
+      };
+      w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+    });
+
+    it("inlineEditDirty is false when no field is being edited", () => {
+      expect(w.vm.editingField).toBeNull();
+      expect(w.vm.inlineEditDirty).toBe(false);
+    });
+
+    it("inlineEditDirty stays false right after startEditing (value unchanged)", async () => {
+      w.vm.startEditing("subject");
+      await w.vm.$nextTick();
+      expect(w.vm.editingField).toBe("subject");
+      expect(w.vm.inlineEditDirty).toBe(false);
+    });
+
+    it("inlineEditDirty flips true once the field value diverges from the original", async () => {
+      w.vm.startEditing("subject");
+      await w.vm.$nextTick();
+      // Route the mutation through the reactive write helper that the
+      // textarea's @update:model-value handler uses, so Vue's computed
+      // dependency tracking picks it up.
+      w.vm.setFieldValue("subject", "Edited");
+      await w.vm.$nextTick();
+      expect(w.vm.getFieldValue("subject")).toBe("Edited");
+      expect(w.vm.inlineEditDirty).toBe(true);
+    });
+
+    it("undoInlineEdit reverts to editOriginal without exiting edit mode", async () => {
+      w.vm.startEditing("subject");
+      await w.vm.$nextTick();
+      w.vm.setFieldValue("subject", "Edited");
+      await w.vm.$nextTick();
+      expect(w.vm.editingField).toBe("subject");
+
+      w.vm.undoInlineEdit();
+      await w.vm.$nextTick();
+      expect(w.vm.getFieldValue("subject")).toBe("Original Subject");
+      expect(w.vm.editingField).toBe("subject");
+      expect(w.vm.inlineEditDirty).toBe(false);
+    });
+
+    it("undoInlineEdit is a no-op when no field is being edited", () => {
+      expect(w.vm.editingField).toBeNull();
+      w.vm.undoInlineEdit();
+      expect(photo.Details.Subject).toBe("Original Subject");
+    });
+
+    // Defaults-agnostic binding check: the test sets each flag to a
+    // known value before asserting, so flipping the data() default
+    // (e.g., for an A/B variant that hides Save by default) doesn't
+    // break the test. What we care about is that the root :class
+    // binding actually mirrors the flags in both directions.
+    it("hide-edit-undo / hide-edit-save root classes mirror the data flags in both directions", async () => {
+      const root = w.find(".p-sidebar-info");
+
+      w.vm.hideEditUndo = false;
+      w.vm.hideEditSave = false;
+      await w.vm.$nextTick();
+      expect(root.classes()).not.toContain("hide-edit-undo");
+      expect(root.classes()).not.toContain("hide-edit-save");
+
+      w.vm.hideEditUndo = true;
+      w.vm.hideEditSave = true;
+      await w.vm.$nextTick();
+      expect(root.classes()).toContain("hide-edit-undo");
+      expect(root.classes()).toContain("hide-edit-save");
+    });
   });
 
   // isEditable
@@ -3026,8 +3182,6 @@ describe("PSidebarInfo component", () => {
       expect(html).not.toContain(">People<");
       expect(html).not.toContain(">Labels<");
       expect(html).not.toContain(">Albums<");
-      expect(html).not.toContain(">Keywords<");
-      expect(html).not.toContain(">Notes<");
 
       expect(html).not.toContain("Jane Doe");
       expect(html).not.toContain("Nature");
@@ -3133,8 +3287,6 @@ describe("PSidebarInfo component", () => {
       peopleHeader: ">People<",
       labelsHeader: ">Labels<",
       albumsHeader: ">Albums<",
-      keywordsHeader: ">Keywords<",
-      notesHeader: ">Notes<",
       namedMarker: "Jane Doe",
       labelName: "Nature",
       albumTitle: "Vacation 2024",
@@ -3288,8 +3440,6 @@ describe("PSidebarInfo component", () => {
           TEXT.peopleHeader,
           TEXT.labelsHeader,
           TEXT.albumsHeader,
-          TEXT.keywordsHeader,
-          TEXT.notesHeader,
           TEXT.namedMarker,
           TEXT.labelName,
           TEXT.albumTitle,
@@ -3308,6 +3458,16 @@ describe("PSidebarInfo component", () => {
         const fileRow = w.find(".meta-file");
         expect(fileRow.exists()).toBe(true);
         expect(fileRow.text()).toContain(TEXT.filename);
+        // Keywords/Notes are now part of the single-row icon-prepended
+        // detailsFields layout (no more text-subtitle-2 header rows).
+        // Confirm the rows render with their prepend icons and value
+        // content under the canonical .meta-{key} selector.
+        const keywordsRow = w.find(".meta-keywords");
+        expect(keywordsRow.exists()).toBe(true);
+        expect(keywordsRow.text()).toContain(TEXT.keywords);
+        const notesRow = w.find(".meta-notes");
+        expect(notesRow.exists()).toBe(true);
+        expect(notesRow.html()).toContain(TEXT.notes);
       });
 
       it("renders inline pencils and only the Edit Faces toggle (no eye toggle for editable users)", () => {
@@ -3350,8 +3510,6 @@ describe("PSidebarInfo component", () => {
           TEXT.peopleHeader,
           TEXT.labelsHeader,
           TEXT.albumsHeader,
-          TEXT.keywordsHeader,
-          TEXT.notesHeader,
           TEXT.namedMarker,
           TEXT.labelName,
           TEXT.albumTitle,
@@ -3383,7 +3541,7 @@ describe("PSidebarInfo component", () => {
         // be falsy even for an otherwise-editable session.
         expect(w.vm.isEditable).toBeFalsy();
         const html = w.html();
-        for (const needle of [TEXT.camera, TEXT.lens, TEXT.placeName, TEXT.peopleHeader, TEXT.labelsHeader, TEXT.keywordsHeader, TEXT.notesHeader]) {
+        for (const needle of [TEXT.camera, TEXT.lens, TEXT.placeName, TEXT.peopleHeader, TEXT.labelsHeader]) {
           expect(html).not.toContain(needle);
         }
         expect(w.find(".meta-inline-pencil").exists()).toBe(false);
@@ -3423,15 +3581,21 @@ describe("PSidebarInfo component", () => {
       // Add-prompt spans are the "click to start editing" placeholders.
       const prompts = w.findAll(".meta-add-prompt");
       expect(prompts.length).toBeGreaterThanOrEqual(5);
-      // At least title, caption, keywords, notes, subject are all expected.
-      // Title/Caption use a "Add a <Field>" affordance label; the others
-      // surface the bare field name as the prompt.
+      // Structural assertion for the merged details rows: each empty
+      // field renders exactly one add-prompt under its canonical
+      // .meta-{key} row. Avoids coupling to the exact label copy
+      // (which UX iterates on per field).
+      for (const key of ["subject", "copyright", "artist", "license", "keywords", "notes"]) {
+        const row = w.find(`.meta-${key}`);
+        expect(row.exists(), `missing .meta-${key} row`).toBe(true);
+        expect(row.find(".meta-add-prompt").exists(), `missing add-prompt in .meta-${key}`).toBe(true);
+      }
+      // Title and Caption rows don't carry a per-key class on the row
+      // itself (legacy hand-coded structure); fall back to label match
+      // for those, since "Add a Title" / "Add a Caption" are stable.
       const texts = prompts.map((p) => p.text());
       expect(texts).toContain("Add a Title");
       expect(texts).toContain("Add a Caption");
-      expect(texts).toContain("Keywords");
-      expect(texts).toContain("Notes");
-      expect(texts).toContain("Subject");
     });
 
     // Explicit share-link (anonymous) case: the sidebar must behave

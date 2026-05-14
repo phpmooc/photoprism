@@ -1,5 +1,8 @@
 <template>
-  <div class="p-sidebar-info bg-background metadata" :class="{ 'hide-edit-pencils': hideEditPencils }">
+  <div
+    class="p-sidebar-info bg-background metadata"
+    :class="{ 'hide-edit-pencils': hideEditPencils, 'hide-edit-undo': hideEditUndo, 'hide-edit-save': hideEditSave }"
+  >
     <v-toolbar density="comfortable" color="background">
       <v-btn :icon="$isRtl ? 'mdi-chevron-left' : 'mdi-chevron-right'" :title="$gettext('Close')" @click.stop="close()"></v-btn>
       <v-toolbar-title>{{ $gettext(`Information`) }}</v-toolbar-title>
@@ -16,7 +19,7 @@
             v-if="editingField === 'title'"
             :ref="setInlineEditorRef"
             v-model="photo.Title"
-            :rules="rules.text(false, 0, $config.get('clip'), $pgettext('Photo', 'Title'))"
+            :rules="rules.text(false, 0, fieldRegistry.title.maxLength, fieldRegistry.title.label)"
             density="compact"
             hide-details="auto"
             autocomplete="off"
@@ -28,7 +31,14 @@
           <div v-else-if="model.Title" class="text-subtitle-2 meta-title">{{ model.Title }}</div>
           <div v-else class="meta-add-prompt" @click.stop="startEditing('title')">{{ $pgettext("Photo", "Add a Title") }}</div>
           <template v-if="isEditable" #append>
-            <p-sidebar-inline-toolbar :editing="editingField === 'title'" @confirm="confirmField" @start="startEditing('title')" />
+            <p-sidebar-inline-toolbar
+              :editing="editingField === 'title'"
+              :can-undo="editingField === 'title'"
+              :undo-disabled="!inlineEditDirty"
+              @confirm="confirmField"
+              @undo="undoInlineEdit"
+              @start="startEditing('title')"
+            />
           </template>
         </v-list-item>
 
@@ -42,9 +52,10 @@
             v-if="editingField === 'caption'"
             :ref="setInlineEditorRef"
             v-model="photo.Caption"
+            :rows="1"
+            :max-rows="6"
             density="compact"
             auto-grow
-            :max-rows="6"
             hide-details="auto"
             autocomplete="off"
             class="meta-inline-edit meta-inline-caption"
@@ -55,7 +66,14 @@
           <div v-else-if="model.Caption" class="text-body-2 meta-caption meta-scrollable" v-html="captionHtml"></div>
           <div v-else class="meta-add-prompt" @click.stop="startEditing('caption')">{{ $gettext("Add a Caption") }}</div>
           <template v-if="isEditable" #append>
-            <p-sidebar-inline-toolbar :editing="editingField === 'caption'" @confirm="confirmField" @start="startEditing('caption')" />
+            <p-sidebar-inline-toolbar
+              :editing="editingField === 'caption'"
+              :can-undo="editingField === 'caption'"
+              :undo-disabled="!inlineEditDirty"
+              @confirm="confirmField"
+              @undo="undoInlineEdit"
+              @start="startEditing('caption')"
+            />
           </template>
         </v-list-item>
 
@@ -382,49 +400,12 @@
 
         <template v-if="showDetailsSection">
           <v-divider class="my-3"></v-divider>
-          <v-list-item
-            v-for="f in detailsFields"
-            v-show="shouldShowFieldRow(f)"
-            :key="f.key"
-            v-tooltip="f.label"
-            :prepend-icon="f.icon"
-            :class="['metadata__item', `meta-${f.key}`, { clickable: editingField !== f.key && (isEditable || f.read(photo)) }]"
-            @click.stop="onTextRowClick(f.key, f.read(photo))"
-          >
-            <v-textarea
-              v-if="editingField === f.key"
-              :ref="setInlineEditorRef"
-              :model-value="f.read(photo)"
-              :placeholder="f.label"
-              :rules="rules.text(false, 0, $config.get('clip'), f.label)"
-              density="compact"
-              auto-grow
-              hide-details="auto"
-              autocomplete="off"
-              class="meta-inline-edit"
-              :class="`meta-inline-${f.key}`"
-              @update:model-value="(v) => f.write(photo, v)"
-              @keydown.escape.stop.prevent="cancelEditing"
-              @blur="onInlineFieldBlur"
-            ></v-textarea>
-            <div v-else-if="f.read(photo)" class="text-body-2 meta-scrollable">{{ f.read(photo) }}</div>
-            <div v-else class="meta-add-prompt" @click.stop="startEditing(f.key)">{{ f.label }}</div>
-            <template v-if="isEditable" #append>
-              <p-sidebar-inline-toolbar :editing="editingField === f.key" @confirm="confirmField" @start="startEditing(f.key)" />
-            </template>
-          </v-list-item>
-        </template>
-
-        <template v-for="f in textFields" :key="f.key">
-          <template v-if="!restrictedRole && shouldShowFieldRow(f)">
-            <v-divider class="my-3"></v-divider>
-            <v-list-item class="metadata__item" :class="`meta-${f.key}`">
-              <div class="text-subtitle-2">{{ f.label }}</div>
-              <template v-if="isEditable" #append>
-                <p-sidebar-inline-toolbar :editing="editingField === f.key" @confirm="confirmField" @start="startEditing(f.key)" />
-              </template>
-            </v-list-item>
+          <template v-for="f in detailsFields" :key="f.key">
+            <v-divider v-if="f.key === 'notes' && showRightsDivider" class="my-3 meta-rights-divider"></v-divider>
             <v-list-item
+              v-show="shouldShowFieldRow(f)"
+              v-tooltip="f.label"
+              :prepend-icon="f.icon"
               :class="['metadata__item', `meta-${f.key}`, { clickable: editingField !== f.key && (isEditable || f.read(photo)) }]"
               @click.stop="onTextRowClick(f.key, f.read(photo))"
             >
@@ -432,7 +413,8 @@
                 v-if="editingField === f.key"
                 :ref="setInlineEditorRef"
                 :model-value="f.read(photo)"
-                :placeholder="f.label"
+                :rules="rules.text(false, 0, f.maxLength, f.label)"
+                :rows="1"
                 density="compact"
                 auto-grow
                 hide-details="auto"
@@ -440,15 +422,24 @@
                 class="meta-inline-edit"
                 :class="`meta-inline-${f.key}`"
                 @update:model-value="(v) => f.write(photo, v)"
+                @keydown.enter="(ev) => onInlineEnter(ev, f)"
                 @keydown.escape.stop.prevent="cancelEditing"
                 @blur="onInlineFieldBlur"
               ></v-textarea>
-              <!-- eslint-disable-next-line vue/no-v-html -- f.htmlValue references a sanitized computed (e.g. notesHtml) — encode-then-sanitize via $util.sanitizeHtml($util.encodeHTML(raw)). -->
+              <!-- eslint-disable-next-line vue/no-v-html -- f.htmlValue points at a sanitized computed (e.g. notesHtml) which runs $util.sanitizeHtml($util.encodeHTML(raw)). -->
               <div v-else-if="f.display === 'html' && fieldHtml(f)" class="text-body-2 meta-scrollable" :class="`meta-${f.key}`" v-html="fieldHtml(f)"></div>
-              <div v-else-if="f.display !== 'html' && f.read(photo)" class="text-body-2 meta-scrollable" :class="`meta-${f.key}`">
-                {{ f.read(photo) }}
-              </div>
-              <div v-else class="meta-add-prompt" @click.stop="startEditing(f.key)">{{ f.label }}</div>
+              <div v-else-if="f.display !== 'html' && f.read(photo)" class="text-body-2 meta-scrollable" :class="`meta-${f.key}`">{{ f.read(photo) }}</div>
+              <div v-else class="meta-add-prompt" @click.stop="startEditing(f.key)">{{ f.placeholder ? f.placeholder : f.label }}</div>
+              <template v-if="isEditable" #append>
+                <p-sidebar-inline-toolbar
+                  :editing="editingField === f.key"
+                  :can-undo="editingField === f.key"
+                  :undo-disabled="!inlineEditDirty"
+                  @confirm="confirmField"
+                  @undo="undoInlineEdit"
+                  @start="startEditing(f.key)"
+                />
+              </template>
             </v-list-item>
           </template>
         </template>
@@ -490,6 +481,7 @@ import * as media from "common/media";
 import typeaheadCache from "common/typeahead-cache";
 import { rules } from "common/form";
 import { Album } from "model/album";
+import { MaxLength as PhotoMaxLength } from "model/photo";
 import PMap from "component/map.vue";
 import PMetaDatetimeDialog from "component/meta/datetime/dialog.vue";
 import PMetaCameraDialog from "component/meta/camera/dialog.vue";
@@ -550,9 +542,20 @@ export default {
       // click handlers still route to `startEditing` / `open*Dialog`,
       // so the pencils are a redundant affordance that can be toggled
       // off without affecting reachability. Save (`meta-inline-confirm`)
-      // and Undo (`meta-inline-undo`) buttons stay visible because they
-      // commit pending state rather than enter edit mode.
+      // and Undo (`meta-inline-undo`) buttons have their own toggles
+      // below.
       hideEditPencils: true,
+      // hideEditUndo / hideEditSave hide the inline Undo and Save
+      // buttons via the `.hide-edit-undo` / `.hide-edit-save` rules in
+      // `css/lightbox.css`. Both default to true (hidden) since the
+      // keyboard paths are first-class: Enter commits on the
+      // commitOnEnter fields (Subject / Artist / Copyright / License /
+      // Keywords), blur commits on Caption + Notes, Escape cancels,
+      // and Ctrl+Z reverts inside the focused textarea. Flip either
+      // to false (per-user preference or A/B variant) to surface the
+      // mouse-driven affordances.
+      hideEditUndo: true,
+      hideEditSave: true,
       editingField: null,
       editOriginal: null,
       // Per-field combobox state. The combobox/autocomplete row stays
@@ -744,9 +747,14 @@ export default {
     },
     // Single source of truth for inline-text fields. Each entry knows how to
     // read/write its raw value, what label to render (tooltip, placeholder,
-    // add-prompt), and whether the display branch should treat the value as
-    // sanitized HTML (Caption, Notes) or plain text (everything else).
-    // detailsFields/textFields below select subsets for the two visual layouts.
+    // add-prompt), the per-field maxLength (sourced from PhotoMaxLength which
+    // mirrors the backend VARCHAR + clip caps so UI validation matches what
+    // the server will persist), and whether the display branch should treat
+    // the value as sanitized HTML (Caption, Notes) or plain text. The
+    // detailsFields computed below selects the subset rendered in the merged
+    // single-row icon-prepended layout (everything except Title and Caption,
+    // which keep their bespoke header rows above the file/taken/camera
+    // section).
     fieldRegistry() {
       return {
         title: {
@@ -757,6 +765,7 @@ export default {
             if (p) p.Title = v;
           },
           display: "text",
+          maxLength: PhotoMaxLength.Title,
         },
         caption: {
           key: "caption",
@@ -767,26 +776,19 @@ export default {
           },
           display: "html",
           htmlValue: "captionHtml",
+          maxLength: PhotoMaxLength.Caption,
         },
         subject: {
           key: "subject",
           label: this.$gettext("Subject"),
-          icon: "mdi-text-box-outline",
+          icon: "mdi-flower-tulip-outline",
           read: (p) => p?.Details?.Subject,
           write: (p, v) => {
             if (p?.Details) p.Details.Subject = v;
           },
           display: "text",
-        },
-        artist: {
-          key: "artist",
-          label: this.$gettext("Artist"),
-          icon: "mdi-palette",
-          read: (p) => p?.Details?.Artist,
-          write: (p, v) => {
-            if (p?.Details) p.Details.Artist = v;
-          },
-          display: "text",
+          maxLength: PhotoMaxLength.Subject,
+          commitOnEnter: true,
         },
         copyright: {
           key: "copyright",
@@ -797,48 +799,91 @@ export default {
             if (p?.Details) p.Details.Copyright = v;
           },
           display: "text",
+          maxLength: PhotoMaxLength.Copyright,
+          commitOnEnter: true,
+        },
+        artist: {
+          key: "artist",
+          label: this.$gettext("Artist"),
+          icon: "mdi-human-handsdown",
+          read: (p) => p?.Details?.Artist,
+          write: (p, v) => {
+            if (p?.Details) p.Details.Artist = v;
+          },
+          display: "text",
+          maxLength: PhotoMaxLength.Artist,
+          commitOnEnter: true,
         },
         license: {
           key: "license",
           label: this.$gettext("License"),
-          icon: "mdi-license",
+          icon: "mdi-scale-balance",
           read: (p) => p?.Details?.License,
           write: (p, v) => {
             if (p?.Details) p.Details.License = v;
           },
           display: "text",
+          maxLength: PhotoMaxLength.License,
+          commitOnEnter: true,
         },
         keywords: {
           key: "keywords",
           label: this.$gettext("Keywords"),
+          icon: "mdi-tag-multiple-outline",
           read: (p) => p?.Details?.Keywords,
           write: (p, v) => {
             if (p?.Details) p.Details.Keywords = v;
           },
           display: "text",
+          maxLength: PhotoMaxLength.Keywords,
+          commitOnEnter: true,
         },
         notes: {
           key: "notes",
           label: this.$gettext("Notes"),
+          placeholder: this.$gettext("Add Notes"),
+          icon: null,
           read: (p) => p?.Details?.Notes,
           write: (p, v) => {
             if (p?.Details) p.Details.Notes = v;
           },
           display: "html",
           htmlValue: "notesHtml",
+          maxLength: PhotoMaxLength.Notes,
         },
       };
     },
     detailsFields() {
-      return ["subject", "artist", "copyright", "license"].map((k) => this.fieldRegistry[k]);
-    },
-    textFields() {
-      return ["keywords", "notes"].map((k) => this.fieldRegistry[k]);
+      return ["subject", "copyright", "artist", "license", "keywords", "notes"].map((k) => this.fieldRegistry[k]);
     },
     showDetailsSection() {
       if (this.restrictedRole) return false;
       if (this.isEditable) return true;
       return this.detailsFields.some((f) => Boolean(f.read(this.photo)));
+    },
+    // inlineEditDirty is true when the active inline-text editor's
+    // current value differs from the editOriginal captured at
+    // startEditing time. Drives the disabled state of the Undo button
+    // — when there's nothing to undo, the button stays visible (so the
+    // affordance is discoverable) but inactive.
+    inlineEditDirty() {
+      if (!this.editingField) return false;
+      return this.getFieldValue(this.editingField) !== (this.editOriginal ?? "");
+    },
+    // showRightsDivider gates the single divider that visually splits
+    // the structured metadata fields (Subject / Artist / Copyright /
+    // License / Keywords) from the free-form Notes row inside the
+    // merged details v-for. Template renders the divider just before
+    // the Notes row (`f.key === 'notes'`). For editable users every
+    // row is mounted, so the divider is always meaningful; for
+    // read-only users we suppress it when either side would be empty,
+    // otherwise the divider appears as an orphan line above or below
+    // the lone visible row.
+    showRightsDivider() {
+      if (this.isEditable) return true;
+      const hasAbove = ["subject", "artist", "copyright", "license", "keywords"].some((k) => this.shouldShowFieldRow(this.fieldRegistry[k]));
+      const hasBelow = this.shouldShowFieldRow(this.fieldRegistry.notes);
+      return hasAbove && hasBelow;
     },
     placeName() {
       if (!this.photo) return "";
@@ -1069,6 +1114,28 @@ export default {
       if (this.isEditable) return true;
       if (f.display === "html") return Boolean(this.fieldHtml(f));
       return Boolean(f.read(this.photo));
+    },
+    // Enter handler for the merged details textareas. Commits when the
+    // field opts in via `commitOnEnter` (single-line fields: Subject,
+    // Artist, Copyright, License, Keywords) and Shift is not held;
+    // Caption + Notes leave commitOnEnter unset so plain Enter falls
+    // through to the textarea's default newline insertion. Shift+Enter
+    // also falls through, giving power users a way to add a line break
+    // even on the single-line fields.
+    onInlineEnter(ev, f) {
+      if (!f?.commitOnEnter || ev.shiftKey) return;
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.confirmField();
+    },
+    // undoInlineEdit reverts the active inline editor to its
+    // editOriginal value without exiting edit mode — distinct from
+    // cancelEditing (Escape) which reverts AND exits. Wired to the
+    // Undo button on every inline-text toolbar so mouse users get
+    // parity with the keyboard cancel.
+    undoInlineEdit() {
+      if (!this.editingField || this.editOriginal === null) return;
+      this.setFieldValue(this.editingField, this.editOriginal);
     },
     startEditing(field) {
       if (this.editingField) {

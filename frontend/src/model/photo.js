@@ -24,6 +24,24 @@ export const TimeZoneLocal = "Local";
 
 export let BatchSize = 156;
 
+// MaxLength mirrors the backend VARCHAR caps so UI validation matches
+// what the server will actually persist. Keep in sync with the GORM
+// struct tags in internal/entity/photo.go (PhotoTitle, PhotoCaption)
+// and internal/entity/details.go (Subject, Artist, Copyright, License,
+// Keywords, Notes). The Set* helpers in details.go further clip via
+// txt.ClipShortText (1024) / txt.ClipText (2048); these caps mirror
+// that ceiling, not the looser raw VARCHAR length.
+export const MaxLength = Object.freeze({
+  Title: 200,
+  Caption: 4096,
+  Subject: 1024,
+  Artist: 1024,
+  Copyright: 1024,
+  License: 1024,
+  Keywords: 2048,
+  Notes: 2048,
+});
+
 // Photo models core metadata for images and videos shown in the UI.
 export class Photo extends RestModel {
   constructor(values) {

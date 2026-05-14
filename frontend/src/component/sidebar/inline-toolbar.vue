@@ -2,6 +2,7 @@
   <div class="p-sidebar-inline-toolbar d-flex">
     <v-btn
       v-if="editing && canUndo"
+      :disabled="undoDisabled"
       icon="mdi-undo-variant"
       density="compact"
       variant="plain"
@@ -45,6 +46,15 @@ export default {
     },
     // Shows an Undo icon when true and `editing` is also true.
     canUndo: {
+      type: Boolean,
+      default: false,
+    },
+    // Renders the Undo button in a disabled (non-clickable) state — used
+    // by inline-text editors that always show Undo while editing but
+    // want it inactive until the value differs from the editOriginal.
+    // Chip toolbars leave this at false (their parent v-if already
+    // gates mounting on whether Undo would do anything).
+    undoDisabled: {
       type: Boolean,
       default: false,
     },
