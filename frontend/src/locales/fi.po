@@ -2999,14 +2999,11 @@ msgstr "Ladataan uudelleen…"
 msgid "Remote Sync"
 msgstr "Etäsynkronointi"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Poista"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Poista kasvot"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4216,6 +4213,9 @@ msgstr "Otsikko"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Arkisto"
+
+#~ msgid "Remove Face"
+#~ msgstr "Poista kasvot"
 
 #~ msgid "Add face"
 #~ msgstr "Lisää kasvot"

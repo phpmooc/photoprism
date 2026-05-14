@@ -3002,14 +3002,11 @@ msgstr "새로고침 중…"
 msgid "Remote Sync"
 msgstr "원격 동기화"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "제거"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "얼굴 제거"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4219,6 +4216,9 @@ msgstr "주제"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "보관"
+
+#~ msgid "Remove Face"
+#~ msgstr "얼굴 제거"
 
 #~ msgid "Add face"
 #~ msgstr "얼굴 추가"

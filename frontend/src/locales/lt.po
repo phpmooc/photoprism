@@ -3002,14 +3002,11 @@ msgstr "Perkrovimas…"
 msgid "Remote Sync"
 msgstr "Nuotolinis sinchronizavimas"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Pašalinti"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Pašalinti veidą"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4219,6 +4216,9 @@ msgstr "Pavadinimas"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Archyvas"
+
+#~ msgid "Remove Face"
+#~ msgstr "Pašalinti veidą"
 
 #~ msgid "Add face"
 #~ msgstr "Pridėti veidą"

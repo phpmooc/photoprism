@@ -2999,14 +2999,11 @@ msgstr "Đang tải lại…"
 msgid "Remote Sync"
 msgstr "Đồng bộ hóa từ xa"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Di dời"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Xóa khuôn mặt"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4218,6 +4215,9 @@ msgstr "Tiêu đề"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Lưu trữ"
+
+#~ msgid "Remove Face"
+#~ msgstr "Xóa khuôn mặt"
 
 #~ msgid "Add face"
 #~ msgstr "Thêm khuôn mặt"

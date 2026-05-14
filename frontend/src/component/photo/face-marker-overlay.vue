@@ -75,7 +75,7 @@
         class="p-face-markers__btn p-face-markers__btn--remove"
         :class="{ 'is-disabled': busy }"
         :disabled="busy"
-        :title="$gettext('Remove Face')"
+        :title="$gettext('Remove')"
         @click.stop="onConfirmRemove"
       >
         <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

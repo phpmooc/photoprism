@@ -3004,14 +3004,11 @@ msgstr "重载中…"
 msgid "Remote Sync"
 msgstr "远端同步"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "移除"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "移除面部"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4221,6 +4218,9 @@ msgstr "标题"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "归档"
+
+#~ msgid "Remove Face"
+#~ msgstr "移除面部"
 
 #~ msgid "Add face"
 #~ msgstr "添加面孔"

@@ -3002,14 +3002,11 @@ msgstr "Memuat ulang…"
 msgid "Remote Sync"
 msgstr "Sinkronisasi Jarak Jauh"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Hapus"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Hapus Wajah"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4219,6 +4216,9 @@ msgstr "Judul"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Arsip"
+
+#~ msgid "Remove Face"
+#~ msgstr "Hapus Wajah"
 
 #~ msgid "Add face"
 #~ msgstr "Tambahkan wajah"

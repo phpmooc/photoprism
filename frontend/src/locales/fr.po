@@ -3003,14 +3003,11 @@ msgstr "Rechargement…"
 msgid "Remote Sync"
 msgstr "Synchronisation à distance"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Supprimer"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Enlever le visage"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4220,6 +4217,9 @@ msgstr "Titre"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Archives"
+
+#~ msgid "Remove Face"
+#~ msgstr "Enlever le visage"
 
 #~ msgid "Add face"
 #~ msgstr "Ajouter un visage"

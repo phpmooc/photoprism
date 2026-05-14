@@ -2999,14 +2999,11 @@ msgstr "Перазагрузка…"
 msgid "Remote Sync"
 msgstr "Аддаленая сінхранізацыя"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Выдаліць"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Зняць твар"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4216,6 +4213,9 @@ msgstr "Назва"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Архіў"
+
+#~ msgid "Remove Face"
+#~ msgstr "Зняць твар"
 
 #~ msgid "Add face"
 #~ msgstr "Дадаць твар"

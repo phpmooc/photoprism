@@ -3002,14 +3002,11 @@ msgstr "טוען מחדש…"
 msgid "Remote Sync"
 msgstr "סנכרון מרוחק"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "הסר"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "הסר את הפנים"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4219,6 +4216,9 @@ msgstr "כותרת"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "ארכיון"
+
+#~ msgid "Remove Face"
+#~ msgstr "הסר את הפנים"
 
 #~ msgid "Add face"
 #~ msgstr "הוסף פנים"

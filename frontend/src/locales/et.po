@@ -2999,14 +2999,11 @@ msgstr "Uuesti laadimine…"
 msgid "Remote Sync"
 msgstr "Kaugsünkroonimine"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Eemalda"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Eemalda nägu"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4218,6 +4215,9 @@ msgstr "Pealkiri"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Arhiiv"
+
+#~ msgid "Remove Face"
+#~ msgstr "Eemalda nägu"
 
 #~ msgid "Add face"
 #~ msgstr "Lisa nägu"

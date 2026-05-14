@@ -3002,14 +3002,11 @@ msgstr "กำลังโหลดซ้ำ…"
 msgid "Remote Sync"
 msgstr "ซิงค์ระยะไกล"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "ลบ"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "ลบใบหน้า"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4219,6 +4216,9 @@ msgstr "ชื่อ"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "คลังเก็บเอกสารสำคัญ"
+
+#~ msgid "Remove Face"
+#~ msgstr "ลบใบหน้า"
 
 #~ msgid "Add face"
 #~ msgstr "เพิ่มใบหน้า"

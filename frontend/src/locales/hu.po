@@ -3001,14 +3001,11 @@ msgstr "Újratöltés…"
 msgid "Remote Sync"
 msgstr "Távoli szinkronizálás"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Távolítsa el"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Arc eltávolítása"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4218,6 +4215,9 @@ msgstr "Cím"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Archívum"
+
+#~ msgid "Remove Face"
+#~ msgstr "Arc eltávolítása"
 
 #~ msgid "Add face"
 #~ msgstr "Arc hozzáadása"

@@ -2998,14 +2998,11 @@ msgstr "Atkārtota ielāde…"
 msgid "Remote Sync"
 msgstr "Attālā sinhronizācija"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Noņemt"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "Noņemt seju"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4215,6 +4212,9 @@ msgstr "Nosaukums"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Arhīvēt"
+
+#~ msgid "Remove Face"
+#~ msgstr "Noņemt seju"
 
 #~ msgid "Add face"
 #~ msgstr "Pievienot seju"

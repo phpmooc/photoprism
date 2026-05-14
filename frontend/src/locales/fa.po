@@ -3002,14 +3002,11 @@ msgstr "در حال بارگیری مجدد…"
 msgid "Remote Sync"
 msgstr "همگام سازی از راه دور"
 
-#: src/component/photo/edit/people.vue:20 src/component/sidebar/info.vue:313
-#: src/component/sidebar/info.vue:373
+#: src/component/photo/edit/people.vue:20
+#: src/component/photo/face-marker-overlay.vue:78
+#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "حذف"
-
-#: src/component/photo/face-marker-overlay.vue:78
-msgid "Remove Face"
-msgstr "حذف چهره"
 
 #: src/component/photo/clipboard.vue:359
 msgid "remove failed: unknown album"
@@ -4221,6 +4218,9 @@ msgstr "عنوان"
 msgctxt "Verb"
 msgid "Archive"
 msgstr "بایگانی"
+
+#~ msgid "Remove Face"
+#~ msgstr "حذف چهره"
 
 #~ msgid "Add face"
 #~ msgstr "صورت اضافه کنید"
