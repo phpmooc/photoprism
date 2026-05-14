@@ -49,6 +49,7 @@
           :markers="markers"
           :pswp="pswp()"
           :busy="faceMarkers.busy"
+          :hovered-uid="faceMarkers.hoveredMarkerUid"
           @create="onCreateFaceMarker"
           @cancel="exitFaceMarkerMode"
           @remove="onRemoveFaceMarker"

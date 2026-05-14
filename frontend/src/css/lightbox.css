@@ -121,6 +121,24 @@
     stroke-width: 2.5px;
 }
 
+/* Hover highlight driven by sidebar People-row hover: when the user
+   hovers a person row in the sidebar, the matching rect picks up a
+   thicker accent stroke + soft glow so the visual link between the
+   image and the People list is unambiguous. Listed AFTER --named so
+   it overrides the named-marker stroke color too. The drop-shadow is
+   non-scaling-stroke-aware (it keys off the rendered stroke, not the
+   SVG userspace), so it stays consistent across PhotoSwipe zoom.
+   Reverse direction (rect → sidebar row) is not wired today: the
+   rect carries `pointer-events: none` so native @mouseenter never
+   fires; a future implementation would need parent-level pointermove
+   + hit-testing against marker bounds. */
+.p-face-markers__rect--hovered {
+    stroke: rgba(196, 167, 255, 1);
+    stroke-width: 4px;
+    fill: rgba(167, 139, 250, 0);
+    filter: drop-shadow(0 0 4px rgba(196, 167, 255, 0.7));
+}
+
 .p-face-markers__handle {
     fill: rgba(167, 139, 250, 1);
     stroke: rgba(70, 40, 140, 0.95);
@@ -270,7 +288,6 @@
     font-weight: 700;
     word-wrap: normal;
     word-break: break-word;
-    text-align: start;
     hyphens: auto;
 }
 
@@ -280,7 +297,6 @@
     overflow-wrap: normal;
     word-wrap: normal;
     word-break: break-word;
-    text-align: start;
     hyphens: auto;
 }
 

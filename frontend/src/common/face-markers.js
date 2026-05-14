@@ -55,6 +55,7 @@ export class FaceMarkers {
     this.mode = null;
     this.busy = false;
     this.pendingNameMarkerUid = "";
+    this.hoveredMarkerUid = "";
   }
 
   // active reports whether any face-marker mode (display or draw) is on.
@@ -110,6 +111,18 @@ export class FaceMarkers {
     this.pendingNameMarkerUid = typeof uid === "string" ? uid : "";
   }
 
+  // setHoveredMarkerUid records the UID of the marker currently being
+  // hovered. Drives the sidebar → image highlight: sidebar people
+  // rows set it on @mouseenter (and clear it on @mouseleave) so the
+  // matching overlay rect picks up the `--hovered` modifier class.
+  // The reverse direction (rect → sidebar row) is not wired today
+  // because rects carry `pointer-events: none`; a future
+  // implementation would set this from a parent-level pointermove
+  // hit-test on the overlay.
+  setHoveredMarkerUid(uid) {
+    this.hoveredMarkerUid = typeof uid === "string" ? uid : "";
+  }
+
   // reset returns every field to its default. Called when the lightbox
   // closes or the user navigates to a different photo so a fresh slide
   // never inherits stale state.
@@ -117,6 +130,7 @@ export class FaceMarkers {
     this.mode = null;
     this.busy = false;
     this.pendingNameMarkerUid = "";
+    this.hoveredMarkerUid = "";
   }
 }
 

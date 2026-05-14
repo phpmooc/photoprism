@@ -218,7 +218,14 @@
               ></v-btn>
             </template>
           </v-list-item>
-          <v-list-item v-for="m in people" :key="m.UID || m.CropID" :data-marker-uid="m.UID" class="metadata__item metadata__person-row">
+          <v-list-item
+            v-for="m in people"
+            :key="m.UID || m.CropID"
+            :data-marker-uid="m.UID"
+            class="metadata__item metadata__person-row"
+            @mouseenter="faceMarkers.active && faceMarkers.setHoveredMarkerUid(m.UID)"
+            @mouseleave="faceMarkers.active && faceMarkers.setHoveredMarkerUid('')"
+          >
             <template #prepend>
               <img
                 :src="m.thumbnailUrl('tile_160')"

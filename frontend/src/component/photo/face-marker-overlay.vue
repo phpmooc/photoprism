@@ -16,6 +16,7 @@
           :class="{
             'p-face-markers__rect--named': !!m.Name,
             'p-face-markers__rect--removing': removingMarker && removingMarker.UID === m.UID,
+            'p-face-markers__rect--hovered': hoveredUid && hoveredUid === m.UID,
           }"
           :x="m.X * bounds.width"
           :y="m.Y * bounds.height"
@@ -137,6 +138,14 @@ export default {
     busy: {
       type: Boolean,
       default: false,
+    },
+    // hoveredUid is the UID of the marker that should render with the
+    // `--hovered` highlight (thicker, accent-colored stroke). Forwarded
+    // from `$faceMarkers.hoveredMarkerUid` by the lightbox so sidebar
+    // people-row hover and direct rect hover stay in sync.
+    hoveredUid: {
+      type: String,
+      default: "",
     },
   },
   emits: ["create", "cancel", "remove"],

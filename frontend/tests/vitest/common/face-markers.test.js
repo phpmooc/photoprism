@@ -9,6 +9,7 @@ describe("common/face-markers", () => {
       expect(fm.mode).toBeNull();
       expect(fm.busy).toBe(false);
       expect(fm.pendingNameMarkerUid).toBe("");
+      expect(fm.hoveredMarkerUid).toBe("");
       expect(fm.active).toBe(false);
       expect(fm.isDisplay).toBe(false);
       expect(fm.isEdit).toBe(false);
@@ -68,15 +69,29 @@ describe("common/face-markers", () => {
       expect(fm.pendingNameMarkerUid).toBe("");
     });
 
+    it("setHoveredMarkerUid only accepts strings; non-strings clear it", () => {
+      const fm = new FaceMarkers();
+      fm.setHoveredMarkerUid("uid42");
+      expect(fm.hoveredMarkerUid).toBe("uid42");
+      fm.setHoveredMarkerUid("");
+      expect(fm.hoveredMarkerUid).toBe("");
+      fm.setHoveredMarkerUid(null);
+      expect(fm.hoveredMarkerUid).toBe("");
+      fm.setHoveredMarkerUid(123);
+      expect(fm.hoveredMarkerUid).toBe("");
+    });
+
     it("reset returns every field to its default", () => {
       const fm = new FaceMarkers();
       fm.setMode(FaceMarkerEdit);
       fm.setBusy(true);
       fm.setPendingNameMarkerUid("uid1");
+      fm.setHoveredMarkerUid("uid2");
       fm.reset();
       expect(fm.mode).toBeNull();
       expect(fm.busy).toBe(false);
       expect(fm.pendingNameMarkerUid).toBe("");
+      expect(fm.hoveredMarkerUid).toBe("");
     });
   });
 
