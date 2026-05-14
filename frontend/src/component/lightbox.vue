@@ -44,7 +44,7 @@
       >
         <div ref="lightbox" tabindex="-1" class="p-lightbox__pswp no-transition"></div>
         <p-face-marker-overlay
-          v-if="shouldShowEditButton() && featPeople && faceMarkers.active && pswp()"
+          v-if="featPeople && faceMarkers.active && pswp()"
           ref="faceMarkerOverlay"
           :mode="faceMarkers.mode"
           :markers="markers"
