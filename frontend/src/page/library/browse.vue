@@ -131,7 +131,6 @@ export default {
         limit: 999,
         offset: 0,
       },
-      titleRule: (v) => v.length <= this.$config.get("clip") || this.$gettext("Name too long"),
       input: new Input(),
       lastId: "",
       breadcrumbs: [],

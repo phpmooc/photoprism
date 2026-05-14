@@ -28,7 +28,7 @@
                 v-model="model.Name"
                 hide-details
                 autofocus
-                :rules="[titleRule]"
+                :rules="rules.text(false, 0, $config.get('clip'), $gettext('Name'))"
                 :label="$gettext('Name')"
                 :disabled="disabled"
                 class="input-title"
@@ -56,6 +56,7 @@
 </template>
 <script>
 import Subject from "model/subject";
+import { rules } from "common/form";
 
 export default {
   name: "PPeopleEditDialog",
@@ -74,7 +75,7 @@ export default {
     return {
       disabled: !this.$config.allow("people", "manage"),
       model: new Subject(),
-      titleRule: (v) => v.length <= this.$config.get("clip") || this.$gettext("Name too long"),
+      rules,
     };
   },
   watch: {

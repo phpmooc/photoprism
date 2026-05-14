@@ -189,7 +189,6 @@ export default {
       filter: { q, order, all },
       lastFilter: {},
       routeName: routeName,
-      titleRule: (v) => v.length <= this.$config.get("clip") || this.$gettext("Name too long"),
       input: new Input(),
       lastId: "",
       labelToRename: "",

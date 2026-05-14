@@ -146,7 +146,6 @@ export default {
       filter: filter,
       lastFilter: {},
       routeName: routeName,
-      titleRule: (v) => v.length <= this.$config.get("clip") || this.$gettext("Name too long"),
       input: new Input(),
       lastId: "",
       menuProps: {

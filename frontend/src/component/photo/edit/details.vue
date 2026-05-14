@@ -14,7 +14,7 @@
                 v-model="view.model.Title"
                 :append-inner-icon="view.model.TitleSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="[textRule]"
+                :rules="rules.text(false, 0, $config.get('clip'), $pgettext('Photo', 'Title'))"
                 hide-details
                 :label="$pgettext('Photo', 'Title')"
                 placeholder=""
@@ -295,7 +295,7 @@
                 v-model="view.model.Details.Subject"
                 :append-inner-icon="view.model.Details.SubjectSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="[textRule]"
+                :rules="rules.text(false, 0, $config.get('clip'), $gettext('Subject'))"
                 hide-details
                 autocomplete="off"
                 auto-grow
@@ -311,7 +311,7 @@
                 v-model="view.model.Details.Copyright"
                 :append-inner-icon="view.model.Details.CopyrightSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="[textRule]"
+                :rules="rules.text(false, 0, $config.get('clip'), $gettext('Copyright'))"
                 hide-details
                 autocomplete="off"
                 :label="$gettext('Copyright')"
@@ -325,7 +325,7 @@
                 v-model="view.model.Details.Artist"
                 :append-inner-icon="view.model.Details.ArtistSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="[textRule]"
+                :rules="rules.text(false, 0, $config.get('clip'), $gettext('Artist'))"
                 hide-details
                 autocomplete="off"
                 :label="$gettext('Artist')"
@@ -339,7 +339,7 @@
                 v-model="view.model.Details.License"
                 :append-inner-icon="view.model.Details.LicenseSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="[textRule]"
+                :rules="rules.text(false, 0, $config.get('clip'), $gettext('License'))"
                 hide-details
                 autocomplete="off"
                 auto-grow
@@ -458,7 +458,6 @@ export default {
       time: "",
       locationLabel: this.$gettext("Location"),
       locationDialog: false,
-      textRule: (v) => v.length <= this.$config.get("clip") || this.$gettext("Text too long"),
       rtl: this.$isRtl,
       placesDisabled: !this.$config.feature("places"),
     };

@@ -415,14 +415,24 @@ describe("component/photo/edit/details", () => {
       expect(wrapper.emitted("close")).toBeTruthy();
     });
 
-    it("validates text length with textRule", () => {
-      const longText = "a".repeat(300); // Longer than clip limit of 255
-      const result = wrapper.vm.textRule(longText);
-      expect(result).toBe("Text too long");
+    it("validates text length via the centralized rules.text factory", () => {
+      // After migrating the per-component textRule to the shared
+      // common/form rules.text(...) factory, each :rules attribute
+      // calls the factory inline. The component exposes `rules` on
+      // its instance so call sites can invoke it from the template.
+      const [, maxLenRule] = wrapper.vm.rules.text(false, 0, 255, "Title");
 
-      const shortText = "Valid text";
-      const validResult = wrapper.vm.textRule(shortText);
-      expect(validResult).toBe(true);
+      // Too long → label-specific localized message.
+      expect(maxLenRule("a".repeat(300))).toBe("Title is too long");
+
+      // Short input → passes.
+      expect(maxLenRule("Valid text")).toBe(true);
+
+      // Defensive: null / undefined / object inputs don't crash, the
+      // factory's maxLen short-circuits on non-string input.
+      expect(maxLenRule(null)).toBe(true);
+      expect(maxLenRule(undefined)).toBe(true);
+      expect(maxLenRule({ Name: "obj" })).toBe(true);
     });
   });
 

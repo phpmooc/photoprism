@@ -16,7 +16,7 @@
             v-if="editingField === 'title'"
             :ref="setInlineEditorRef"
             v-model="photo.Title"
-            :rules="[textRule]"
+            :rules="rules.text(false, 0, $config.get('clip'), $pgettext('Photo', 'Title'))"
             density="compact"
             hide-details="auto"
             autocomplete="off"
@@ -221,7 +221,7 @@
               :menu-props="markerMenuProps"
               :list-props="chipListProps"
               :readonly="markersBusy || !!m.SubjUID"
-              :rules="[markerNameRule]"
+              :rules="rules.text(false, 0, $config.get('clip'), $gettext('Name'))"
               return-object
               hide-no-data
               hide-details="auto"
@@ -396,7 +396,7 @@
               :ref="setInlineEditorRef"
               :model-value="f.read(photo)"
               :placeholder="f.label"
-              :rules="[textRule]"
+              :rules="rules.text(false, 0, $config.get('clip'), f.label)"
               density="compact"
               auto-grow
               hide-details="auto"
@@ -488,6 +488,7 @@ import { $faceMarkers } from "common/face-markers";
 
 import * as media from "common/media";
 import typeaheadCache from "common/typeahead-cache";
+import { rules } from "common/form";
 import { Album } from "model/album";
 import PMap from "component/map.vue";
 import PMetaDatetimeDialog from "component/meta/datetime/dialog.vue";
@@ -540,7 +541,7 @@ export default {
       actions: [],
       featPeople: this.$config.feature("people"),
       featPlaces: this.$config.feature("places"),
-      textRule: (v) => !v || v.length <= this.$config.get("clip") || this.$gettext("Text too long"),
+      rules,
       dateTimeDialog: false,
       cameraDialog: false,
       locationDialog: false,
@@ -576,7 +577,6 @@ export default {
         albums: { input: null, search: "", key: 0, options: [], removals: [] },
       },
       markerDrafts: {},
-      markerNameRule: (v) => !v || v.length <= this.$config.get("clip") || this.$gettext("Text too long"),
       markerMenuProps: {
         openOnFocus: true,
         closeOnContentClick: true,
