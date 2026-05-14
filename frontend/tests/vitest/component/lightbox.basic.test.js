@@ -102,6 +102,72 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     expect(localStorage.getItem(infoKey)).toBeNull();
   });
 
+  // onShortCut focus guard. Mirrors onPswpKeyDown's pattern: when an
+  // input/textarea/contenteditable element holds focus, the global
+  // keydown forwarder must defer to the browser's native handling so
+  // text-editing shortcuts (Ctrl+A select-all, Ctrl+C copy, Ctrl+X
+  // cut, Ctrl+V paste, Ctrl+Z undo, …) work as expected instead of
+  // triggering global lightbox actions. Covers KeyX specifically
+  // (the current Archive/Restore binding — would silently delete the
+  // photo if the gate regressed) plus KeyA (the canonical select-all
+  // chord, also gated even though no longer bound, as defense in
+  // depth) plus the surrounding non-input case that proves the gate
+  // doesn't accidentally suppress legitimate shortcuts.
+  describe("onShortCut — input focus guard", () => {
+    let scratch;
+    beforeEach(() => {
+      scratch = document.createElement("div");
+      document.body.appendChild(scratch);
+    });
+    afterEach(() => {
+      if (scratch && scratch.parentNode) scratch.parentNode.removeChild(scratch);
+    });
+
+    it("returns false (no-op) when an INPUT is focused — KeyX must not archive", () => {
+      const wrapper = mountLightbox();
+      const onArchive = vi.spyOn(wrapper.vm.$options.methods, "onArchive").mockImplementation(() => {});
+      const input = document.createElement("input");
+      scratch.appendChild(input);
+      input.focus();
+      const ret = wrapper.vm.$options.methods.onShortCut.call(wrapper.vm, { code: "KeyX" });
+      expect(ret).toBe(false);
+      expect(onArchive).not.toHaveBeenCalled();
+      onArchive.mockRestore();
+    });
+
+    it("returns false (no-op) when a TEXTAREA is focused — KeyX must not archive", () => {
+      const wrapper = mountLightbox();
+      const onArchive = vi.spyOn(wrapper.vm.$options.methods, "onArchive").mockImplementation(() => {});
+      const ta = document.createElement("textarea");
+      scratch.appendChild(ta);
+      ta.focus();
+      const ret = wrapper.vm.$options.methods.onShortCut.call(wrapper.vm, { code: "KeyX" });
+      expect(ret).toBe(false);
+      expect(onArchive).not.toHaveBeenCalled();
+      onArchive.mockRestore();
+    });
+
+    it("returns false for unbound text-editing chords too (KeyA select-all)", () => {
+      const wrapper = mountLightbox();
+      const ta = document.createElement("textarea");
+      scratch.appendChild(ta);
+      ta.focus();
+      const ret = wrapper.vm.$options.methods.onShortCut.call(wrapper.vm, { code: "KeyA" });
+      expect(ret).toBe(false);
+    });
+
+    it("does NOT bail when focus is on a non-editable element (KeyM still mutes)", async () => {
+      const wrapper = mountLightbox();
+      const span = document.createElement("span");
+      span.tabIndex = 0;
+      scratch.appendChild(span);
+      span.focus();
+      expect(sessionStorage.getItem(mutedKey)).toBeNull();
+      await wrapper.vm.onShortCut({ code: "KeyM" });
+      expect(sessionStorage.getItem(mutedKey)).toBe("true");
+    });
+  });
+
   describe("onPswpKeyDown — sidebar input focus guard", () => {
     let scratch;
     beforeEach(() => {
@@ -534,7 +600,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     // mounted contracts are gated to a no-op. Escape / Tab / KeyI /
     // KeyD / KeyF / KeyM stay enabled.
     describe("face-marker mode shortcut gates", () => {
-      const disabled = ["Period", "KeyA", "KeyE", "KeyL", "KeyS", "ArrowLeft", "ArrowRight", "Space"];
+      const disabled = ["Period", "KeyX", "KeyE", "KeyL", "KeyS", "ArrowLeft", "ArrowRight", "Space"];
       const enabled = ["KeyD", "KeyF", "KeyI", "KeyM"];
 
       it("isShortcutDisabledInFaceMarkerMode returns true for every conflicting key and false for the rest", () => {

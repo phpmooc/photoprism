@@ -1470,7 +1470,7 @@ export default {
           name: "archive",
           icon: "mdi-archive",
           text: this.$pgettext("Verb", "Archive"),
-          shortcut: "Ctrl-A",
+          shortcut: "Ctrl-X",
           disabled: !this.model,
           visible:
             this.canArchive &&
@@ -1485,7 +1485,7 @@ export default {
           name: "restore",
           icon: "mdi-archive-arrow-up",
           text: this.$gettext("Restore"),
-          shortcut: "Ctrl-A",
+          shortcut: "Ctrl-X",
           disabled: !this.model,
           visible:
             this.canArchive &&
@@ -2369,6 +2369,22 @@ export default {
         this.log("shortcut", { ev });
       }
 
+      // Focus gate: when a text-editable element has focus (sidebar
+      // inline editor, edit-dialog field, batch-edit field, anything
+      // contenteditable), defer to the browser's native handling so
+      // Ctrl+A selects text, Ctrl+C copies, Ctrl+X cuts, Ctrl+V
+      // pastes, Ctrl+Z undoes, etc., instead of triggering archive /
+      // download / like / slideshow. Inline editors that need to
+      // react to specific keys (Escape → cancelEditing, Enter →
+      // confirmField on commitOnEnter fields) attach their own
+      // .stop.prevent listeners and consume those keys before they
+      // reach the window-level keydown forwarder that calls this
+      // method. Mirrors the existing focus check in onPswpKeyDown.
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active?.isContentEditable) {
+        return false;
+      }
+
       // While face-marker mode is active, shortcuts that open hidden
       // chrome (menus), stack a competing modal, fire silent
       // destructive actions, or contradict the entry-only-pause /
@@ -2392,7 +2408,7 @@ export default {
           this.onShowMenu();
           this.toggleSelect();
           return true;
-        case "KeyA":
+        case "KeyX":
           if (this.canArchive && this.context !== contexts.Hidden && this.context !== contexts.BatchEdit) {
             if (this.model.Archived || (this.context === contexts.Archive && this.model?.Archived !== false)) {
               this.onRestore();
@@ -2502,7 +2518,7 @@ export default {
     isShortcutDisabledInFaceMarkerMode(code) {
       switch (code) {
         case "Period":
-        case "KeyA":
+        case "KeyX":
         case "KeyE":
         case "KeyL":
         case "KeyS":
