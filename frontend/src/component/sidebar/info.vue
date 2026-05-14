@@ -411,7 +411,7 @@
             <v-divider v-if="f.key === 'notes' && showRightsDivider" class="my-3 meta-rights-divider"></v-divider>
             <v-list-item
               v-show="shouldShowFieldRow(f)"
-              v-tooltip="f.label"
+              v-tooltip="f.icon ? f.label : null"
               :prepend-icon="f.icon"
               :class="['metadata__item', `meta-${f.key}`, { clickable: editingField !== f.key && (isEditable || f.read(photo)) }]"
               @click.stop="onTextRowClick(f.key, f.read(photo))"
