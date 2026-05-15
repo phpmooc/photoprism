@@ -37,27 +37,12 @@ func (c *Config) IndexWorkersReason() string {
 	return reason
 }
 
-// indexWorkers derives the indexing worker count from the configured
-// option, the available logical CPUs (runtime.NumCPU(), cgroup-aware),
-// and the database driver. It returns both the count and a short reason
-// tag so callers can surface the rationale without re-deriving it.
-//
-// Auto-detection rules:
-//
-//	low-memory   below RecommendedMem we always run a single worker
-//	sqlite-cap   SQLite serializes writes, so cap to 4 on 8+ CPU hosts
-//	             or whenever the operator pinned more than 4
-//	configured   honor the operator override (clamped to runtime.NumCPU())
-//	auto         half of runtime.NumCPU() to leave headroom for OS, DB,
-//	             HTTP serving, and background workers
-//	single-cpu   exactly one CPU is visible — fall back to 1 worker
-//
-// The implementation deliberately does not consult cpuid.CPU.PhysicalCores
-// because that value reads CPUID leaf 0xB sub-leaf 1 (per package only,
-// not system-wide), can return 0 when the topology is masked by a
-// hypervisor, and is unreliable on dual-socket Xeons and hybrid Intel
-// CPUs. runtime.NumCPU() is the cgroup- and affinity-aware figure that
-// reflects what this process can actually schedule onto.
+// indexWorkers derives the indexing worker count from the configured option,
+// runtime.NumCPU(), and the database driver. Returns the count and a reason
+// tag (low-memory, sqlite-cap, configured, configured-clamped, auto, single-cpu)
+// so callers can surface the rationale without re-deriving it. Uses
+// runtime.NumCPU() (cgroup- and affinity-aware) rather than CPUID-based
+// physical-core probes, which are unreliable under virtualization.
 func (c *Config) indexWorkers() (n int, reason string) {
 	// Cap to one worker on systems below the recommended memory threshold.
 	if TotalMem < RecommendedMem {
@@ -88,10 +73,7 @@ func (c *Config) indexWorkers() (n int, reason string) {
 		return configured, "configured"
 	}
 
-	// Default to half the visible CPUs to leave headroom for the OS, the
-	// database, HTTP serving, and other background workers. With HT this
-	// approximates the physical core count without depending on a
-	// fragile per-package CPUID read.
+	// Half the visible CPUs leaves headroom for OS, DB, HTTP, and other workers.
 	if half := cpus / 2; half >= 1 {
 		return half, "auto"
 	}
@@ -99,11 +81,8 @@ func (c *Config) indexWorkers() (n int, reason string) {
 	return 1, "single-cpu"
 }
 
-// parseIndexWorkers normalizes the configured index-workers option to an
-// integer. Empty strings, the IndexWorkersAuto sentinel, and unparsable
-// values map to 0 so IndexWorkers() falls through to the derived count;
-// numeric strings (positive or negative) parse with the same semantics
-// as the previous int field.
+// parseIndexWorkers normalizes the index-workers option to an int; empty,
+// "auto", and unparseable values return 0 to fall through to auto-derivation.
 func parseIndexWorkers(value string) int {
 	value = strings.TrimSpace(value)
 
