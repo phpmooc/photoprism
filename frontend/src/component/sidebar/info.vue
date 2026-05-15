@@ -1385,10 +1385,11 @@ export default {
     onAddNameConfirm() {
       const { markerUid, name } = this.addNameDialog;
       this.addNameDialog = { visible: false, markerUid: "", name: "" };
-      if (!markerUid || !name) return;
-      const marker = this.findMarker(markerUid);
-      if (!marker) return;
-      this.commitMarkerName(marker, this.findKnownPerson(name), name);
+      if (markerUid && name) {
+        const marker = this.findMarker(markerUid);
+        if (marker) this.commitMarkerName(marker, this.findKnownPerson(name), name);
+      }
+      this.resolveAddNameNav();
     },
     onAddNameCancel() {
       const { markerUid } = this.addNameDialog;
@@ -1398,6 +1399,14 @@ export default {
         draft.current = draft.original || "";
         draft.editing = false;
       }
+      this.resolveAddNameNav();
+    },
+    // Resolves the nav promise parked by `confirmDiscardPending` when
+    // Add-name was open — both Add and Cancel settle the draft.
+    resolveAddNameNav() {
+      const resolve = this._addNameNavResolver;
+      this._addNameNavResolver = null;
+      if (resolve) resolve(true);
     },
     cancelMarkerName(marker) {
       if (!marker || !marker.UID) return;
@@ -1457,12 +1466,6 @@ export default {
     // Fire-and-forget commit of any pending chip removals. Mirrors the
     // inline-text auto-commit on blur: the user's intent (clicking ×) is
     // honored on navigation/close instead of being silently discarded.
-    // Each Photo.removeLabel / Photo.removeFromAlbum call captures
-    // `this.photo` at the time of invocation, so the response patches the
-    // original Photo instance even if the slide has changed by the time the
-    // promise resolves. The catch path surfaces `$notify.error` and is
-    // shared with the manual ✓ Confirm path through confirmLabels /
-    // confirmAlbums.
     autoCommitChipRemovals() {
       if (this.chipState.labels.removals.length) {
         this.confirmLabels();
@@ -1470,6 +1473,20 @@ export default {
       if (this.chipState.albums.removals.length) {
         this.confirmAlbums();
       }
+    },
+    // Settles dirty marker drafts as if @blur had fired — keyboard / code
+    // navigation skips the input blur, so without this the discard
+    // dialog would race the eventual commit.
+    flushDirtyMarkerDrafts() {
+      Object.keys(this.markerDrafts).forEach((uid) => {
+        const draft = this.markerDrafts[uid];
+        if (!draft) return;
+        const name = this.unwrapMarkerName(draft.current).trim();
+        const original = (draft.original || "").trim();
+        if (!name || name === original) return;
+        const marker = this.findMarker(uid);
+        if (marker) this.confirmMarkerName(marker, "blur");
+      });
     },
     // Async guard used by the lightbox before closing / hiding / navigating.
     // Returns a Promise<boolean>: true = safe to proceed, false = user
@@ -1479,6 +1496,15 @@ export default {
     // dialog) — never for chip × clicks, which are deliberate and final.
     confirmDiscardPending() {
       this.autoCommitChipRemovals();
+      this.flushDirtyMarkerDrafts();
+      // Defer to an open Add-name dialog instead of stacking a second
+      // prompt; Add commits, Cancel discards, both resolve via
+      // `resolveAddNameNav`.
+      if (this.addNameDialog?.visible) {
+        return new Promise((resolve) => {
+          this._addNameNavResolver = resolve;
+        });
+      }
       if (!this.hasPendingEdit()) return Promise.resolve(true);
       if (this.discardDialog.visible && this.discardDialog.resolver) {
         // Another request is already waiting on the dialog; reuse it.

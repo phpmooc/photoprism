@@ -3113,6 +3113,93 @@ describe("PSidebarInfo component", () => {
       // Resolve so the test doesn't hang.
       w.vm.onDiscardCancel();
     });
+
+    // Settling matched drafts up front avoids the @blur vs discard-dialog
+    // race that used to persist the change even when the user clicked Discard.
+    it("auto-commits a matched marker draft so the discard dialog does not appear", async () => {
+      const setName = vi.fn().mockResolvedValue(undefined);
+      const marker = {
+        UID: "m2",
+        Name: "",
+        SubjUID: "",
+        thumbnailUrl: () => "/t/thumb2/public/tile_160",
+        setName,
+      };
+      const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+      const knownPersonConfig = {
+        ...validationConfig,
+        values: { people: [{ UID: "sALC", Name: "Alice Smith" }] },
+      };
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true }, mocks: { $config: knownPersonConfig, $util: validationUtil } },
+      });
+      await w.vm.$nextTick();
+      w.vm.setMarkerInputValue("m2", "Alice Smith");
+
+      const result = w.vm.confirmDiscardPending();
+
+      expect(setName).toHaveBeenCalledTimes(1);
+      expect(marker.Name).toBe("Alice Smith");
+      expect(marker.SubjUID).toBe("sALC");
+      expect(w.vm.discardDialog.visible).toBe(false);
+      await expect(result).resolves.toBe(true);
+    });
+
+    // Stacking a discard dialog on top of the Add-name dialog would
+    // double-prompt for the same decision; defer instead.
+    it("defers to the Add-name dialog instead of stacking a discard prompt", async () => {
+      const marker = {
+        UID: "m2",
+        Name: "",
+        SubjUID: "",
+        thumbnailUrl: () => "/t/thumb2/public/tile_160",
+        setName: vi.fn().mockResolvedValue(undefined),
+      };
+      const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true }, mocks: { $config: validationConfig, $util: validationUtil } },
+      });
+      await w.vm.$nextTick();
+      w.vm.setMarkerInputValue("m2", "Brand New Name");
+      w.vm.confirmMarkerName(marker, "blur");
+      expect(w.vm.addNameDialog.visible).toBe(true);
+
+      const result = w.vm.confirmDiscardPending();
+
+      // No discard dialog stacked on top of Add-name.
+      expect(w.vm.discardDialog.visible).toBe(false);
+      // Cancelling Add-name resolves navigation without a second prompt.
+      w.vm.onAddNameCancel();
+      await expect(result).resolves.toBe(true);
+    });
+
+    it("confirming the Add-name dialog also resolves the deferred navigation", async () => {
+      const setName = vi.fn().mockResolvedValue(undefined);
+      const marker = {
+        UID: "m2",
+        Name: "",
+        SubjUID: "",
+        thumbnailUrl: () => "/t/thumb2/public/tile_160",
+        setName,
+      };
+      const photo = { ...mockPhoto, getMarkers: vi.fn().mockReturnValue([marker]) };
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true }, mocks: { $config: validationConfig, $util: validationUtil } },
+      });
+      await w.vm.$nextTick();
+      w.vm.setMarkerInputValue("m2", "Brand New Name");
+      w.vm.confirmMarkerName(marker, "blur");
+      const result = w.vm.confirmDiscardPending();
+
+      w.vm.onAddNameConfirm();
+
+      expect(setName).toHaveBeenCalledTimes(1);
+      expect(marker.Name).toBe("Brand New Name");
+      await expect(result).resolves.toBe(true);
+    });
   });
 
   // L9: onChipEscape clears the typed text and pending removals for one
