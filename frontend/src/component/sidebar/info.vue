@@ -285,66 +285,6 @@
           </v-list-item>
         </template>
 
-        <template v-if="canViewLabels && (labels.length > 0 || isEditable)">
-          <v-divider class="my-3"></v-divider>
-          <v-list-item class="metadata__item meta-labels">
-            <div class="text-subtitle-2">{{ $gettext("Labels") }}</div>
-            <template v-if="isEditable && chipState.labels.removals.length > 0" #append>
-              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" chip-mode @confirm="confirmLabels" @undo="undoChipRemovals('labels')" />
-            </template>
-          </v-list-item>
-          <v-list-item v-if="visibleLabels.length > 0" class="metadata__item metadata__chips meta-labels">
-            <div class="d-flex flex-wrap ga-1">
-              <span
-                v-for="l in visibleLabels"
-                :key="l.Label.UID"
-                tabindex="0"
-                class="meta-chip meta-chip--primary"
-                @click.stop.prevent="onChipActivate('labels', l)"
-                @keydown.enter.stop.prevent="onChipActivate('labels', l)"
-                @keydown.delete.stop.prevent="onChipDelete('labels', l)"
-              >
-                {{ l.Label.Name }}
-                <v-icon
-                  v-if="isEditable"
-                  icon="mdi-close-circle"
-                  size="x-small"
-                  class="ml-1 meta-chip__remove"
-                  :title="$gettext('Remove')"
-                  @click.stop.prevent="onChipDelete('labels', l)"
-                ></v-icon>
-              </span>
-            </div>
-          </v-list-item>
-          <v-list-item v-if="isEditable" class="metadata__item meta-labels">
-            <v-combobox
-              :key="chipState.labels.key"
-              v-model="chipState.labels.input"
-              v-model:search="chipState.labels.search"
-              :items="availableLabelOptions"
-              item-title="Name"
-              item-value="Name"
-              return-object
-              :placeholder="$gettext('Select or create labels')"
-              hide-details
-              hide-no-data
-              single-line
-              append-icon=""
-              :menu-icon="null"
-              density="compact"
-              bg-color="background"
-              autocomplete="off"
-              :menu-props="chipMenuProps"
-              :list-props="chipListProps"
-              class="meta-inline-edit"
-              @focus="loadChipOptions('labels')"
-              @update:model-value="onLabelSelected"
-              @keydown.enter.stop.prevent="onLabelEnter"
-              @keydown.escape.stop.prevent="onChipEscape('labels')"
-            ></v-combobox>
-          </v-list-item>
-        </template>
-
         <template v-if="canViewAlbums && (albums.length > 0 || isEditable)">
           <v-divider class="my-3"></v-divider>
           <v-list-item class="metadata__item meta-albums">
@@ -401,6 +341,66 @@
               @update:model-value="onAlbumSelected"
               @keydown.enter.stop.prevent="onAlbumEnter"
               @keydown.escape.stop.prevent="onChipEscape('albums')"
+            ></v-combobox>
+          </v-list-item>
+        </template>
+
+        <template v-if="canViewLabels && (labels.length > 0 || isEditable)">
+          <v-divider class="my-3"></v-divider>
+          <v-list-item class="metadata__item meta-labels">
+            <div class="text-subtitle-2">{{ $gettext("Labels") }}</div>
+            <template v-if="isEditable && chipState.labels.removals.length > 0" #append>
+              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" chip-mode @confirm="confirmLabels" @undo="undoChipRemovals('labels')" />
+            </template>
+          </v-list-item>
+          <v-list-item v-if="visibleLabels.length > 0" class="metadata__item metadata__chips meta-labels">
+            <div class="d-flex flex-wrap ga-1">
+              <span
+                v-for="l in visibleLabels"
+                :key="l.Label.UID"
+                tabindex="0"
+                class="meta-chip meta-chip--primary"
+                @click.stop.prevent="onChipActivate('labels', l)"
+                @keydown.enter.stop.prevent="onChipActivate('labels', l)"
+                @keydown.delete.stop.prevent="onChipDelete('labels', l)"
+              >
+                {{ l.Label.Name }}
+                <v-icon
+                  v-if="isEditable"
+                  icon="mdi-close-circle"
+                  size="x-small"
+                  class="ml-1 meta-chip__remove"
+                  :title="$gettext('Remove')"
+                  @click.stop.prevent="onChipDelete('labels', l)"
+                ></v-icon>
+              </span>
+            </div>
+          </v-list-item>
+          <v-list-item v-if="isEditable" class="metadata__item meta-labels">
+            <v-combobox
+              :key="chipState.labels.key"
+              v-model="chipState.labels.input"
+              v-model:search="chipState.labels.search"
+              :items="availableLabelOptions"
+              item-title="Name"
+              item-value="Name"
+              return-object
+              :placeholder="$gettext('Select or create labels')"
+              hide-details
+              hide-no-data
+              single-line
+              append-icon=""
+              :menu-icon="null"
+              density="compact"
+              bg-color="background"
+              autocomplete="off"
+              :menu-props="chipMenuProps"
+              :list-props="chipListProps"
+              class="meta-inline-edit"
+              @focus="loadChipOptions('labels')"
+              @update:model-value="onLabelSelected"
+              @keydown.enter.stop.prevent="onLabelEnter"
+              @keydown.escape.stop.prevent="onChipEscape('labels')"
             ></v-combobox>
           </v-list-item>
         </template>
