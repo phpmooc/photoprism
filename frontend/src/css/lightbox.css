@@ -121,17 +121,8 @@
     stroke-width: 2.5px;
 }
 
-/* Hover highlight driven by sidebar People-row hover: when the user
-   hovers a person row in the sidebar, the matching rect picks up a
-   thicker accent stroke + soft glow so the visual link between the
-   image and the People list is unambiguous. Listed AFTER --named so
-   it overrides the named-marker stroke color too. The drop-shadow is
-   non-scaling-stroke-aware (it keys off the rendered stroke, not the
-   SVG userspace), so it stays consistent across PhotoSwipe zoom.
-   Reverse direction (rect → sidebar row) is not wired today: the
-   rect carries `pointer-events: none` so native @mouseenter never
-   fires; a future implementation would need parent-level pointermove
-   + hit-testing against marker bounds. */
+/* Hover highlight driven by sidebar People-row hover. Listed after --named
+   so it overrides the named-marker stroke color too. */
 .p-face-markers__rect--hovered {
     stroke: rgba(196, 167, 255, 1);
     stroke-width: 4px;
@@ -197,11 +188,8 @@
     background: rgba(211, 47, 47, 0.95);
 }
 
-/* Back button — always present whenever the overlay is mounted (display
-   or draw). Anchored top-left in LTR, top-right in RTL, with its own
-   pointer-events so it works regardless of the overlay root's pointer
-   state. Click emits `cancel`, which the lightbox routes to
-   exitFaceMarkerMode. */
+/* Back button — anchored top-left in LTR / top-right in RTL with its own
+   pointer-events so it works regardless of the overlay root's pointer state. */
 .p-face-markers__btn--back {
     position: absolute;
     top: 12px;
@@ -277,11 +265,8 @@
     user-select: text;
 }
 
-/* Reset Vuetify's `v-list nav` blanket `cursor: pointer` on rows that
-   don't have a real click action — `cursor: auto` lets the browser
-   pick context-appropriate cursors (I-beam over the selectable text,
-   pointer over `<a href>` in sanitized Caption / Notes HTML, default
-   over icons / padding). */
+/* Reset Vuetify's `v-list nav` cursor:pointer on non-clickable rows so the
+   browser picks context-appropriate cursors (text I-beam, link pointer). */
 .p-lightbox__container > .p-lightbox__sidebar .metadata__item:not(.clickable) {
     cursor: auto;
 }
@@ -371,14 +356,8 @@
     background-color: rgba(var(--v-theme-secondary-light, var(--v-theme-surface-bright, var(--v-theme-surface))), 0.7);
 }
 
-/* Keyboard-visible focus ring for tabbable chips. The default browser outline
-   is hard to see against the chip's inset shadow and rounded corners; this
-   draws a clear, theme-aware ring INSIDE the chip area (negative offset) so
-   the ring isn't clipped when chips wrap against the sidebar edge. The
-   outline still follows border-radius in modern browsers. Uses on-surface
-   at moderate alpha so the ring is clearly more prominent than the chip's
-   12%-alpha resting border without reading as a near-white halo against
-   the dark sidebar — and without reusing a notification token like info. */
+/* Keyboard focus ring drawn inside the chip (negative offset) so it isn't
+   clipped when chips wrap against the sidebar edge. */
 .p-lightbox__container > .p-lightbox__sidebar .meta-chip:focus {
     outline: 2px solid rgba(var(--v-theme-on-surface), 0.5);
     outline-offset: -2px;
@@ -435,15 +414,9 @@
 }
 
 .p-lightbox__container > .p-lightbox__sidebar .v-input--density-compact {
-    /* Drives both the static control height for v-text-field rows
-       (Title) and the floor for auto-grown v-textareas. Vuetify routes
-       this var through `.v-textarea .v-field__field { --v-input-control-height:
-       var(--v-textarea-control-height) }` so when auto-grow writes the
-       calculated control height inline, the v-field__input min-height
-       (which uses `max(var(--v-input-control-height, …), …)`) follows.
-       Pinning a static `min-height` on .v-field__input would shadow that
-       inheritance and freeze the textarea at one row — see the auto-grow
-       regression notes in the May 15 sidebar refinement. */
+    /* Sets the v-text-field control height and the floor for auto-grown
+       textareas. Do not add `min-height` on .v-field__input — it would
+       shadow Vuetify's auto-grow inheritance and freeze textareas at 36 px. */
     --v-input-control-height: 36px;
 }
 
@@ -462,25 +435,9 @@
     font-size: 0.875rem;
 }
 
-/* Follow-up: revisit whether the explicit thin/themed scrollbar styling on
-   sidebar textareas (and the matching Webkit pseudo-element rules below)
-   is still needed once we audit which long-text editors actually overflow.
-   The current rule plus its `::-webkit-scrollbar*` companions keeps the
-   scrollbar legible against the near-black surface on Firefox + Chromium;
-   Safari (16.4+) maps `scrollbar-width: thin` to the native overlay
-   scrollbar. Drop both if a fresh visual pass shows the OS defaults are
-   acceptable. */
+/* Thin themed scrollbar for textareas; legible against the dark surface on
+   Firefox/Chromium. Do not unset min-height — see the comment above. */
 .p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit textarea.v-field__input {
-    /* min-height intentionally NOT unset: Vuetify's stock rule
-       `.v-field__input { min-height: max(var(--v-input-control-height, …), …) }`
-       is what carries the auto-grow signal — when `auto-grow` runs, it
-       writes `--v-textarea-control-height` inline on `.v-field`, and
-       the `.v-textarea .v-field__field { --v-input-control-height:
-       var(--v-textarea-control-height) }` rule rewires it for the
-       textarea's children. Killing min-height here would freeze the
-       textarea at the .v-field floor (~36px) while the calculated
-       height grows in the inline style — see the May 15 sidebar
-       regression notes. */
     scrollbar-width: thin;
     scrollbar-color: rgba(var(--v-theme-on-surface), 0.2) transparent;
 }
@@ -512,9 +469,7 @@
     mask-image: none;
 }
 
-/* Pencil button: hidden by default, shown on list-item hover. v-btn's
-   own variant="plain" handles size, color, and the hover opacity bump;
-   only the reveal-on-hover behavior lives here. */
+/* Pencil button: hidden by default, revealed on list-item hover. */
 .p-lightbox__container > .p-lightbox__sidebar .meta-inline-pencil {
     display: none;
 }
@@ -523,20 +478,16 @@
     display: inline-flex;
 }
 
-/* Sidebar toggle: when `hideEditPencils` is true on the sidebar root,
-   suppress every pencil affordance even on row hover. Row-level @click
-   handlers (and the save/undo buttons in the chip-section toolbars,
-   which carry their own class names) remain reachable. */
+/* `.hide-edit-pencils` on the sidebar root hides every pencil even on hover;
+   row clicks and chip-toolbar Save/Undo remain reachable. */
 .p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-pencils .metadata__item:hover > .v-list-item__append .meta-inline-pencil,
 .p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-pencils .meta-inline-pencil {
     display: none;
 }
 
-/* Hide inline-text Undo/Save (default ON — keyboard paths cover commit
-   / cancel / revert). Chip toolbars opt out via `meta-chip-*` since
-   they have no keyboard alternative. `:not()` lives on the hide rule
-   itself to avoid the CSS minifier collapsing a separate override into
-   `:is()` (which breaks the child combinator). */
+/* Hide inline-text Undo/Save (keyboard covers commit/cancel/revert); chip
+   toolbars opt out via `meta-chip-*`. Keep `:not()` on the hide rule itself
+   so the minifier doesn't collapse it into `:is()` and break the combinator. */
 .p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-undo .meta-inline-undo:not(.meta-chip-undo) {
     display: none;
 }
@@ -557,9 +508,8 @@
     color: rgba(var(--v-theme-on-surface), 0.6);
 }
 
-/* Per-row marker buttons (× reject, ⏏ eject) — hidden by default,
-   revealed on row hover. Matches the .meta-inline-pencil pattern so
-   a non-hovered row has no nested focusable targets. */
+/* Per-row marker buttons (× reject, ⏏ eject) — hidden by default, revealed
+   on row hover so a non-hovered row has no nested focusable targets. */
 .p-lightbox__container > .p-lightbox__sidebar .meta-marker-remove,
 .p-lightbox__container > .p-lightbox__sidebar .meta-marker-eject {
     display: none;
@@ -588,26 +538,16 @@
     color: rgb(var(--v-theme-on-surface)) !important;
 }
 
-/* Vuetify's density="compact" on v-list sizes the row height/padding but
-   leaves the title font at the default 16px, which still reads oversized
-   next to the sidebar's 0.875rem inline editors. Trim the title font so
-   the menu visually matches the rest of the sidebar typography. */
+/* density="compact" leaves the v-list title at 16 px; trim it so the menu
+   matches the sidebar's 0.875 rem inline editors. */
 .meta-inline-menu .v-list-item-title {
     font-size: 0.8125rem;
     line-height: 1.125rem;
 }
 
-/* The lightbox theme's `surface-variant` is a light grey (read by Vuetify
-   defaults onto v-combobox active rows, v-tab sliders, and many
-   `color="surface-variant"` props), so tooltips — which Vuetify paints at
-   `bg-surface-variant` — would render with a near-white background that
-   reads as a foreign light block over the near-black sidebar. Flip the
-   pair for tooltips only: use the dark `on-surface-variant` as the
-   surface and the light `surface-variant` as the text, giving a tooltip
-   that matches the dark, lifted-surface aesthetic of the rest of the
-   sidebar (cards, dialogs, dropdown menus). Tooltips are body-teleported,
-   so the lightbox theme class lands on the popper itself; scope the
-   override there rather than a page-level ancestor. */
+/* Flip surface/on-surface-variant for lightbox tooltips so they read as a
+   dark popover instead of a near-white block over the dark sidebar.
+   Tooltips are body-teleported, so the theme class lands on the popper itself. */
 .v-tooltip.v-theme--lightbox > .v-overlay__content {
     background: rgb(var(--v-theme-on-surface-variant));
     color: rgb(var(--v-theme-surface-variant));
@@ -752,14 +692,9 @@
     visibility: visible !important;
 }
 
-/* Hide every chrome element while face-marker mode is active. In draw
-   mode the overlay's pointer capture makes them unreachable anyway; in
-   display mode they would fire on a paused video / disabled state and
-   confuse the user. The Back button on the overlay
-   (.p-face-markers__btn--back) is the sole exit affordance — pressing
-   it leaves face-marker mode and restores the toolbar. Sidebar chrome
-   (.p-lightbox__sidebar) lives in a different region and stays
-   reachable. */
+/* Hide every chrome element while face-marker mode is active; the overlay's
+   Back button (.p-face-markers__btn--back) is the sole exit affordance.
+   Sidebar chrome lives in a different region and stays reachable. */
 .p-lightbox__content.face-marker-mode .pswp__top-bar .pswp__button,
 .p-lightbox__content.face-marker-mode .pswp__button--arrow,
 .p-lightbox__content.face-marker-mode .pswp__dynamic-caption,
