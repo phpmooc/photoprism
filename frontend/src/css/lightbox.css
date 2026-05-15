@@ -505,6 +505,13 @@
     word-break: break-word;
 }
 
+/* Drop Vuetify's top fade-mask on auto-grown inline textareas — without
+   a scroll viewport, the mask just dims the first line of text. */
+.p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit .v-field__input,
+.p-lightbox__container > .p-lightbox__sidebar .meta-inline-edit .v-textarea__sizer {
+    mask-image: none;
+}
+
 /* Pencil button: hidden by default, shown on list-item hover. v-btn's
    own variant="plain" handles size, color, and the hover opacity bump;
    only the reveal-on-hover behavior lives here. */

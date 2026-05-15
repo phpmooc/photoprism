@@ -624,6 +624,12 @@ export default {
     // lightbox's `onEscapeKey()` via the `faceMarkerOverlay` ref — see
     // `frontend/src/common/README.md` for the documented keyboard
     // pattern (Vuetify v-dialog `@keydown.esc.exact` + `onShortCut`).
+    // Mirrors a ✓ click. No-op during draft / drag / remove-confirm —
+    // those paths have their own commit gestures.
+    handleEnter() {
+      if (this.busy || this.interaction || this.removingMarker || !this.pending) return;
+      this.onConfirmPending();
+    },
     handleEscape() {
       if (this.interaction === InteractionDraw) {
         this.interaction = null;

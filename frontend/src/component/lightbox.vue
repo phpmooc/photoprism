@@ -18,6 +18,7 @@
     @keydown.left.exact="onKeyDown"
     @keydown.right.exact="onKeyDown"
     @keydown.esc.exact.stop="onEscapeKey"
+    @keydown.enter.exact="onEnterKey"
     @keydown.tab="onTabKey"
     @click.capture="captureDialogClick"
     @pointerdown.capture="captureDialogPointerDown"
@@ -2606,6 +2607,14 @@ export default {
         return;
       }
       this.close();
+    },
+    // Commits a pending face-marker rectangle. Sidebar inputs stop
+    // Enter on their own handlers, so this only fires outside them.
+    onEnterKey() {
+      const overlay = this.$refs.faceMarkerOverlay;
+      if (overlay && typeof overlay.handleEnter === "function") {
+        overlay.handleEnter();
+      }
     },
     // Bridges PhotoSwipe's dispatched 'keydown' event so printable keys
     // typed into the info sidebar (notably "z" for the Subject textarea)

@@ -321,7 +321,7 @@
               :key="chipState.labels.key"
               v-model="chipState.labels.input"
               v-model:search="chipState.labels.search"
-              :items="chipState.labels.options"
+              :items="availableLabelOptions"
               item-title="Name"
               item-value="Name"
               return-object
@@ -381,7 +381,7 @@
               :key="chipState.albums.key"
               v-model="chipState.albums.input"
               v-model:search="chipState.albums.search"
-              :items="chipState.albums.options"
+              :items="availableAlbumOptions"
               item-title="Title"
               item-value="Title"
               return-object
@@ -411,7 +411,7 @@
             <v-divider v-if="f.key === 'notes' && showRightsDivider" class="my-3 meta-rights-divider"></v-divider>
             <v-list-item
               v-show="shouldShowFieldRow(f)"
-              v-tooltip="f.icon ? f.label : null"
+              v-tooltip="editingField === f.key ? null : f.icon ? f.label : null"
               :prepend-icon="f.icon"
               :class="['metadata__item', `meta-${f.key}`, { clickable: editingField !== f.key && (isEditable || f.read(photo)) }]"
               @click.stop="onTextRowClick(f.key, f.read(photo))"
@@ -674,14 +674,14 @@ export default {
     // canViewLabels gates the Labels section on the backend's labels
     // resource grant. Same shape as canViewPeople.
     canViewLabels() {
-      return this.$config.allow("labels", "search");
+      return this.$config.feature("labels") && this.$config.allow("labels", "search");
     },
     // canViewAlbums gates the Albums section on the backend's albums
     // resource grant. Visitors and guests have `access_shared` view on
     // albums via the default grants, so they can see which albums a
     // shared photo belongs to even though they cannot see people/labels.
     canViewAlbums() {
-      return this.$config.allow("albums", "search");
+      return this.$config.feature("albums") && this.$config.allow("albums", "search");
     },
     // canViewPlaces gates the place name / altitude / location row on
     // the backend's places resource grant. Visitors / guests already
@@ -753,11 +753,30 @@ export default {
     },
     labels() {
       if (!this.photo?.Labels) return [];
-      return this.photo.Labels.filter((l) => l.Label && l.Label.Name && l.Uncertainty < 100);
+      // Sort by name — the backend orders by uncertainty/topicality but
+      // the sidebar doesn't surface those scores.
+      return this.photo.Labels.filter((l) => l.Label && l.Label.Name && l.Uncertainty < 100)
+        .slice()
+        .sort((a, b) => (a.Label.Name || "").localeCompare(b.Label.Name || "", undefined, { sensitivity: "base", numeric: true }));
     },
     albums() {
       if (!this.photo?.Albums) return [];
-      return this.photo.Albums.filter((a) => a.Title && !a.Private);
+      return this.photo.Albums.filter((a) => a.Title && !a.Private)
+        .slice()
+        .sort((a, b) => (a.Title || "").localeCompare(b.Title || "", undefined, { sensitivity: "base", numeric: true }));
+    },
+    // Typeahead options minus items already on the photo — matches
+    // batch-edit / Edit Dialog. add*Immediate still consults the
+    // unfiltered options for canonical-name matching.
+    availableLabelOptions() {
+      const normalize = (s) => this.$util.normalizeTitle(s || "");
+      const assigned = new Set(this.labels.map((l) => normalize(l?.Label?.Name)).filter(Boolean));
+      return this.chipState.labels.options.filter((opt) => !assigned.has(normalize(opt.Name)));
+    },
+    availableAlbumOptions() {
+      const normalize = (s) => this.$util.normalizeTitle(s || "");
+      const assigned = new Set(this.albums.map((a) => normalize(a?.Title)).filter(Boolean));
+      return this.chipState.albums.options.filter((opt) => !assigned.has(normalize(opt.Title)));
     },
     // Visible chip lists — `labels` / `albums` minus anything currently
     // marked for removal in `chipState`. The chip-row wrapper gates on

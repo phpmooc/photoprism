@@ -1944,15 +1944,17 @@ describe("PSidebarInfo component", () => {
   });
 
   // Labels
-  it("should return labels from photo prop", () => {
+  it("should return labels from photo prop sorted alphabetically", () => {
+    // Backend preload orders by uncertainty/topicality but the sidebar
+    // doesn't surface those scores; the chips are sorted by name.
     expect(wrapper.vm.labels).toHaveLength(2);
-    expect(wrapper.vm.labels[0].Label.Name).toBe("Nature");
+    expect(wrapper.vm.labels.map((l) => l.Label.Name)).toEqual(["Landscape", "Nature"]);
   });
 
   // Albums
-  it("should return albums from photo prop", () => {
+  it("should return albums from photo prop sorted alphabetically", () => {
     expect(wrapper.vm.albums).toHaveLength(2);
-    expect(wrapper.vm.albums[0].Title).toBe("Vacation 2023");
+    expect(wrapper.vm.albums.map((a) => a.Title)).toEqual(["Favorites", "Vacation 2023"]);
   });
 
   it("should hide private albums from sidebar cross-links", () => {
@@ -1968,7 +1970,8 @@ describe("PSidebarInfo component", () => {
       props: { modelValue: mockModel, photo: photoWithPrivateAlbum, context: contexts.Photos },
       global: { stubs: { PMap: true } },
     });
-    expect(w.vm.albums.map((a) => a.UID)).toEqual(["alb1", "alb2"]);
+    // Alphabetical sort: Favorites < Vacation 2023.
+    expect(w.vm.albums.map((a) => a.UID)).toEqual(["alb2", "alb1"]);
   });
 
   // Metadata details
