@@ -341,7 +341,6 @@
 
 .p-lightbox__container > .p-lightbox__sidebar .meta-caption a,
 .p-lightbox__container > .p-lightbox__sidebar .meta-notes a {
-    color: rgb(var(--v-theme-info));
     text-decoration: underline;
     word-break: break-all;
 }
