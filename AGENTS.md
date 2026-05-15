@@ -99,13 +99,16 @@ Title Case rules (Chicago-style, with code- and path-aware normalization):
 - Shared Go style rules:
   - After Go edits, run `make fmt-go` and keep `gofmt` tab indentation.
   - Doc comments for packages and exported identifiers must be complete sentences that begin with the described name and end with a period.
-  - Every new function, including unexported helpers, needs a concise doc comment that explains its purpose.
+  - Every new function (including unexported helpers) needs a doc comment — but keep it compact: default to ONE `// Name does X.` line. Add 1–2 short follow-up lines only when the WHY is non-obvious (hidden invariant, subtle workaround, contract a reader can't infer from the body).
   - Every new Go function, including unexported helpers, must have focused test coverage in the corresponding `*_test.go` files; update existing tests or add new ones as needed.
   - For short examples in comments, indent code instead of using backticks.
   - Every Go package must contain a root `<package>.go` file with the standard license header and a short package description comment.
+- Shared JS/Vue style rules:
+  - Every new JS function and every non-trivial Vue `methods:` / `computed:` / watcher entry needs a doc comment. Same compact default as Go: ONE `// Name does X.` line; 1–2 short follow-up lines only for non-obvious WHY. Trivial getters (e.g. `isOpen: () => this.open`) can skip the comment.
 - Shared JS/Vue testing rules:
   - New JavaScript functions, including helpers, should be tested whenever practical; update existing tests or add new ones as needed.
   - New Vue components should have component-test coverage, and existing component tests should be updated as needed when behavior changes.
+- Do not include in any code comment (Go or JS): issue / PR numbers, "previously…" history, alternatives considered, what the function used to do, references to old commits or reviewers, or any narrative that names the change instead of the steady-state behavior. That context belongs in the commit message, the spec, or a handover note — never in source.
 - When adding a metadata source such as `SrcOllama` or `SrcOpenAI`, update both `internal/entity/src.go` and `frontend/src/common/util.js` so backend and UI stay aligned.
 
 ## Agent Runtime
