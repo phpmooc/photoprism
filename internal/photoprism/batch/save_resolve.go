@@ -75,15 +75,9 @@ func ensureAlbumUID(title string) string {
 	return album.AlbumUID
 }
 
-// ensureLabelUID resolves or creates a label for the given title and returns its UID,
-// restoring deleted labels when necessary.
-//
-// Uses FirstOrCreateLabel directly because it routes through findLabelByExactName
-// which is homophone-safe: when the user types `吻` and only `问` exists (same
-// pinyin slug `wen`), the existing `问` is NOT returned and a brand-new `吻`
-// label is created instead. The earlier code path queried via FindLabel first,
-// whose slug fallback collapsed homophones onto the first-created label and
-// silently dropped the user's input.
+// ensureLabelUID resolves or creates a label for the given title and returns
+// its UID, restoring deleted labels when necessary. Routes through
+// FirstOrCreateLabel (homophone-safe) so distinct names sharing a slug stay distinct.
 func ensureLabelUID(title string) string {
 	if title == "" {
 		return ""
