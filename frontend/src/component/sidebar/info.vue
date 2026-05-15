@@ -290,7 +290,7 @@
           <v-list-item class="metadata__item meta-labels">
             <div class="text-subtitle-2">{{ $gettext("Labels") }}</div>
             <template v-if="isEditable && chipState.labels.removals.length > 0" #append>
-              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" @confirm="confirmLabels" @undo="undoChipRemovals('labels')" />
+              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" chip-mode @confirm="confirmLabels" @undo="undoChipRemovals('labels')" />
             </template>
           </v-list-item>
           <v-list-item v-if="visibleLabels.length > 0" class="metadata__item metadata__chips meta-labels">
@@ -350,7 +350,7 @@
           <v-list-item class="metadata__item meta-albums">
             <div class="text-subtitle-2">{{ $gettext("Albums") }}</div>
             <template v-if="isEditable && chipState.albums.removals.length > 0" #append>
-              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" @confirm="confirmAlbums" @undo="undoChipRemovals('albums')" />
+              <p-sidebar-inline-toolbar :editing="true" :can-undo="true" chip-mode @confirm="confirmAlbums" @undo="undoChipRemovals('albums')" />
             </template>
           </v-list-item>
           <v-list-item v-if="visibleAlbums.length > 0" class="metadata__item metadata__chips meta-albums">
@@ -1729,8 +1729,22 @@ export default {
       }
       const norm = this.$util.normalizeTitle(name);
       if (!norm) return false;
-      // Already on the photo? Skip the API call.
-      if (this.labels.some((l) => this.$util.normalizeTitle(l?.Label?.Name) === norm)) return false;
+      // If the typed label matches a chip currently pending removal,
+      // restore it instead of calling the API. Without this branch the
+      // `visibleLabels.some` check below would still let the call through
+      // (the chip is filtered out of visibleLabels) but the resulting
+      // POST would race the deferred DELETE on auto-commit and leave the
+      // photo in an unpredictable state — and intuitively "type the name
+      // you just × clicked" should mean "put it back", not "round-trip".
+      const pending = this.labels.find(
+        (l) => this.isChipPendingRemoval("labels", l?.Label?.ID) && this.$util.normalizeTitle(l?.Label?.Name) === norm
+      );
+      if (pending?.Label?.ID != null) {
+        this.togglePendingChipRemoval("labels", pending.Label.ID);
+        return true;
+      }
+      // Already on the photo (and not pending removal)? Skip the API call.
+      if (this.visibleLabels.some((l) => this.$util.normalizeTitle(l?.Label?.Name) === norm)) return false;
       // Match against the system-wide label list — if a normalized match
       // exists, send the canonical existing-label name so the backend
       // doesn't create a near-duplicate (e.g. typed `Hello Cat` reuses an
@@ -1759,6 +1773,13 @@ export default {
       if (title.length > this.$config.get("clip")) {
         this.$notify.error(this.$gettext("Name too long"));
         return false;
+      }
+      // If the album is pending removal, restore it instead of calling
+      // the API. Mirrors the Labels pending-restore path; see
+      // addLabelImmediate for the rationale.
+      if (this.isChipPendingRemoval("albums", album.UID)) {
+        this.togglePendingChipRemoval("albums", album.UID);
+        return true;
       }
       if (this.albums.some((a) => a.UID === album.UID)) return false;
       const norm = this.$util.normalizeTitle(title);

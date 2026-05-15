@@ -523,14 +523,18 @@
    + Notes, Escape cancels, and Ctrl+Z reverts inside the focused
    textarea. Per-user preference or A/B variants flip `hideEditUndo` /
    `hideEditSave` on the sidebar root to surface the mouse-driven
-   affordances. The chip-section toolbars share these class names, so
-   the same toggles also hide their batched-removal Save / Undo
-   buttons. */
-.p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-undo .meta-inline-undo {
+   affordances. Chip-section toolbars (Labels / Albums) carry the
+   `meta-chip-undo` / `meta-chip-confirm` opt-out class on each button —
+   they have no keyboard alternative for committing or undoing pending
+   removals so their Save/Undo affordances always stay visible. The
+   `:not()` exception sits on the hide rule itself rather than as a
+   separate override to keep the CSS minifier from collapsing them into
+   an `:is()` group that breaks the child combinator. */
+.p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-undo .meta-inline-undo:not(.meta-chip-undo) {
     display: none;
 }
 
-.p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-save .meta-inline-confirm {
+.p-lightbox__container > .p-lightbox__sidebar > .p-sidebar-info.hide-edit-save .meta-inline-confirm:not(.meta-chip-confirm) {
     display: none;
 }
 

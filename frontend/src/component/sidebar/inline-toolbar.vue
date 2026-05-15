@@ -1,5 +1,5 @@
 <template>
-  <div class="p-sidebar-inline-toolbar d-flex">
+  <div :class="['p-sidebar-inline-toolbar', 'd-flex', { 'p-sidebar-inline-toolbar--chip': chipMode }]">
     <v-btn
       v-if="editing && canUndo"
       :disabled="undoDisabled"
@@ -7,7 +7,7 @@
       density="compact"
       variant="plain"
       size="x-small"
-      class="meta-inline-undo"
+      :class="['meta-inline-undo', { 'meta-chip-undo': chipMode }]"
       :title="$gettext('Undo')"
       @mousedown.prevent
       @click.stop="$emit('undo')"
@@ -18,7 +18,7 @@
       density="compact"
       variant="plain"
       size="x-small"
-      class="meta-inline-confirm"
+      :class="['meta-inline-confirm', { 'meta-chip-confirm': chipMode }]"
       :title="$gettext('Save')"
       @mousedown.prevent
       @click.stop="$emit('confirm')"
@@ -55,6 +55,15 @@ export default {
     // Chip toolbars leave this at false (their parent v-if already
     // gates mounting on whether Undo would do anything).
     undoDisabled: {
+      type: Boolean,
+      default: false,
+    },
+    // Marks the toolbar as a chip-section toolbar (Labels / Albums staged
+    // removals). Adds the `--chip` modifier class so the Save / Undo
+    // buttons stay visible even when the sidebar root has `hide-edit-save`
+    // / `hide-edit-undo`: chip sections have no keyboard alternative for
+    // committing or undoing pending removals.
+    chipMode: {
       type: Boolean,
       default: false,
     },
