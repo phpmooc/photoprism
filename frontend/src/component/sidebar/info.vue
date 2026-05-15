@@ -764,16 +764,9 @@ export default {
     keywords() {
       return this.photo?.Details?.Keywords || "";
     },
-    // Single source of truth for inline-text fields. Each entry knows how to
-    // read/write its raw value, what label to render (tooltip, placeholder,
-    // add-prompt), the per-field maxLength (sourced from PhotoMaxLength which
-    // mirrors the backend VARCHAR + clip caps so UI validation matches what
-    // the server will persist), and whether the display branch should treat
-    // the value as sanitized HTML (Caption, Notes) or plain text. The
-    // detailsFields computed below selects the subset rendered in the merged
-    // single-row icon-prepended layout (everything except Title and Caption,
-    // which keep their bespoke header rows above the file/taken/camera
-    // section).
+    // fieldRegistry is the single source of truth for inline-text fields:
+    // raw read/write, labels, per-field maxLength (from PhotoMaxLength), and
+    // whether the display branch treats the value as sanitized HTML.
     fieldRegistry() {
       return {
         title: {
@@ -1264,16 +1257,10 @@ export default {
       if (!uid || !this.photo || typeof this.photo.getMarkers !== "function") return null;
       return this.photo.getMarkers(true).find((m) => m && m.UID === uid) || null;
     },
-    // Commits typed text from the per-marker draft. Source "enter" fires
-    // from the keyboard, "blur" from focus loss; the latter routes through
-    // an Add-name confirmation when the marker is still unnamed and the
-    // typed name doesn't match an existing subject.
-    //
-    // Gating (P1-6 + P1-7):
-    //   - `markersBusy`: another marker mutation is in flight; bail.
-    //   - `marker.Invalid`: marker was rejected; bail before re-committing.
-    //   - destructive-action timestamp: an × / ⏏ icon was clicked within
-    //     the last 200ms (which destroys this row); bail.
+    // confirmMarkerName commits typed text from the per-marker draft; "blur"
+    // routes unnamed markers through the Add-name confirmation. Bails when
+    // another mutation is in flight, the marker is invalid, or a destructive
+    // icon was clicked within the last 200 ms.
     confirmMarkerName(marker, source = "enter") {
       if (!marker || !marker.UID) return;
       if (this.markersBusy) return;
@@ -1591,19 +1578,8 @@ export default {
         this.openInNewTab({ name: "browse", query: { q: "person:" + marker.Name } });
       }
     },
-    // Pulls the typeahead suggestions from the shared module-scope
-    // cache (`common/typeahead-cache.js`). Fired on combobox @focus —
-    // cheap when the cache is warm (returns the same array reference)
-    // and refreshes after WS-driven evictions (`labels.updated` /
-    // `albums.updated` / `config.updated`) without per-component
-    // subscriptions. Errors are swallowed so a transient network hiccup
-    // never blocks the editor.
-    //
-    // The cache returns whatever order the backend emitted (which is
-    // not reliably alphabetical even when search?order=name is set),
-    // so we sort client-side via locale-aware localeCompare. This
-    // also keeps Hebrew/Cyrillic libraries readable, where byte-order
-    // sort would not match the user's expectation.
+    // loadChipOptions pulls typeahead suggestions from the shared cache and
+    // sorts them locale-aware (backend order isn't reliably alphabetical).
     loadChipOptions(field) {
       const collator = (key) => (a, b) => (a[key] || "").localeCompare(b[key] || "", undefined, { sensitivity: "base", numeric: true });
       if (field === "labels") {
@@ -1724,9 +1700,7 @@ export default {
       if (!norm) return false;
       // Re-typing a × clicked chip un-stages the removal locally so the
       // re-add doesn't race the deferred DELETE on auto-commit.
-      const pending = this.labels.find(
-        (l) => this.isChipPendingRemoval("labels", l?.Label?.ID) && this.$util.normalizeTitle(l?.Label?.Name) === norm
-      );
+      const pending = this.labels.find((l) => this.isChipPendingRemoval("labels", l?.Label?.ID) && this.$util.normalizeTitle(l?.Label?.Name) === norm);
       if (pending?.Label?.ID != null) {
         this.togglePendingChipRemoval("labels", pending.Label.ID);
         return true;

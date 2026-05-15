@@ -341,18 +341,10 @@ export default {
         if (this.bounds !== null) this.bounds = null;
         return;
       }
-      // For video / live / animated slides, the <img class="pswp__image">
-      // takes the slide container's box (e.g. 980×900) via CSS
-      // `width: auto; height: 100%; max-width: 100%; max-height: 100vh;
-      // object-fit: contain`. The pixel content is letterboxed inside that
-      // box but `getBoundingClientRect()` returns the BOX, not the inscribed
-      // image rect. Face-marker X/Y/W/H are normalized against the original
-      // image aspect ratio, so applying them to the box height would stretch
-      // the markers across the letterbox bars (faces look TALL).
-      //
-      // Compute the inscribed rect from the natural aspect ratio. For image
-      // slides where PhotoSwipe sizes the <img> exactly to the displayed
-      // dimensions, this math is a no-op (boxRatio matches naturalRatio).
+      // getBoundingClientRect returns the <img> box, not the letterboxed pixel
+      // content (CSS object-fit: contain on video/live/animated slides). Compute
+      // the inscribed rect from the natural aspect ratio so marker coords land
+      // on the image; for plain image slides this is a no-op.
       let left = imgRect.left - parentRect.left;
       let top = imgRect.top - parentRect.top;
       let width = imgRect.width;
@@ -410,12 +402,9 @@ export default {
         }
       }
 
-      // Hit-test against existing unnamed marker rects BEFORE starting a
-      // new draft. If the pointer landed inside one, open the remove-
-      // confirm pill for it; the user explicitly clicked an existing
-      // marker, not empty space. Named markers (m.SubjUID truthy) are
-      // not removable via this path (`marker.reject()` only accepts
-      // unnamed markers; the user must eject the name first).
+      // Hit-test existing unnamed markers before starting a new draft; a
+      // click inside one opens its remove pill. Named markers are skipped —
+      // marker.reject() rejects only unnamed markers (eject the name first).
       const target = this.findMarkerAt(local);
       if (target) {
         this.stopEventFromPswp(ev);
@@ -616,20 +605,13 @@ export default {
       this.pending = null;
       this.hoverCursor = null;
     },
-    // Cancels in-progress draw / move / resize interactions and clears any
-    // unconfirmed pending rectangle without exiting draw mode. Returns
-    // true when the overlay consumed the Escape (caller should NOT also
-    // exit draw mode or close the lightbox); false when the overlay had
-    // nothing pending, leaving the caller free to decide. Called by the
-    // lightbox's `onEscapeKey()` via the `faceMarkerOverlay` ref — see
-    // `frontend/src/common/README.md` for the documented keyboard
-    // pattern (Vuetify v-dialog `@keydown.esc.exact` + `onShortCut`).
-    // Mirrors a ✓ click. No-op during draft / drag / remove-confirm —
-    // those paths have their own commit gestures.
+    // handleEnter mirrors a ✓ click; no-op during draft / drag / remove-confirm.
     handleEnter() {
       if (this.busy || this.interaction || this.removingMarker || !this.pending) return;
       this.onConfirmPending();
     },
+    // handleEscape cancels in-progress draw/move/resize or clears the pending
+    // rect without exiting draw mode; returns true when the overlay consumed it.
     handleEscape() {
       if (this.interaction === InteractionDraw) {
         this.interaction = null;
@@ -747,23 +729,12 @@ export default {
     onHoverLeave() {
       if (this.hoverCursor !== null) this.hoverCursor = null;
     },
-    // In draw / edit mode the overlay root has `pointer-events: auto`
-    // (it has to, to catch the @pointerdown drag-to-draw gesture).
-    // That capture also swallows wheel events that the user expects
-    // to drive PhotoSwipe's zoom. Re-dispatch a synthetic WheelEvent
-    // on PhotoSwipe's container element so wheel-to-zoom keeps working
-    // identically to display mode. In display mode the root has
-    // `pointer-events: none` so wheel events pass through naturally;
-    // the early return below makes this a no-op there.
+    // onWheel re-dispatches wheel events on PhotoSwipe's element while in edit
+    // mode (overlay's pointer-events: auto would otherwise swallow zoom gestures).
     onWheel(ev) {
       if (!this.isEditMode) return;
       const pswpEl = this.pswp?.element;
       if (!pswpEl) return;
-      // preventDefault on the original event so the browser's default
-      // wheel handling (page scroll, accidental gesture) doesn't fire
-      // in parallel with the re-dispatched PhotoSwipe handler. The
-      // overlay is already inside a non-scrolling modal so this is
-      // strictly a defensive measure.
       if (typeof ev.preventDefault === "function" && ev.cancelable !== false) {
         ev.preventDefault();
       }

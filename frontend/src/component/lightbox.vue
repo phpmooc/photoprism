@@ -1830,14 +1830,8 @@ export default {
     exitFaceMarkerMode() {
       this.faceMarkers.exit();
     },
-    // Eye-toggle handler. Flips between `null` (no overlay) and
-    // `FaceMarkerDisplay` (read-only markers). The eye toggle is only
-    // rendered for NON-editable users (display mode is read-only by
-    // definition); editable users use `toggleFaceMarkerEdit` below.
-    // Gates on featPeople only — display mode doesn't need edit
-    // permission, and the template-level `canViewPeople` ACL gate
-    // (via `$config.allow("people", "search")`) keeps sessions without
-    // people-resource access out of this path entirely.
+    // toggleFaceMarkerMode flips between no overlay and FaceMarkerDisplay
+    // (read-only); rendered only for non-editable users.
     toggleFaceMarkerMode() {
       if (!this.featPeople) {
         return;
@@ -1848,13 +1842,8 @@ export default {
       }
       this.faceMarkers.display();
     },
-    // Edit-Faces toggle handler. Flips between `null` (no overlay) and
-    // `FaceMarkerEdit` (markers visible + drag-to-create + click-to-
-    // remove). Only rendered for editable users; the gate mirrors that.
-    // Previously the exit path stepped down to FaceMarkerDisplay (the
-    // historical ✓ Done semantic when the sidebar had two toggles); now
-    // that the pencil is the only editable-user toggle, exit must land
-    // on `null` so the pencil click actually ends face-marker mode.
+    // toggleFaceMarkerEdit flips between no overlay and FaceMarkerEdit
+    // (drag-to-create + click-to-remove); rendered only for editable users.
     toggleFaceMarkerEdit() {
       if (!this.shouldShowEditButton() || this.faceMarkers.busy) {
         return;
@@ -2403,17 +2392,8 @@ export default {
         this.log("shortcut", { ev });
       }
 
-      // Focus gate: when a text-editable element has focus (sidebar
-      // inline editor, edit-dialog field, batch-edit field, anything
-      // contenteditable), defer to the browser's native handling so
-      // Ctrl+A selects text, Ctrl+C copies, Ctrl+X cuts, Ctrl+V
-      // pastes, Ctrl+Z undoes, etc., instead of triggering archive /
-      // download / like / slideshow. Inline editors that need to
-      // react to specific keys (Escape → cancelEditing, Enter →
-      // confirmField on commitOnEnter fields) attach their own
-      // .stop.prevent listeners and consume those keys before they
-      // reach the window-level keydown forwarder that calls this
-      // method. Mirrors the existing focus check in onPswpKeyDown.
+      // Focus gate: defer to native handling when a text-editable element has
+      // focus so Ctrl+A/C/X/V/Z keep working inside inline editors.
       const active = document.activeElement;
       if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || active?.isContentEditable) {
         return false;
