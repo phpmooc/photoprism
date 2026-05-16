@@ -118,7 +118,7 @@
                 variant="flat"
                 color="highlight"
                 min-width="120"
-                class="action-confirm"
+                class="action-save action-confirm"
                 :disabled="!(currentLat !== null && currentLng !== null) || locationLoading"
                 :loading="locationLoading"
                 @click="confirm"

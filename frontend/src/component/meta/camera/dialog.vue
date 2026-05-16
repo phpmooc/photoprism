@@ -117,7 +117,7 @@
         <v-btn variant="flat" color="button" class="action-cancel" min-width="100" @click.stop="close">
           {{ $gettext("Cancel") }}
         </v-btn>
-        <v-btn variant="flat" color="highlight" class="action-confirm" min-width="100" :disabled="!valid" :aria-label="$gettext('Save changes')" @click="confirm">
+        <v-btn variant="flat" color="highlight" class="action-save action-confirm" min-width="100" :disabled="!valid" :aria-label="$gettext('Save changes')" @click="confirm">
           {{ $gettext("Save") }}
         </v-btn>
       </v-card-actions>
