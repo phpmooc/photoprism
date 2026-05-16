@@ -252,13 +252,13 @@ export default {
       const subjectPromise = cached
         ? Promise.resolve(new Subject(cached))
         : this.loadSubject(marker.SubjUID).then((subject) => {
-            if (!subject) {
-              this.$notify.error(this.$gettext("Person not found"));
-              return null;
-            }
-            this.updatePersonList(subject);
-            return subject;
-          });
+          if (!subject) {
+            this.$notify.error(this.$gettext("Person not found"));
+            return null;
+          }
+          this.updatePersonList(subject);
+          return subject;
+        });
 
       return subjectPromise
         .then((subject) => {
@@ -287,12 +287,12 @@ export default {
       const subjectPromise = cached
         ? Promise.resolve(new Subject(cached))
         : this.loadSubject(marker.SubjUID).then((subject) => {
-            if (!subject) {
-              this.$notify.error(this.$gettext("Person not found"));
-              return null;
-            }
-            return subject;
-          });
+          if (!subject) {
+            this.$notify.error(this.$gettext("Person not found"));
+            return null;
+          }
+          return subject;
+        });
 
       return subjectPromise
         .then((subject) => {
