@@ -179,7 +179,9 @@ export default {
       this.$view.leave(this);
     },
     loadFromPhoto() {
-      if (!this.photo) return;
+      if (!this.photo) {
+        return;
+      }
 
       this.day = this.photo.Day;
       this.month = this.photo.Month;
@@ -191,17 +193,23 @@ export default {
       this.invalidDate = false;
     },
     effectiveYear() {
-      if (this.year > 0) return this.year;
+      if (this.year > 0) {
+        return this.year;
+      }
       const y = this.photo?.TakenAtLocal ? parseInt(this.photo.TakenAtLocal.substring(0, 4)) : new Date().getUTCFullYear();
       return isNaN(y) ? new Date().getUTCFullYear() : y;
     },
     effectiveMonth() {
-      if (this.month > 0) return this.month;
+      if (this.month > 0) {
+        return this.month;
+      }
       const m = this.photo?.TakenAtLocal ? parseInt(this.photo.TakenAtLocal.substring(5, 7)) : new Date().getUTCMonth() + 1;
       return isNaN(m) ? new Date().getUTCMonth() + 1 : m;
     },
     clampDayToValidRange() {
-      if (this.day <= 0) return;
+      if (this.day <= 0) {
+        return;
+      }
       const maxDay = new Date(Date.UTC(this.effectiveYear(), this.effectiveMonth(), 0)).getUTCDate();
       if (this.day > maxDay) {
         this.day = maxDay;
@@ -260,22 +268,32 @@ export default {
       this.updateLocalDate();
     },
     localYearString() {
-      if (this.year <= 0) return "";
+      if (this.year <= 0) {
+        return "";
+      }
       return this.year.toString().padStart(4, "0");
     },
     localMonthString() {
-      if (this.month <= 0) return "01";
+      if (this.month <= 0) {
+        return "01";
+      }
       return this.month.toString().padStart(2, "0");
     },
     localDayString() {
-      if (this.day <= 0) return "01";
+      if (this.day <= 0) {
+        return "01";
+      }
       return this.day.toString().padStart(2, "0");
     },
     updateLocalDate() {
-      if (!this.photo) return;
+      if (!this.photo) {
+        return;
+      }
 
       const yearStr = this.localYearString();
-      if (!yearStr) return;
+      if (!yearStr) {
+        return;
+      }
 
       const date = yearStr + "-" + this.localMonthString() + "-" + this.localDayString();
       const time = this.time || "12:00:00";
@@ -289,7 +307,9 @@ export default {
       this.$emit("close");
     },
     confirm() {
-      if (this.invalidDate) return;
+      if (this.invalidDate) {
+        return;
+      }
 
       this.$emit("confirm", {
         Day: this.day,

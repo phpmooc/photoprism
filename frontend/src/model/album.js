@@ -51,9 +51,15 @@ export class Album extends Collection {
   classes(selected) {
     let classes = ["is-album", "uid-" + this.UID, "type-" + this.Type];
 
-    if (this.Favorite) classes.push("is-favorite");
-    if (this.Private) classes.push("is-private");
-    if (selected) classes.push("is-selected");
+    if (this.Favorite) {
+      classes.push("is-favorite");
+    }
+    if (this.Private) {
+      classes.push("is-private");
+    }
+    if (selected) {
+      classes.push("is-selected");
+    }
 
     return classes;
   }

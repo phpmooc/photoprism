@@ -170,9 +170,15 @@ export default {
     },
 
     getChipIcon(item) {
-      if (item.action === "add") return "mdi-plus";
-      if (item.action === "remove") return "mdi-minus";
-      if (item.mixed) return "mdi-circle-half-full";
+      if (item.action === "add") {
+        return "mdi-plus";
+      }
+      if (item.action === "remove") {
+        return "mdi-minus";
+      }
+      if (item.mixed) {
+        return "mdi-circle-half-full";
+      }
       return null;
     },
 
@@ -188,7 +194,9 @@ export default {
     },
 
     handleChipClick(item) {
-      if (this.loading || this.disabled) return;
+      if (this.loading || this.disabled) {
+        return;
+      }
 
       let newAction;
 
@@ -255,14 +263,20 @@ export default {
         return;
       }
 
-      if (!title) return;
+      if (!title) {
+        return;
+      }
 
       let resolvedApplied = false;
       if (typeof this.resolveItemFromText === "function") {
         const resolved = this.resolveItemFromText(title);
         if (resolved && typeof resolved === "object") {
-          if (resolved.title) title = resolved.title;
-          if (resolved.value) value = resolved.value;
+          if (resolved.title) {
+            title = resolved.title;
+          }
+          if (resolved.value) {
+            value = resolved.value;
+          }
           resolvedApplied = true;
         }
       }

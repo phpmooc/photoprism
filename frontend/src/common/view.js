@@ -358,7 +358,9 @@ const InteractiveTargetSelector = 'button, input, textarea, select, a[href], [ro
 
 // isInteractiveTarget reports whether the touch target is (or sits inside) a tappable widget.
 function isInteractiveTarget(target) {
-  if (!target || typeof target.closest !== "function") return false;
+  if (!target || typeof target.closest !== "function") {
+    return false;
+  }
   return target.closest(InteractiveTargetSelector) !== null;
 }
 
@@ -366,15 +368,25 @@ function isInteractiveTarget(target) {
 // accidental horizontal navigation while the lightbox is active. Scoped to edge bands
 // only — inner-area touches and taps on interactive widgets pass through.
 export function preventNavigationTouchEvent(ev) {
-  if (!(ev instanceof TouchEvent) || !ev.cancelable) return;
-  if (ev.type !== TouchStartEvent && ev.type !== TouchMoveEvent) return;
+  if (!(ev instanceof TouchEvent) || !ev.cancelable) {
+    return;
+  }
+  if (ev.type !== TouchStartEvent && ev.type !== TouchMoveEvent) {
+    return;
+  }
   const touch = ev.touches[0] || (ev.changedTouches && ev.changedTouches[0]);
-  if (!touch) return;
+  if (!touch) {
+    return;
+  }
   const atLeftEdge = touch.clientX <= NavGestureEdgeBand;
   const atRightEdge = touch.clientX >= window.innerWidth - NavGestureEdgeBand;
   const atTopEdge = touch.clientY <= NavGestureEdgeBand;
-  if (!atLeftEdge && !atRightEdge && !atTopEdge) return;
-  if (isInteractiveTarget(ev.target)) return;
+  if (!atLeftEdge && !atRightEdge && !atTopEdge) {
+    return;
+  }
+  if (isInteractiveTarget(ev.target)) {
+    return;
+  }
   ev.preventDefault();
 }
 

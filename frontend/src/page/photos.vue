@@ -790,7 +790,9 @@ export default {
           this.dirty = true;
           this.complete = false;
 
-          if (this.context !== contexts.Archive) break;
+          if (this.context !== contexts.Archive) {
+            break;
+          }
 
           for (let i = 0; i < data.entities.length; i++) {
             const uid = data.entities[i];

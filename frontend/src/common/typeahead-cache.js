@@ -17,7 +17,9 @@ const state = {
 
 function evict(field) {
   const slot = state[field];
-  if (!slot) return;
+  if (!slot) {
+    return;
+  }
   slot.data = null;
   slot.fetch = null;
 }
@@ -44,8 +46,12 @@ function fetchAlbums() {
 
 function get(field, fetcher) {
   const slot = state[field];
-  if (slot.data) return Promise.resolve(slot.data);
-  if (slot.fetch) return slot.fetch;
+  if (slot.data) {
+    return Promise.resolve(slot.data);
+  }
+  if (slot.fetch) {
+    return slot.fetch;
+  }
   slot.fetch = fetcher()
     .then((data) => {
       slot.data = data;

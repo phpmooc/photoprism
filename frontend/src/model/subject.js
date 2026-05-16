@@ -46,11 +46,21 @@ export class Subject extends Collection {
   classes(selected) {
     let classes = ["is-subject", "uid-" + this.UID];
 
-    if (this.Favorite) classes.push("is-favorite");
-    if (this.Hidden) classes.push("is-hidden");
-    if (this.Private) classes.push("is-private");
-    if (this.Excluded) classes.push("is-excluded");
-    if (selected) classes.push("is-selected");
+    if (this.Favorite) {
+      classes.push("is-favorite");
+    }
+    if (this.Hidden) {
+      classes.push("is-hidden");
+    }
+    if (this.Private) {
+      classes.push("is-private");
+    }
+    if (this.Excluded) {
+      classes.push("is-excluded");
+    }
+    if (selected) {
+      classes.push("is-selected");
+    }
 
     return classes;
   }

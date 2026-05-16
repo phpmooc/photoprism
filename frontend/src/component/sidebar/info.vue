@@ -660,15 +660,21 @@ export default {
       // `photo.Caption` as the empty-string default — must fall through to
       // `model.Caption`.
       const raw = this.photo?.Caption || this.model?.Caption;
-      if (!raw) return "";
+      if (!raw) {
+        return "";
+      }
       return this.$util.sanitizeHtml(this.$util.encodeHTML(raw));
     },
     notesHtml() {
-      if (!this.photo?.Details?.Notes) return "";
+      if (!this.photo?.Details?.Notes) {
+        return "";
+      }
       return this.$util.sanitizeHtml(this.$util.encodeHTML(this.photo.Details.Notes));
     },
     cameraInfo() {
-      if (!this.photo) return "";
+      if (!this.photo) {
+        return "";
+      }
       // Backend returns the "Unknown" placeholder camera (CameraID=1,
       // Camera={Make:"", Model:"Unknown"}) when no EXIF camera is set, and
       // formatCamera() happily renders that as " Unknown". Suppress it so
@@ -677,26 +683,38 @@ export default {
         (this.photo.CameraID && this.photo.CameraID > 1) ||
         (this.photo.CameraMake && this.photo.CameraMake.trim()) ||
         (this.photo.CameraModel && this.photo.CameraModel.trim() && this.photo.CameraModel !== "Unknown");
-      if (!hasRealCamera) return "";
+      if (!hasRealCamera) {
+        return "";
+      }
       // Suppress "Unknown, ISO 100"-style rows when only ISO/exposure are set.
-      if (!this.$util.formatCamera(this.photo.Camera, this.photo.CameraID, this.photo.CameraMake, this.photo.CameraModel, false)) return "";
+      if (!this.$util.formatCamera(this.photo.Camera, this.photo.CameraID, this.photo.CameraMake, this.photo.CameraModel, false)) {
+        return "";
+      }
       const info = this.photo.getCameraInfo();
       return info !== this.$gettext("Unknown") ? info : "";
     },
     lensInfo() {
-      if (!this.photo) return "";
+      if (!this.photo) {
+        return "";
+      }
       const hasLens =
         (this.photo.LensID && this.photo.LensID > 1) || this.photo.LensMake || this.photo.LensModel || this.photo.Lens?.Model || this.photo.Lens?.Make;
-      if (!hasLens) return "";
+      if (!hasLens) {
+        return "";
+      }
       const info = this.photo.getLensInfo();
       return info !== this.$gettext("Unknown") ? info : "";
     },
     exifInfo() {
-      if (!this.photo) return "";
+      if (!this.photo) {
+        return "";
+      }
       return this.photo.getExifInfo();
     },
     people() {
-      if (!this.photo) return [];
+      if (!this.photo) {
+        return [];
+      }
       return this.photo.getMarkers(true);
     },
     // Sorted, locale-aware copy of `$config.values.people` for the marker
@@ -704,14 +722,18 @@ export default {
     // `people.{created,updated,deleted}` events.
     knownPeople() {
       const values = this.$config && this.$config.values;
-      if (!values || !Array.isArray(values.people)) return [];
+      if (!values || !Array.isArray(values.people)) {
+        return [];
+      }
       return values.people
         .filter((p) => p && p.Name)
         .slice()
         .sort((a, b) => (a.Name || "").localeCompare(b.Name || "", undefined, { sensitivity: "base", numeric: true }));
     },
     labels() {
-      if (!this.photo?.Labels) return [];
+      if (!this.photo?.Labels) {
+        return [];
+      }
       // Sort by name — the backend orders by uncertainty/topicality but
       // the sidebar doesn't surface those scores.
       return this.photo.Labels.filter((l) => l.Label && l.Label.Name && l.Uncertainty < 100)
@@ -719,7 +741,9 @@ export default {
         .sort((a, b) => (a.Label.Name || "").localeCompare(b.Label.Name || "", undefined, { sensitivity: "base", numeric: true }));
     },
     albums() {
-      if (!this.photo?.Albums) return [];
+      if (!this.photo?.Albums) {
+        return [];
+      }
       return this.photo.Albums.filter((a) => a.Title && !a.Private)
         .slice()
         .sort((a, b) => (a.Title || "").localeCompare(b.Title || "", undefined, { sensitivity: "base", numeric: true }));
@@ -774,7 +798,9 @@ export default {
           label: this.$pgettext("Photo", "Title"),
           read: (p) => p?.Title,
           write: (p, v) => {
-            if (p) p.Title = v;
+            if (p) {
+              p.Title = v;
+            }
           },
           display: "text",
           maxLength: PhotoMaxLength.Title,
@@ -784,7 +810,9 @@ export default {
           label: this.$gettext("Caption"),
           read: (p) => p?.Caption,
           write: (p, v) => {
-            if (p) p.Caption = v;
+            if (p) {
+              p.Caption = v;
+            }
           },
           display: "html",
           htmlValue: "captionHtml",
@@ -796,7 +824,9 @@ export default {
           icon: "mdi-flower-tulip",
           read: (p) => p?.Details?.Subject,
           write: (p, v) => {
-            if (p?.Details) p.Details.Subject = v;
+            if (p?.Details) {
+              p.Details.Subject = v;
+            }
           },
           display: "text",
           maxLength: PhotoMaxLength.Subject,
@@ -808,7 +838,9 @@ export default {
           icon: "mdi-copyright",
           read: (p) => p?.Details?.Copyright,
           write: (p, v) => {
-            if (p?.Details) p.Details.Copyright = v;
+            if (p?.Details) {
+              p.Details.Copyright = v;
+            }
           },
           display: "text",
           maxLength: PhotoMaxLength.Copyright,
@@ -820,7 +852,9 @@ export default {
           icon: "mdi-account-tie",
           read: (p) => p?.Details?.Artist,
           write: (p, v) => {
-            if (p?.Details) p.Details.Artist = v;
+            if (p?.Details) {
+              p.Details.Artist = v;
+            }
           },
           display: "text",
           maxLength: PhotoMaxLength.Artist,
@@ -832,7 +866,9 @@ export default {
           icon: "mdi-scale-balance",
           read: (p) => p?.Details?.License,
           write: (p, v) => {
-            if (p?.Details) p.Details.License = v;
+            if (p?.Details) {
+              p.Details.License = v;
+            }
           },
           display: "text",
           maxLength: PhotoMaxLength.License,
@@ -844,7 +880,9 @@ export default {
           icon: "mdi-tag-multiple-outline",
           read: (p) => p?.Details?.Keywords,
           write: (p, v) => {
-            if (p?.Details) p.Details.Keywords = v;
+            if (p?.Details) {
+              p.Details.Keywords = v;
+            }
           },
           display: "text",
           maxLength: PhotoMaxLength.Keywords,
@@ -857,7 +895,9 @@ export default {
           icon: null,
           read: (p) => p?.Details?.Notes,
           write: (p, v) => {
-            if (p?.Details) p.Details.Notes = v;
+            if (p?.Details) {
+              p.Details.Notes = v;
+            }
           },
           display: "html",
           htmlValue: "notesHtml",
@@ -911,7 +951,9 @@ export default {
     // combined Location row. Users without places-view ACL see only the
     // lat/lng so altitude isn't leaked through the sidebar.
     coordinatesLine() {
-      if (!this.model?.Lat || !this.model?.Lng) return "";
+      if (!this.model?.Lat || !this.model?.Lng) {
+        return "";
+      }
       const coords = this.model.getLatLngShort();
       if (this.altitude && this.canViewPlaces) {
         return `${coords}\u2002${this.altitude}`;
@@ -1048,7 +1090,9 @@ export default {
       },
     },
     newMarkerUid(uid) {
-      if (!uid) return;
+      if (!uid) {
+        return;
+      }
       this.$nextTick(() => this.focusMarkerInput(uid));
     },
   },
@@ -1061,8 +1105,12 @@ export default {
     // isEditable already requires canViewLibrary so we don't repeat the
     // ACL check here; only preload the lists the user is allowed to see.
     if (this.isEditable) {
-      if (this.canViewLabels) this.loadChipOptions("labels");
-      if (this.canViewAlbums) this.loadChipOptions("albums");
+      if (this.canViewLabels) {
+        this.loadChipOptions("labels");
+      }
+      if (this.canViewAlbums) {
+        this.loadChipOptions("albums");
+      }
     }
   },
   methods: {
@@ -1209,7 +1257,9 @@ export default {
 
       this.$nextTick(() => {
         const editor = this._inlineEditorEl;
-        if (editor && typeof editor.focus === "function") editor.focus();
+        if (editor && typeof editor.focus === "function") {
+          editor.focus();
+        }
       });
     },
     // Eye-icon click handler (non-editable users only — display mode
@@ -1279,7 +1329,9 @@ export default {
         }
       });
       Object.keys(this.markerDrafts).forEach((uid) => {
-        if (!seen.has(uid)) delete this.markerDrafts[uid];
+        if (!seen.has(uid)) {
+          delete this.markerDrafts[uid];
+        }
       });
     },
     markerInputValue(uid) {
@@ -1312,7 +1364,9 @@ export default {
       this.$emit("naming-started");
       this.$nextTick(() => {
         const input = this.$el && this.$el.querySelector(`[data-marker-uid="${uid}"] input`);
-        if (input) input.focus();
+        if (input) {
+          input.focus();
+        }
       });
     },
     // Match a typed name against knownPeople case-insensitively so the backend
@@ -1426,7 +1480,9 @@ export default {
       this.addNameDialog = { visible: false, markerUid: "", name: "" };
       if (markerUid && name) {
         const marker = this.findMarker(markerUid);
-        if (marker) this.commitMarkerName(marker, this.findKnownPerson(name), name);
+        if (marker) {
+          this.commitMarkerName(marker, this.findKnownPerson(name), name);
+        }
       }
       this.resolveAddNameNav();
     },
@@ -1445,7 +1501,9 @@ export default {
     resolveAddNameNav() {
       const resolve = this._addNameNavResolver;
       this._addNameNavResolver = null;
-      if (resolve) resolve(true);
+      if (resolve) {
+        resolve(true);
+      }
     },
     cancelMarkerName(marker) {
       if (!marker || !marker.UID) {
@@ -1463,7 +1521,9 @@ export default {
       // marker's input (P1-9) rather than document.activeElement so an
       // unrelated focused element isn't blurred by mistake.
       const input = this.$el && this.$el.querySelector(`[data-marker-uid="${marker.UID}"] input`);
-      if (input && typeof input.blur === "function") input.blur();
+      if (input && typeof input.blur === "function") {
+        input.blur();
+      }
     },
     resetInlineEdits() {
       if (this.editingField) {
@@ -1497,7 +1557,9 @@ export default {
     hasPendingEdit() {
       for (const uid of Object.keys(this.markerDrafts)) {
         const d = this.markerDrafts[uid];
-        if (!d) continue;
+        if (!d) {
+          continue;
+        }
         if (this.unwrapMarkerName(d.current).trim() !== (d.original || "").trim()) {
           return true;
         }
@@ -1531,12 +1593,18 @@ export default {
     flushDirtyMarkerDrafts() {
       Object.keys(this.markerDrafts).forEach((uid) => {
         const draft = this.markerDrafts[uid];
-        if (!draft) return;
+        if (!draft) {
+          return;
+        }
         const name = this.unwrapMarkerName(draft.current).trim();
         const original = (draft.original || "").trim();
-        if (!name || name === original) return;
+        if (!name || name === original) {
+          return;
+        }
         const marker = this.findMarker(uid);
-        if (marker) this.confirmMarkerName(marker, "blur");
+        if (marker) {
+          this.confirmMarkerName(marker, "blur");
+        }
       });
     },
     // Async guard used by the lightbox before closing / hiding / navigating.
@@ -1556,7 +1624,9 @@ export default {
           this._addNameNavResolver = resolve;
         });
       }
-      if (!this.hasPendingEdit()) return Promise.resolve(true);
+      if (!this.hasPendingEdit()) {
+        return Promise.resolve(true);
+      }
       if (this.discardDialog.visible && this.discardDialog.resolver) {
         // Another request is already waiting on the dialog; reuse it.
         return new Promise((resolve) => {
@@ -1577,13 +1647,17 @@ export default {
       const r = this.discardDialog.resolver;
       this.discardDialog.resolver = null;
       this.resetInlineEdits();
-      if (r) r(true);
+      if (r) {
+        r(true);
+      }
     },
     onDiscardCancel() {
       this.discardDialog.visible = false;
       const r = this.discardDialog.resolver;
       this.discardDialog.resolver = null;
-      if (r) r(false);
+      if (r) {
+        r(false);
+      }
     },
     confirmField() {
       if (!this.photo || !this.canEdit) {
@@ -1640,7 +1714,9 @@ export default {
       if (this._editStartedAt && Date.now() - this._editStartedAt < 200) {
         return;
       }
-      if (!this.editingField) return;
+      if (!this.editingField) {
+        return;
+      }
       this.confirmField();
     },
     formatTime(model) {
@@ -2092,7 +2168,9 @@ export default {
       photo
         .update()
         .then(() => {
-          if (!this.view?.model) return;
+          if (!this.view?.model) {
+            return;
+          }
           this.view.model.TakenAtLocal = photo.TakenAtLocal;
           this.view.model.TimeZone = photo.TimeZone;
         })

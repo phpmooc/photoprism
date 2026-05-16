@@ -158,12 +158,24 @@ export class Photo extends RestModel {
   generateClasses = memoizeOne((isPlayable, isInClipboard, portrait, favorite, isPrivate, isStack) => {
     let classes = ["is-photo", "uid-" + this.UID, "type-" + this.Type];
 
-    if (isPlayable) classes.push("is-playable");
-    if (isInClipboard) classes.push("is-selected");
-    if (portrait) classes.push("is-portrait");
-    if (favorite) classes.push("is-favorite");
-    if (isPrivate) classes.push("is-private");
-    if (isStack) classes.push("is-stack");
+    if (isPlayable) {
+      classes.push("is-playable");
+    }
+    if (isInClipboard) {
+      classes.push("is-selected");
+    }
+    if (portrait) {
+      classes.push("is-portrait");
+    }
+    if (favorite) {
+      classes.push("is-favorite");
+    }
+    if (isPrivate) {
+      classes.push("is-private");
+    }
+    if (isStack) {
+      classes.push("is-stack");
+    }
 
     return classes;
   });
@@ -762,27 +774,35 @@ export class Photo extends RestModel {
       // Originals only?
       if (s.download.originals && file.Root.length > 1) {
         // Don't download broken files and sidecars.
-        if ($config.debug) console.log(`download: skipped ${file.Root} file ${file.Name}`);
+        if ($config.debug) {
+          console.log(`download: skipped ${file.Root} file ${file.Name}`);
+        }
         return;
       }
 
       // Skip metadata sidecar files?
       if (!s.download.mediaSidecar && (file.MediaType === media.Sidecar || file.Sidecar)) {
         // Don't download broken files and sidecars.
-        if ($config.debug) console.log(`download: skipped sidecar file ${file.Name}`);
+        if ($config.debug) {
+          console.log(`download: skipped sidecar file ${file.Name}`);
+        }
         return;
       }
 
       // Skip RAW images?
       if (!s.download.mediaRaw && (file.MediaType === media.Raw || file.FileType === media.Raw)) {
-        if ($config.debug) console.log(`download: skipped raw file ${file.Name}`);
+        if ($config.debug) {
+          console.log(`download: skipped raw file ${file.Name}`);
+        }
         return;
       }
 
       // If this is a video, always skip stacked images...
       // see https://github.com/photoprism/photoprism/issues/1436
       if (this.Type === media.Video && !(file.MediaType === media.Video || file.Video)) {
-        if ($config.debug) console.log(`download: skipped video sidecar ${file.Name}`);
+        if ($config.debug) {
+          console.log(`download: skipped video sidecar ${file.Name}`);
+        }
         return;
       }
 
@@ -1102,10 +1122,18 @@ export class Photo extends RestModel {
 
   getExifInfo() {
     const parts = [];
-    if (this.FocalLength) parts.push(this.FocalLength + "mm");
-    if (this.FNumber) parts.push("\u0192/" + this.FNumber);
-    if (this.Iso) parts.push("ISO " + this.Iso);
-    if (this.Exposure) parts.push(this.Exposure);
+    if (this.FocalLength) {
+      parts.push(this.FocalLength + "mm");
+    }
+    if (this.FNumber) {
+      parts.push("\u0192/" + this.FNumber);
+    }
+    if (this.Iso) {
+      parts.push("ISO " + this.Iso);
+    }
+    if (this.Exposure) {
+      parts.push(this.Exposure);
+    }
     return parts.join(" \u2022 ");
   }
 
@@ -1210,7 +1238,9 @@ export class Photo extends RestModel {
   // Distinct from Thumb.addToAlbum (grid layer, Removed flag); both contracts
   // are pinned in tests.
   addToAlbum(albumUID) {
-    if (!albumUID) return Promise.resolve(this);
+    if (!albumUID) {
+      return Promise.resolve(this);
+    }
     return $api
       .post(`albums/${albumUID}/photos`, { photos: [this.UID] })
       .then(() => {
@@ -1222,7 +1252,9 @@ export class Photo extends RestModel {
 
   // removeFromAlbum mirrors addToAlbum's evict + refind pattern.
   removeFromAlbum(albumUID) {
-    if (!albumUID) return Promise.resolve(this);
+    if (!albumUID) {
+      return Promise.resolve(this);
+    }
     return $api
       .delete(`albums/${albumUID}/photos`, { data: { photos: [this.UID] } })
       .then(() => {
@@ -1380,7 +1412,9 @@ export class Photo extends RestModel {
     const start = Math.max(0, index - before);
     const end = Math.min(models.length - 1, index + after);
     for (let i = start; i <= end; i++) {
-      if (i === index) continue;
+      if (i === index) {
+        continue;
+      }
       const uid = models[i]?.UID;
       if (uid) {
         tasks.push(Photo.prefetch(uid));

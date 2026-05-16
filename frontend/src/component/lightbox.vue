@@ -1564,7 +1564,9 @@ export default {
       }
 
       const ok = await this.confirmDiscardSidebar();
-      if (!ok) return;
+      if (!ok) {
+        return;
+      }
 
       this.closing = true;
 
@@ -1595,7 +1597,9 @@ export default {
     // onChange().
     wrapPswpNavGuards() {
       const pswp = this.pswp();
-      if (!pswp || pswp.__navGuardsInstalled) return;
+      if (!pswp || pswp.__navGuardsInstalled) {
+        return;
+      }
       const origPrev = pswp.prev ? pswp.prev.bind(pswp) : null;
       const origNext = pswp.next ? pswp.next.bind(pswp) : null;
       if (origPrev) {
@@ -1605,7 +1609,9 @@ export default {
             return origPrev();
           }
           const ok = await this.confirmDiscardSidebar();
-          if (!ok) return;
+          if (!ok) {
+            return;
+          }
           this._suppressNavCheck = true;
           return origPrev();
         };
@@ -1617,7 +1623,9 @@ export default {
             return origNext();
           }
           const ok = await this.confirmDiscardSidebar();
-          if (!ok) return;
+          if (!ok) {
+            return;
+          }
           this._suppressNavCheck = true;
           return origNext();
         };
@@ -1749,7 +1757,9 @@ export default {
               if (!ok) {
                 this._suppressNavCheck = true;
                 const p = this.pswp();
-                if (p && typeof p.goTo === "function") p.goTo(rollbackIndex);
+                if (p && typeof p.goTo === "function") {
+                  p.goTo(rollbackIndex);
+                }
               }
             });
           });
@@ -1881,10 +1891,14 @@ export default {
     // the freshly-saved row; the overlay re-renders via the `markers`
     // computed.
     onCreateFaceMarker(area) {
-      if (!this.photo.UID || !this.shouldShowEditButton() || this.faceMarkers.busy) return;
+      if (!this.photo.UID || !this.shouldShowEditButton() || this.faceMarkers.busy) {
+        return;
+      }
 
       const file = Array.isArray(this.photo.Files) ? this.photo.Files.find((f) => !!f.Primary) : null;
-      if (!file || !file.UID) return;
+      if (!file || !file.UID) {
+        return;
+      }
 
       const marker = new Marker({
         FileUID: file.UID,
@@ -1900,7 +1914,9 @@ export default {
       marker
         .save()
         .then(() => {
-          if (!file.Markers) file.Markers = [];
+          if (!file.Markers) {
+            file.Markers = [];
+          }
           file.Markers.push(marker.getValues());
           Photo.evictCache(this.photo.UID);
           // Trigger inline naming on the fresh row in the sidebar.
@@ -1927,8 +1943,12 @@ export default {
     // computed, which re-reads `photo.getMarkers(true)` whenever the
     // underlying `file.Markers` array is mutated.
     onEjectFaceMarker(marker) {
-      if (!this.photo.UID || !this.shouldShowEditButton() || this.faceMarkers.busy) return;
-      if (!marker || !marker.SubjUID || typeof marker.clearSubject !== "function") return;
+      if (!this.photo.UID || !this.shouldShowEditButton() || this.faceMarkers.busy) {
+        return;
+      }
+      if (!marker || !marker.SubjUID || typeof marker.clearSubject !== "function") {
+        return;
+      }
 
       this.faceMarkers.setBusy(true);
       marker
@@ -1950,9 +1970,13 @@ export default {
     // leave `file.Markers[idx]` (the raw object the overlay re-derives
     // from via `photo.getMarkers(true)`) stale.
     syncMarkerInFile(marker) {
-      if (!marker || !marker.UID || !this.photo.UID || !Array.isArray(this.photo.Files)) return;
+      if (!marker || !marker.UID || !this.photo.UID || !Array.isArray(this.photo.Files)) {
+        return;
+      }
       const file = this.photo.Files.find((f) => !!f.Primary);
-      if (!file || !Array.isArray(file.Markers)) return;
+      if (!file || !Array.isArray(file.Markers)) {
+        return;
+      }
       const idx = file.Markers.findIndex((mm) => mm.UID === marker.UID);
       if (idx >= 0) {
         file.Markers[idx] = typeof marker.getValues === "function" ? marker.getValues() : { ...file.Markers[idx], ...marker };
@@ -1963,8 +1987,12 @@ export default {
     // cache so future reads see the updated row; the overlay re-renders
     // via the `markers` computed.
     onReloadFaceMarkers(marker) {
-      if (marker) this.syncMarkerInFile(marker);
-      if (this.photo.UID) Photo.evictCache(this.photo.UID);
+      if (marker) {
+        this.syncMarkerInFile(marker);
+      }
+      if (this.photo.UID) {
+        Photo.evictCache(this.photo.UID);
+      }
     },
     // Handles the overlay's `remove` emit (✓ on the inline confirm pill
     // that appears when the user clicks an unnamed marker in edit mode).
@@ -1974,8 +2002,12 @@ export default {
     // never reach this handler — the overlay's hit-test skips them and
     // the backend gate (`marker.SubjUID` truthy) is a defense in depth.
     onRemoveFaceMarker(marker) {
-      if (!this.photo.UID || !this.shouldShowEditButton() || this.faceMarkers.busy) return;
-      if (!marker || marker.SubjUID || typeof marker.reject !== "function") return;
+      if (!this.photo.UID || !this.shouldShowEditButton() || this.faceMarkers.busy) {
+        return;
+      }
+      if (!marker || marker.SubjUID || typeof marker.reject !== "function") {
+        return;
+      }
 
       const file = Array.isArray(this.photo.Files) ? this.photo.Files.find((f) => !!f.Primary) : null;
       const uid = marker.UID;
@@ -1986,7 +2018,9 @@ export default {
         .then(() => {
           if (file && Array.isArray(file.Markers) && uid) {
             const idx = file.Markers.findIndex((mm) => mm.UID === uid);
-            if (idx >= 0) file.Markers.splice(idx, 1);
+            if (idx >= 0) {
+              file.Markers.splice(idx, 1);
+            }
           }
           Photo.evictCache(this.photo.UID);
         })
@@ -2568,7 +2602,9 @@ export default {
     // typed into sidebar inputs. `preventDefault` makes `_onKeyDown`
     // bail before its switch statement.
     onPswpKeyDown(ev) {
-      if (!ev || !this.info) return;
+      if (!ev || !this.info) {
+        return;
+      }
       const active = document.activeElement;
       if (active instanceof HTMLInputElement || active instanceof HTMLTextAreaElement || (active && active.isContentEditable)) {
         ev.preventDefault();
@@ -2579,7 +2615,9 @@ export default {
     // navigation reaches sidebar inputs/chips. Vuetify + `$view` re-anchor
     // any focus that escapes the modal.
     onTabKey(ev) {
-      if (!ev) return;
+      if (!ev) {
+        return;
+      }
       const root = this.$refs.container || this.$refs.content;
       const active = document.activeElement;
       if (root && active && root.contains(active)) {
@@ -2989,7 +3027,9 @@ export default {
       }
 
       const ok = await this.confirmDiscardSidebar();
-      if (!ok) return;
+      if (!ok) {
+        return;
+      }
 
       this.info = false;
       // Restore the user's persisted caption preference. The sidebar

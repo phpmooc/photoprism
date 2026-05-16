@@ -84,6 +84,7 @@ export default defineConfig([
         },
       ],
       "semi": ["error", "always"],
+      "curly": ["warn", "all"],
       "no-unused-vars": ["warn"],
       "no-console": 0,
       "no-case-declarations": 0,

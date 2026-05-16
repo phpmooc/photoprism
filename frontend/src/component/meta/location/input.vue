@@ -159,10 +159,14 @@ export default {
   },
   computed: {
     isValidCoordinateInput() {
-      if (!this.coordinateInput) return false;
+      if (!this.coordinateInput) {
+        return false;
+      }
 
       const parts = this.coordinateInput.split(",").map((part) => part.trim());
-      if (parts.length !== 2) return false;
+      if (parts.length !== 2) {
+        return false;
+      }
 
       const lat = parseFloat(parts[0]);
       const lng = parseFloat(parts[1]);
@@ -216,7 +220,9 @@ export default {
       }
     },
     applyCoordinates() {
-      if (!this.isValidCoordinateInput) return;
+      if (!this.isValidCoordinateInput) {
+        return;
+      }
 
       const parts = this.coordinateInput.split(",").map((part) => part.trim());
       const lat = parseFloat(parts[0]);

@@ -51,7 +51,9 @@ export class Model {
   // (used when a partial update should not reset object diffs). The reserved
   // key "__originalValues" is always ignored. No-op for falsy `values`.
   setValues(values, scalarOnly) {
-    if (!values) return;
+    if (!values) {
+      return;
+    }
 
     for (let key in values) {
       if (values.hasOwnProperty(key) && key !== "__originalValues") {

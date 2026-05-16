@@ -100,7 +100,9 @@ export default class $util {
   // spaces and trimmed. Emoji sequences (ZWJ, skin tone, regional indicators)
   // are preserved so emoji-only titles round-trip.
   static normalizeTitle(s) {
-    if (s === null || s === undefined) return "";
+    if (s === null || s === undefined) {
+      return "";
+    }
     return (
       String(s)
         .toLowerCase()
@@ -116,7 +118,9 @@ export default class $util {
     );
   }
   static slugifyLabelTitle(s) {
-    if (s === null || s === undefined) return "";
+    if (s === null || s === undefined) {
+      return "";
+    }
     return String(s)
       .toLowerCase()
       .replace(/&/g, "and")
@@ -318,8 +322,9 @@ export default class $util {
       I: 1,
     };
     let a;
-    if (number < 1 || number > 3999) return "";
-    else {
+    if (number < 1 || number > 3999) {
+      return "";
+    } else {
       for (let key in romanNumList) {
         a = Math.floor(number / romanNumList[key]);
         if (a >= 0) {

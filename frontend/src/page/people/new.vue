@@ -569,7 +569,9 @@ export default {
         });
     },
     onShow(model) {
-      if (this.busy || !model) return;
+      if (this.busy || !model) {
+        return;
+      }
 
       this.busy = true;
       model.show().finally(() => {
@@ -578,7 +580,9 @@ export default {
       });
     },
     onHide(model) {
-      if (this.busy || !model) return;
+      if (this.busy || !model) {
+        return;
+      }
 
       this.busy = true;
       model.hide().finally(() => {
@@ -587,7 +591,9 @@ export default {
       });
     },
     toggleHidden(model) {
-      if (this.busy || !model) return;
+      if (this.busy || !model) {
+        return;
+      }
 
       this.busy = true;
 

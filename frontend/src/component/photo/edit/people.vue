@@ -170,7 +170,9 @@ export default {
       }
     },
     onReject(model) {
-      if (this.busy || !model) return;
+      if (this.busy || !model) {
+        return;
+      }
 
       this.busy = true;
       this.$notify.blockUI("busy");
@@ -315,14 +317,18 @@ export default {
         });
     },
     onApprove(model) {
-      if (this.busy || !model) return;
+      if (this.busy || !model) {
+        return;
+      }
 
       this.busy = true;
 
       model.approve().finally(() => (this.busy = false));
     },
     onClearSubject(model) {
-      if (this.busy || !model) return;
+      if (this.busy || !model) {
+        return;
+      }
 
       this.busy = true;
       this.$notify.blockUI("busy");

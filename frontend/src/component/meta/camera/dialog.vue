@@ -177,7 +177,9 @@ export default {
       this.$view.leave(this);
     },
     loadFromPhoto() {
-      if (!this.photo) return;
+      if (!this.photo) {
+        return;
+      }
 
       this.cameraID = this.photo.CameraID || 0;
       this.lensID = this.photo.LensID || 0;

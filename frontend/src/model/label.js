@@ -35,8 +35,12 @@ export class Label extends Collection {
   classes(selected) {
     let classes = ["is-label", "uid-" + this.UID];
 
-    if (this.Favorite) classes.push("is-favorite");
-    if (selected) classes.push("is-selected");
+    if (this.Favorite) {
+      classes.push("is-favorite");
+    }
+    if (selected) {
+      classes.push("is-selected");
+    }
 
     return classes;
   }

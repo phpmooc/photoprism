@@ -174,7 +174,9 @@ export default {
       return this.mode === FaceMarkerEdit;
     },
     svgStyle() {
-      if (!this.bounds) return { display: "none" };
+      if (!this.bounds) {
+        return { display: "none" };
+      }
       return {
         position: "absolute",
         left: `${this.bounds.left}px`,
@@ -190,7 +192,9 @@ export default {
       return this.hoverCursor ? { cursor: this.hoverCursor } : {};
     },
     confirmStyle() {
-      if (!this.pending || !this.bounds) return { display: "none" };
+      if (!this.pending || !this.bounds) {
+        return { display: "none" };
+      }
       const left = this.bounds.left + this.pending.x + this.pending.w / 2;
       const top = this.bounds.top + this.pending.y + this.pending.h;
       return {
@@ -204,7 +208,9 @@ export default {
     // coordinate space. Used to anchor the remove-confirm pill and to
     // highlight the target rectangle.
     removingMarkerRect() {
-      if (!this.removingMarker || !this.bounds) return null;
+      if (!this.removingMarker || !this.bounds) {
+        return null;
+      }
       const m = this.removingMarker;
       return {
         x: m.X * this.bounds.width,
@@ -215,7 +221,9 @@ export default {
     },
     removeConfirmStyle() {
       const r = this.removingMarkerRect;
-      if (!r || !this.bounds) return { display: "none" };
+      if (!r || !this.bounds) {
+        return { display: "none" };
+      }
       const left = this.bounds.left + r.x + r.w / 2;
       const top = this.bounds.top + r.y + r.h;
       return {
@@ -270,7 +278,9 @@ export default {
   methods: {
     imageElement() {
       const el = this.pswp?.currSlide?.content?.element;
-      if (el instanceof HTMLImageElement) return el;
+      if (el instanceof HTMLImageElement) {
+        return el;
+      }
       if (el && typeof el.querySelector === "function") {
         return el.querySelector("img.pswp__image");
       }
@@ -287,7 +297,9 @@ export default {
         this._loadListenedImg = null;
         return;
       }
-      if (this._loadListenedImg === img) return;
+      if (this._loadListenedImg === img) {
+        return;
+      }
       this.detachImageLoadListener();
       this._loadListenedImg = img;
       this._onImgLoad = () => this.scheduleUpdate();
@@ -301,7 +313,9 @@ export default {
       this._onImgLoad = null;
     },
     attachPswpListeners() {
-      if (!this.pswp || typeof this.pswp.on !== "function") return;
+      if (!this.pswp || typeof this.pswp.on !== "function") {
+        return;
+      }
       this._onZoomPan = () => this.scheduleUpdate();
       this._onChange = () => {
         this.attachImageLoadListener();
@@ -314,16 +328,24 @@ export default {
       this.pswp.on("imageClickAction", this._onChange);
     },
     detachPswpListeners() {
-      if (!this.pswp || typeof this.pswp.off !== "function") return;
-      if (this._onZoomPan) this.pswp.off("zoomPanUpdate", this._onZoomPan);
+      if (!this.pswp || typeof this.pswp.off !== "function") {
+        return;
+      }
+      if (this._onZoomPan) {
+        this.pswp.off("zoomPanUpdate", this._onZoomPan);
+      }
       if (this._onChange) {
         this.pswp.off("change", this._onChange);
         this.pswp.off("imageClickAction", this._onChange);
       }
-      if (this._onResize) this.pswp.off("resize", this._onResize);
+      if (this._onResize) {
+        this.pswp.off("resize", this._onResize);
+      }
     },
     scheduleUpdate() {
-      if (this.rafHandle) return;
+      if (this.rafHandle) {
+        return;
+      }
       this.rafHandle = requestAnimationFrame(() => {
         this.rafHandle = null;
         this.updateBounds();
@@ -332,13 +354,17 @@ export default {
     updateBounds() {
       const img = this.imageElement();
       if (!img || !this.$refs.root) {
-        if (this.bounds !== null) this.bounds = null;
+        if (this.bounds !== null) {
+          this.bounds = null;
+        }
         return;
       }
       const imgRect = img.getBoundingClientRect();
       const parentRect = this.$refs.root.getBoundingClientRect();
       if (imgRect.width <= 0 || imgRect.height <= 0) {
-        if (this.bounds !== null) this.bounds = null;
+        if (this.bounds !== null) {
+          this.bounds = null;
+        }
         return;
       }
       // getBoundingClientRect returns the <img> box, not the letterboxed pixel
@@ -378,17 +404,25 @@ export default {
       this.bounds = { left, top, width, height };
     },
     onPointerDown(ev) {
-      if (!this.isEditMode) return;
+      if (!this.isEditMode) {
+        return;
+      }
 
       if (!this.bounds) {
         this.updateBounds();
-        if (!this.bounds) return;
+        if (!this.bounds) {
+          return;
+        }
       }
 
-      if (ev.button !== undefined && ev.button !== 0) return;
+      if (ev.button !== undefined && ev.button !== 0) {
+        return;
+      }
 
       const local = this.toLocal(ev.clientX, ev.clientY);
-      if (!this.insideBounds(local)) return;
+      if (!this.insideBounds(local)) {
+        return;
+      }
 
       if (this.pending) {
         const corner = this.hitTestCorner(local, this.pending);
@@ -415,7 +449,9 @@ export default {
       // Clicking outside a marker cancels any pending remove pill so a
       // fresh draw can start from the same gesture without a prior
       // click "stealing" focus.
-      if (this.removingMarker) this.removingMarker = null;
+      if (this.removingMarker) {
+        this.removingMarker = null;
+      }
 
       this.stopEventFromPswp(ev);
       this.pending = null;
@@ -429,16 +465,22 @@ export default {
     // Returns the first unnamed marker whose pixel rect contains the
     // given local point, or null if none. Named markers are skipped.
     findMarkerAt(local) {
-      if (!this.bounds || !Array.isArray(this.markers)) return null;
+      if (!this.bounds || !Array.isArray(this.markers)) {
+        return null;
+      }
       for (const m of this.markers) {
-        if (!m || m.SubjUID) continue;
+        if (!m || m.SubjUID) {
+          continue;
+        }
         const rect = {
           x: m.X * this.bounds.width,
           y: m.Y * this.bounds.height,
           w: m.W * this.bounds.width,
           h: m.H * this.bounds.height,
         };
-        if (this.insidePending(local, rect)) return m;
+        if (this.insidePending(local, rect)) {
+          return m;
+        }
       }
       return null;
     },
@@ -447,7 +489,9 @@ export default {
     // from the updated photo state.
     onConfirmRemove() {
       const m = this.removingMarker;
-      if (!m) return;
+      if (!m) {
+        return;
+      }
       this.removingMarker = null;
       this.$emit("remove", m);
     },
@@ -456,8 +500,12 @@ export default {
       this.removingMarker = null;
     },
     onPointerMove(ev) {
-      if (!this.interaction || !this.dragStart || !this.bounds) return;
-      if (this.pointerId !== null && ev.pointerId !== this.pointerId) return;
+      if (!this.interaction || !this.dragStart || !this.bounds) {
+        return;
+      }
+      if (this.pointerId !== null && ev.pointerId !== this.pointerId) {
+        return;
+      }
 
       const local = this.toLocal(ev.clientX, ev.clientY);
       const cx = Math.max(0, Math.min(this.bounds.width, local.x));
@@ -465,15 +513,25 @@ export default {
 
       if (this.interaction === InteractionMove) {
         const origin = this.dragStart.pending;
-        if (!origin) return;
+        if (!origin) {
+          return;
+        }
         const dx = local.x - this.dragStart.local.x;
         const dy = local.y - this.dragStart.local.y;
         let nx = origin.x + dx;
         let ny = origin.y + dy;
-        if (nx < 0) nx = 0;
-        if (ny < 0) ny = 0;
-        if (nx + origin.w > this.bounds.width) nx = this.bounds.width - origin.w;
-        if (ny + origin.h > this.bounds.height) ny = this.bounds.height - origin.h;
+        if (nx < 0) {
+          nx = 0;
+        }
+        if (ny < 0) {
+          ny = 0;
+        }
+        if (nx + origin.w > this.bounds.width) {
+          nx = this.bounds.width - origin.w;
+        }
+        if (ny + origin.h > this.bounds.height) {
+          ny = this.bounds.height - origin.h;
+        }
         this.pending = { x: nx, y: ny, w: origin.w, h: origin.h };
         return;
       }
@@ -497,8 +555,12 @@ export default {
       let sw = side;
       let sh = side;
 
-      if (signX < 0) sx = this.dragStart.local.x - side;
-      if (signY < 0) sy = this.dragStart.local.y - side;
+      if (signX < 0) {
+        sx = this.dragStart.local.x - side;
+      }
+      if (signY < 0) {
+        sy = this.dragStart.local.y - side;
+      }
 
       if (sx < 0) {
         sw += sx;
@@ -521,8 +583,12 @@ export default {
         sh -= over;
       }
 
-      if (sw < 0) sw = 0;
-      if (sh < 0) sh = 0;
+      if (sw < 0) {
+        sw = 0;
+      }
+      if (sh < 0) {
+        sh = 0;
+      }
 
       if (this.interaction === InteractionResize) {
         this.pending = { x: sx, y: sy, w: sw, h: sh };
@@ -531,8 +597,12 @@ export default {
       }
     },
     onPointerUp(ev) {
-      if (!this.interaction) return;
-      if (this.pointerId !== null && ev && ev.pointerId !== this.pointerId) return;
+      if (!this.interaction) {
+        return;
+      }
+      if (this.pointerId !== null && ev && ev.pointerId !== this.pointerId) {
+        return;
+      }
 
       this.detachWindowPointerListeners();
 
@@ -547,7 +617,9 @@ export default {
 
       // Move/resize have already written the up-to-date `pending`; only
       // the draw path needs to promote its draft into pending.
-      if (wasInteraction !== InteractionDraw) return;
+      if (wasInteraction !== InteractionDraw) {
+        return;
+      }
 
       if (!draft || !this.bounds || draft.w < MIN_DRAW_SIZE || draft.h < MIN_DRAW_SIZE) {
         return;
@@ -556,11 +628,15 @@ export default {
       this.pending = draft;
     },
     onConfirmPending() {
-      if (this.busy) return;
+      if (this.busy) {
+        return;
+      }
 
       const pending = this.pending;
       const bounds = this.bounds;
-      if (!pending || !bounds) return;
+      if (!pending || !bounds) {
+        return;
+      }
 
       const nx = pending.x / bounds.width;
       const ny = pending.y / bounds.height;
@@ -607,7 +683,9 @@ export default {
     },
     // handleEnter mirrors a ✓ click; no-op during draft / drag / remove-confirm.
     handleEnter() {
-      if (this.busy || this.interaction || this.removingMarker || !this.pending) return;
+      if (this.busy || this.interaction || this.removingMarker || !this.pending) {
+        return;
+      }
       this.onConfirmPending();
     },
     // handleEscape cancels in-progress draw/move/resize or clears the pending
@@ -623,7 +701,9 @@ export default {
       }
       if (this.interaction === InteractionMove || this.interaction === InteractionResize) {
         const snapshot = this.dragStart && this.dragStart.pending;
-        if (snapshot) this.pending = { ...snapshot };
+        if (snapshot) {
+          this.pending = { ...snapshot };
+        }
         this.interaction = null;
         this.resizeCorner = null;
         this.pointerId = null;
@@ -642,8 +722,12 @@ export default {
       return false;
     },
     stopEventFromPswp(ev) {
-      if (typeof ev.stopPropagation === "function") ev.stopPropagation();
-      if (typeof ev.preventDefault === "function" && ev.cancelable !== false) ev.preventDefault();
+      if (typeof ev.stopPropagation === "function") {
+        ev.stopPropagation();
+      }
+      if (typeof ev.preventDefault === "function" && ev.cancelable !== false) {
+        ev.preventDefault();
+      }
     },
     attachWindowPointerListeners() {
       window.addEventListener("pointermove", this.onPointerMove);
@@ -665,7 +749,9 @@ export default {
       };
       for (const key of Object.keys(corners)) {
         const c = corners[key];
-        if (Math.hypot(p.x - c.x, p.y - c.y) <= r) return key;
+        if (Math.hypot(p.x - c.x, p.y - c.y) <= r) {
+          return key;
+        }
       }
       return null;
     },
@@ -676,12 +762,19 @@ export default {
     // math in onPointerMove works the same way as for the draw path.
     beginResize(corner, ev) {
       const p = this.pending;
-      if (!p) return;
+      if (!p) {
+        return;
+      }
       let anchor;
-      if (corner === "tl") anchor = { x: p.x + p.w, y: p.y + p.h };
-      else if (corner === "tr") anchor = { x: p.x, y: p.y + p.h };
-      else if (corner === "bl") anchor = { x: p.x + p.w, y: p.y };
-      else anchor = { x: p.x, y: p.y };
+      if (corner === "tl") {
+        anchor = { x: p.x + p.w, y: p.y + p.h };
+      } else if (corner === "tr") {
+        anchor = { x: p.x, y: p.y + p.h };
+      } else if (corner === "bl") {
+        anchor = { x: p.x + p.w, y: p.y };
+      } else {
+        anchor = { x: p.x, y: p.y };
+      }
 
       this.stopEventFromPswp(ev);
       this.interaction = InteractionResize;
@@ -696,45 +789,65 @@ export default {
       this.attachWindowPointerListeners();
     },
     onHoverMove(ev) {
-      if (!this.isEditMode || this.interaction) return;
+      if (!this.isEditMode || this.interaction) {
+        return;
+      }
       if (!this.bounds) {
-        if (this.hoverCursor !== null) this.hoverCursor = null;
+        if (this.hoverCursor !== null) {
+          this.hoverCursor = null;
+        }
         return;
       }
       const local = this.toLocal(ev.clientX, ev.clientY);
       if (!this.insideBounds(local)) {
-        if (this.hoverCursor !== null) this.hoverCursor = null;
+        if (this.hoverCursor !== null) {
+          this.hoverCursor = null;
+        }
         return;
       }
       if (this.pending) {
         const corner = this.hitTestCorner(local, this.pending);
         if (corner) {
           const c = corner === "tl" || corner === "br" ? "nwse-resize" : "nesw-resize";
-          if (this.hoverCursor !== c) this.hoverCursor = c;
+          if (this.hoverCursor !== c) {
+            this.hoverCursor = c;
+          }
           return;
         }
         if (this.insidePending(local, this.pending)) {
-          if (this.hoverCursor !== "move") this.hoverCursor = "move";
+          if (this.hoverCursor !== "move") {
+            this.hoverCursor = "move";
+          }
           return;
         }
       }
       // Hovering an unnamed marker rect: signal it is clickable for
       // removal. Named markers fall through to the default cursor.
       if (this.findMarkerAt(local)) {
-        if (this.hoverCursor !== "pointer") this.hoverCursor = "pointer";
+        if (this.hoverCursor !== "pointer") {
+          this.hoverCursor = "pointer";
+        }
         return;
       }
-      if (this.hoverCursor !== null) this.hoverCursor = null;
+      if (this.hoverCursor !== null) {
+        this.hoverCursor = null;
+      }
     },
     onHoverLeave() {
-      if (this.hoverCursor !== null) this.hoverCursor = null;
+      if (this.hoverCursor !== null) {
+        this.hoverCursor = null;
+      }
     },
     // onWheel re-dispatches wheel events on PhotoSwipe's element while in edit
     // mode (overlay's pointer-events: auto would otherwise swallow zoom gestures).
     onWheel(ev) {
-      if (!this.isEditMode) return;
+      if (!this.isEditMode) {
+        return;
+      }
       const pswpEl = this.pswp?.element;
-      if (!pswpEl) return;
+      if (!pswpEl) {
+        return;
+      }
       if (typeof ev.preventDefault === "function" && ev.cancelable !== false) {
         ev.preventDefault();
       }
@@ -757,7 +870,9 @@ export default {
     },
     beginMove(local, ev) {
       const p = this.pending;
-      if (!p) return;
+      if (!p) {
+        return;
+      }
       this.stopEventFromPswp(ev);
       this.interaction = InteractionMove;
       this.resizeCorner = null;
@@ -771,7 +886,9 @@ export default {
       this.attachWindowPointerListeners();
     },
     toLocal(clientX, clientY) {
-      if (!this.bounds || !this.$refs.root) return { x: 0, y: 0 };
+      if (!this.bounds || !this.$refs.root) {
+        return { x: 0, y: 0 };
+      }
       const rect = this.$refs.root.getBoundingClientRect();
       return {
         x: clientX - rect.left - this.bounds.left,
@@ -782,8 +899,12 @@ export default {
       return this.bounds && p.x >= 0 && p.y >= 0 && p.x <= this.bounds.width && p.y <= this.bounds.height;
     },
     clamp01(v) {
-      if (v < 0) return 0;
-      if (v >= 1) return 0.999999;
+      if (v < 0) {
+        return 0;
+      }
+      if (v >= 1) {
+        return 0.999999;
+      }
       return v;
     },
   },

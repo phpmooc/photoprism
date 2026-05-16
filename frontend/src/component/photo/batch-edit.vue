@@ -817,24 +817,34 @@ export default {
       }
 
       const t = String(inputTitle).trim();
-      if (!t) return null;
+      if (!t) {
+        return null;
+      }
 
       const nt = $util.normalizeTitle(t);
       const st = $util.slugifyLabelTitle(t);
 
       let found = this.cachedLabelOptions.find((o) => o.title.toLowerCase() === t.toLowerCase());
-      if (found) return { value: found.value, title: found.title };
+      if (found) {
+        return { value: found.value, title: found.title };
+      }
 
       found = this.cachedLabelOptions.find((o) => o.slug === st || o.customSlug === st);
-      if (found) return { value: found.value, title: found.title };
+      if (found) {
+        return { value: found.value, title: found.title };
+      }
 
       found = this.cachedLabelOptions.find((o) => $util.normalizeTitle(o.title) === nt);
-      if (found) return { value: found.value, title: found.title };
+      if (found) {
+        return { value: found.value, title: found.title };
+      }
 
       return { value: "", title: t };
     },
     changeValue(newValue, fieldType, fieldName) {
-      if (!fieldName) return;
+      if (!fieldName) {
+        return;
+      }
 
       const previousValue = this.previousFormData[fieldName].value;
       this.formData[fieldName].action = this.actions.update;
@@ -860,7 +870,9 @@ export default {
       this.getIcon(fieldType, fieldName);
     },
     changeSelectValue(newValue, fieldType, fieldName) {
-      if (!fieldName) return;
+      if (!fieldName) {
+        return;
+      }
 
       const previousValue = this.previousFormData[fieldName].value;
       this.formData[fieldName].action = this.actions.update;
@@ -917,11 +929,15 @@ export default {
       return y > 0 && m > 0 && !yearMixed && !monthMixed;
     },
     clampBatchDayIfResolvable() {
-      if (!this.isBatchDateResolvable()) return;
+      if (!this.isBatchDateResolvable()) {
+        return;
+      }
       const y = this.batchYear();
       const m = this.batchMonth();
       const d = parseInt(this.formData?.Day?.value, 10);
-      if (isNaN(d) || d <= 0) return; // Unknown or empty: do nothing in batch UI
+      if (isNaN(d) || d <= 0) {
+        return;
+      } // Unknown or empty: do nothing in batch UI
       const maxDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
       if (d > maxDay) {
         this.formData.Day.value = maxDay;
@@ -929,7 +945,9 @@ export default {
       }
     },
     changeToggleValue(newValue, fieldName) {
-      if (!fieldName) return;
+      if (!fieldName) {
+        return;
+      }
 
       const previousValue = this.previousFormData[fieldName].value;
       this.formData[fieldName].action = this.actions.update;
@@ -976,7 +994,9 @@ export default {
         const formKey = key || name;
         const fieldData = this.values[formKey];
 
-        if (!fieldData) return;
+        if (!fieldData) {
+          return;
+        }
 
         const { value, placeholder } = this.getFieldData(type, name);
         this.formData[formKey] = {
@@ -1004,7 +1024,9 @@ export default {
       // Set values for toggle fields (boolean fields)
       this.toggleFieldsArray.forEach((fieldName) => {
         const fieldData = this.values[fieldName];
-        if (!fieldData) return;
+        if (!fieldData) {
+          return;
+        }
 
         const toggleValue = this.getToggleValue(fieldName);
 
@@ -1062,7 +1084,9 @@ export default {
     },
     toggleOptions(fieldName) {
       const fieldData = this.values[fieldName];
-      if (!fieldData) return [];
+      if (!fieldData) {
+        return [];
+      }
 
       const result = [
         { text: this.$gettext("Yes"), value: true },
@@ -1116,7 +1140,9 @@ export default {
       const fieldData = this.values[fieldName];
       const isDeleted = this.deletedFields?.[fieldName];
 
-      if (!fieldData) return;
+      if (!fieldData) {
+        return;
+      }
       const previousField = this.previousFormData[fieldName];
 
       if (this.formData[fieldName].value !== previousField?.value || isDeleted) {
@@ -1133,7 +1159,9 @@ export default {
       const fieldData = this.values[fieldName];
       const isDeleted = this.deletedFields?.[fieldName];
 
-      if (!fieldData) return { value: "", placeholder: "", persistent: false };
+      if (!fieldData) {
+        return { value: "", placeholder: "", persistent: false };
+      }
 
       // Helper function to format numeric values
       const formatNumericValue = (value) => {
