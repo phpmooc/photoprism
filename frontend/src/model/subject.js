@@ -8,6 +8,12 @@ const SubjPerson = "person";
 
 export let BatchSize = 60;
 
+// MaxLength mirrors the backend VARCHAR caps on internal/entity/subject.go
+// so UI validation matches what the server persists.
+export const MaxLength = Object.freeze({
+  Name: 160,
+});
+
 // Subject tracks people and other recognizable subjects derived from face/marker data.
 export class Subject extends Collection {
   getDefaults() {

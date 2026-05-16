@@ -48,12 +48,11 @@
               <v-text-field
                 v-else-if="m.SubjUID"
                 v-model="m.Name"
-                :rules="[textRule]"
+                :rules="rules.text(true, 0, SubjectMaxLength.Name, $gettext('Name'))"
                 :disabled="busy"
                 :readonly="true"
                 autocomplete="off"
                 autocorrect="off"
-                hide-details
                 single-line
                 clearable
                 persistent-clear
@@ -103,7 +102,8 @@
 
 <script>
 import Marker from "model/marker";
-import Subject from "model/subject";
+import Subject, { MaxLength as SubjectMaxLength } from "model/subject";
+import { rules } from "common/form";
 import PConfirmDialog from "component/confirm/dialog.vue";
 import PActionMenu from "component/action/menu.vue";
 
@@ -127,6 +127,8 @@ export default {
       disabled: !this.$config.feature("edit"),
       config: this.$config.values,
       readonly: this.$config.get("readonly"),
+      rules,
+      SubjectMaxLength,
       confirm: {
         visible: false,
         model: new Marker(),
@@ -148,13 +150,6 @@ export default {
         locationStrategy: "connected",
         scrollStrategy: "reposition",
         origin: "auto",
-      },
-      textRule: (v) => {
-        if (!v || !v.length) {
-          return this.$gettext("Name");
-        }
-
-        return v.length <= this.$config.get("clip") || this.$gettext("Name too long");
       },
     };
   },

@@ -48,10 +48,9 @@
                 <v-text-field
                   v-if="m.SubjUID"
                   v-model="m.Name"
-                  :rules="[textRule]"
+                  :rules="rules.text(true, 0, SubjectMaxLength.Name, $gettext('Name'))"
                   :readonly="readonly"
                   autocomplete="off"
-                  hide-details
                   single-line
                   density="comfortable"
                   class="input-name pa-0 ma-0"
@@ -99,6 +98,8 @@
 <script>
 import Face from "model/face";
 import RestModel from "model/rest";
+import { MaxLength as SubjectMaxLength } from "model/subject";
+import { rules } from "common/form";
 import { MaxItems } from "common/clipboard";
 import $notify from "common/notify";
 import { ClickLong, ClickShort, Input, InputInvalid } from "common/input";
@@ -130,6 +131,8 @@ export default {
     return {
       view: "all",
       config: this.$config.values,
+      rules,
+      SubjectMaxLength,
       subscriptions: [],
       listen: false,
       dirty: false,
@@ -165,13 +168,6 @@ export default {
         locationStrategy: "connected",
         scrollStrategy: "reposition",
         origin: "auto",
-      },
-      textRule: (v) => {
-        if (!v || !v.length) {
-          return this.$gettext("Name");
-        }
-
-        return v.length <= this.$config.get("clip") || this.$gettext("Text too long");
       },
     };
   },

@@ -7,6 +7,15 @@ import Collection from "model/collection";
 
 export let BatchSize = 180;
 
+// MaxLength mirrors the backend VARCHAR caps on internal/entity/album.go
+// so UI validation matches what the server persists.
+export const MaxLength = Object.freeze({
+  Title: 160,
+  Location: 160,
+  Caption: 1024,
+  Description: 2048,
+});
+
 // Album models server-managed photo collections, including manual albums and moments.
 export class Album extends Collection {
   getDefaults() {

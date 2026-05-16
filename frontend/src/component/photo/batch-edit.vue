@@ -155,7 +155,7 @@
                   <v-col cols="12" class="text-subtitle-2">{{ $gettext(`Description`) }}</v-col>
                   <v-col cols="12">
                     <v-text-field
-                      hide-details
+                      :rules="rules.text(false, 0, PhotoMaxLength.Title, $pgettext(`Photo`, `Title`))"
                       :label="$pgettext(`Photo`, `Title`)"
                       :model-value="formData.Title.value"
                       :placeholder="getFieldData('text-field', 'Title').placeholder"
@@ -170,7 +170,7 @@
                   </v-col>
                   <v-col cols="12">
                     <v-textarea
-                      hide-details
+                      :rules="rules.text(false, 0, PhotoMaxLength.Caption, $gettext('Caption'))"
                       autocomplete="off"
                       auto-grow
                       :label="$gettext('Caption')"
@@ -328,7 +328,7 @@
                   <v-col cols="12" class="text-subtitle-2">{{ $pgettext(`Edit`, `Content`) }}</v-col>
                   <v-col cols="12" sm="8">
                     <v-textarea
-                      hide-details
+                      :rules="rules.text(false, 0, PhotoMaxLength.Subject, $gettext('Subject'))"
                       autocomplete="off"
                       auto-grow
                       :label="$gettext('Subject')"
@@ -364,7 +364,7 @@
                   </v-col>
                   <v-col cols="12" sm="6">
                     <v-text-field
-                      hide-details
+                      :rules="rules.text(false, 0, PhotoMaxLength.Copyright, $gettext('Copyright'))"
                       autocomplete="off"
                       :label="$gettext('Copyright')"
                       :model-value="formData.DetailsCopyright.value"
@@ -379,7 +379,7 @@
                   </v-col>
                   <v-col cols="12" sm="6">
                     <v-text-field
-                      hide-details
+                      :rules="rules.text(false, 0, PhotoMaxLength.Artist, $gettext('Artist'))"
                       autocomplete="off"
                       :label="$gettext('Artist')"
                       :model-value="formData.DetailsArtist.value"
@@ -394,7 +394,7 @@
                   </v-col>
                   <v-col cols="12">
                     <v-textarea
-                      hide-details
+                      :rules="rules.text(false, 0, PhotoMaxLength.License, $gettext('License'))"
                       autocomplete="off"
                       auto-grow
                       :label="$gettext('License')"
@@ -500,6 +500,8 @@ import * as contexts from "options/contexts";
 import IconLivePhoto from "../icon/live-photo.vue";
 import { Batch } from "model/batch";
 import Thumb from "model/thumb";
+import { MaxLength as PhotoMaxLength } from "model/photo";
+import { rules } from "common/form";
 import PMetaLocationDialog from "component/meta/location/dialog.vue";
 import PMetaLocationInput from "component/meta/location/input.vue";
 import PInputChipSelector from "component/input/chip-selector.vue";
@@ -553,6 +555,8 @@ export default {
       isAllSelected: true,
       allSelectedLength: 0,
       options,
+      rules,
+      PhotoMaxLength,
       firstVisibleElementIndex: 0,
       lastVisibleElementIndex: 0,
       mouseDown: {
@@ -797,6 +801,12 @@ export default {
           this.values = this.model.values;
           this.setFormData();
           this.allSelectedLength = this.model.getLengthOfAllSelected();
+          // Seed validation so the per-field `:rules` are active from
+          // the first render. Without this, Vuetify's `validate-on=
+          // "invalid-input"` default keeps rules dormant until the
+          // first failed validate() and save() can proceed against an
+          // overlength value. Mirrors page/settings/account.vue.
+          this.$nextTick(() => this.$refs.form?.validate?.());
         })
         .catch(() => {
           this.values = {};
@@ -1416,9 +1426,24 @@ export default {
       this.locationDialog = false;
     },
     save(close) {
+      const form = this.$refs.form;
+      const validate = typeof form?.validate === "function" ? form.validate() : Promise.resolve({ valid: true });
+
+      return Promise.resolve(validate).then((result) => {
+        if (result && result.valid === false) {
+          this.$notify.error(this.$gettext("Changes could not be saved"));
+          return;
+        }
+
+        return this.persistChanges(close);
+      });
+    },
+    // persistChanges runs the actual batch save once form-level validation
+    // has passed. Split out so save() can early-return cleanly on invalid
+    // input without nesting two levels of `.then(...)`.
+    persistChanges(close) {
       this.saving = true;
 
-      // Filter form data to only include fields with changes
       const filteredFormData = this.getFilteredFormData();
 
       if (!filteredFormData || Object.keys(filteredFormData).length === 0) {
@@ -1429,7 +1454,6 @@ export default {
         return Promise.resolve();
       }
 
-      // Get currently selected photo UIDs from the model
       const currentlySelectedUIDs = this.model.selection.filter((photo) => photo.selected).map((photo) => photo.id);
 
       return this.model

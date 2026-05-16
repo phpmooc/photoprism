@@ -439,6 +439,38 @@ describe("component/photo/edit/details", () => {
       expect(wrapper.emitted("close")).toBeTruthy();
     });
 
+    // Vue 3's component proxy intercepts $refs reads; standard assignment
+    // doesn't stick. The internal instance (vm.$) exposes the underlying
+    // `refs` object that the proxy reads from, so injecting the mock
+    // there lets `this.$refs.form.validate` resolve to the spy when
+    // save() runs.
+    const overrideFormRef = (vm, validate) => {
+      vm.$.refs.form = { validate };
+    };
+
+    it("blocks save and notifies when form validation fails", async () => {
+      wrapper.vm.invalidDate = false;
+      const validate = vi.fn().mockResolvedValue({ valid: false });
+      overrideFormRef(wrapper.vm, validate);
+
+      await wrapper.vm.save(false);
+
+      expect(validate).toHaveBeenCalled();
+      expect(wrapper.vm.view.model.update).not.toHaveBeenCalled();
+      expect(wrapper.vm.$notify.error).toHaveBeenCalledWith("Changes could not be saved");
+    });
+
+    it("proceeds with save when form validation passes", async () => {
+      wrapper.vm.invalidDate = false;
+      const validate = vi.fn().mockResolvedValue({ valid: true });
+      overrideFormRef(wrapper.vm, validate);
+
+      await wrapper.vm.save(false);
+
+      expect(validate).toHaveBeenCalled();
+      expect(wrapper.vm.view.model.update).toHaveBeenCalled();
+    });
+
     it("validates text length via the centralized rules.text factory", () => {
       // After migrating the per-component textRule to the shared
       // common/form rules.text(...) factory, each :rules attribute
@@ -457,6 +489,43 @@ describe("component/photo/edit/details", () => {
       expect(maxLenRule(null)).toBe(true);
       expect(maxLenRule(undefined)).toBe(true);
       expect(maxLenRule({ Name: "obj" })).toBe(true);
+    });
+
+    // Per-field caps must come from PhotoMaxLength (backend VARCHAR), not
+    // the historical $config.get('clip') = 160 ceiling. These cases lock
+    // each field's exposure to its real backend cap so a future bare
+    // `clip` regression fails loudly here.
+    it("exposes PhotoMaxLength and wires the per-field caps", () => {
+      const m = wrapper.vm.PhotoMaxLength;
+      expect(m).toEqual({
+        Title: 200,
+        Caption: 4096,
+        Subject: 1024,
+        Artist: 1024,
+        Copyright: 1024,
+        License: 1024,
+        Keywords: 2048,
+        Notes: 2048,
+      });
+
+      const cases = [
+        ["Title", "Title", m.Title],
+        ["Caption", "Caption", m.Caption],
+        ["Subject", "Subject", m.Subject],
+        ["Copyright", "Copyright", m.Copyright],
+        ["Artist", "Artist", m.Artist],
+        ["License", "License", m.License],
+        ["Keywords", "Keywords", m.Keywords],
+        ["Notes", "Notes", m.Notes],
+      ];
+
+      for (const [label, errorLabel, cap] of cases) {
+        const [, rule] = wrapper.vm.rules.text(false, 0, cap, label);
+        // At the cap → passes (200 valid for Title, 4096 for Caption, …).
+        expect(rule("a".repeat(cap))).toBe(true);
+        // One char beyond → label-specific error.
+        expect(rule("a".repeat(cap + 1))).toBe(`${errorLabel} is too long`);
+      }
     });
   });
 

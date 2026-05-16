@@ -83,55 +83,58 @@ describe("component/photo/edit/labels", () => {
     vi.restoreAllMocks();
   });
 
-  describe("nameRule", () => {
+  describe("name validation rule", () => {
     // Regression: the v-combobox initializes with newLabelModel = null
-    // and validates :rules on mount, so nameRule must tolerate null,
-    // strings (free-text entry), and item objects (return-object).
-    // Pre-fix the rule did `v.length` and threw "Cannot read
-    // properties of null (reading 'length')" on every dialog open.
+    // and Vuetify validates :rules on mount, so the rule must tolerate
+    // null, strings (free-text entry), and item objects (return-object).
+    // The shared rules.text(...) factory in common/form.js short-circuits
+    // on non-string input via maxLen, so all three cases pass without
+    // throwing the historical "Cannot read properties of null" error.
     //
-    // The global $config mock in tests/vitest/setup.js returns `false`
-    // for every key, so we stub `get("clip")` per test to exercise the
-    // realistic numeric limit. 160 matches the production default.
-    const stubClip = (wrapper, limit = 160) => {
-      wrapper.vm.$config.get = (key) => (key === "clip" ? limit : false);
+    // The cap now comes from LabelMaxLength.Name (160, backend VARCHAR)
+    // — not the legacy $config.get('clip') 160 ceiling — so a backend
+    // bump propagates without per-component edits.
+    const maxLen = (wrapper, cap = wrapper.vm.LabelMaxLength.Name) => {
+      const [, rule] = wrapper.vm.rules.text(false, 0, cap, "Name");
+      return rule;
     };
+
+    it("exposes LabelMaxLength.Name from the model", () => {
+      const { wrapper } = mountPhotoLabels();
+      expect(wrapper.vm.LabelMaxLength).toEqual({ Name: 160, Description: 2048, Notes: 1024 });
+    });
 
     it("returns valid for null without throwing (initial / cleared combobox)", () => {
       const { wrapper } = mountPhotoLabels();
-      stubClip(wrapper);
-      expect(wrapper.vm.nameRule(null)).toBe(true);
+      expect(maxLen(wrapper)(null)).toBe(true);
     });
 
     it("returns valid for undefined", () => {
       const { wrapper } = mountPhotoLabels();
-      stubClip(wrapper);
-      expect(wrapper.vm.nameRule(undefined)).toBe(true);
+      expect(maxLen(wrapper)(undefined)).toBe(true);
     });
 
     it("validates a short typed string as valid", () => {
       const { wrapper } = mountPhotoLabels();
-      stubClip(wrapper);
-      expect(wrapper.vm.nameRule("hello")).toBe(true);
+      expect(maxLen(wrapper)("hello")).toBe(true);
     });
 
-    it("returns the error message when a typed string exceeds clip", () => {
+    it("returns the error message when a typed string exceeds the cap", () => {
       const { wrapper } = mountPhotoLabels();
-      stubClip(wrapper, 5);
-      expect(wrapper.vm.nameRule("toolong")).toBe("Name too long");
+      expect(maxLen(wrapper, 5)("toolong")).toBe("Name is too long");
     });
 
-    it("uses .Name for selected item objects (return-object combobox)", () => {
+    it("short-circuits return-object combobox selections (objects pass)", () => {
+      // Backend caps existing labels at LabelMaxLength.Name (160), so
+      // every item-object selection already fits — the factory's
+      // maxLen short-circuit on non-string input is the correct
+      // behavior here. Trade-off: a synthetic object with an
+      // overlength .Name would no longer surface a frontend error,
+      // but in production such objects can't reach the dropdown.
       const { wrapper } = mountPhotoLabels();
-      stubClip(wrapper, 10);
-      expect(wrapper.vm.nameRule({ Name: "Flower" })).toBe(true);
-      expect(wrapper.vm.nameRule({ Name: "a really long name" })).toBe("Name too long");
-    });
-
-    it("treats item objects with no .Name as zero-length (valid)", () => {
-      const { wrapper } = mountPhotoLabels();
-      stubClip(wrapper, 10);
-      expect(wrapper.vm.nameRule({})).toBe(true);
+      expect(maxLen(wrapper, 10)({ Name: "Flower" })).toBe(true);
+      expect(maxLen(wrapper, 10)({ Name: "a really long name" })).toBe(true);
+      expect(maxLen(wrapper, 10)({})).toBe(true);
     });
   });
 

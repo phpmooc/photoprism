@@ -132,14 +132,13 @@
                             item-title="Name"
                             item-value="Name"
                             return-object
-                            :rules="[nameRule]"
+                            :rules="rules.text(false, 0, LabelMaxLength.Name, $gettext('Name'))"
                             color="surface-variant"
                             autocomplete="off"
                             single-line
                             flat
                             variant="plain"
                             density="compact"
-                            hide-details
                             hide-no-data
                             append-icon=""
                             :menu-icon="null"
@@ -176,6 +175,8 @@
 
 <script>
 import Thumb from "model/thumb";
+import { MaxLength as LabelMaxLength } from "model/label";
+import { rules } from "common/form";
 import typeaheadCache from "common/typeahead-cache";
 
 export default {
@@ -193,6 +194,8 @@ export default {
       disabled: !this.$config.feature("edit"),
       config: this.$config.values,
       readonly: this.$config.get("readonly"),
+      rules,
+      LabelMaxLength,
       selected: [],
       newLabel: "",
       newLabelModel: null,
@@ -247,15 +250,6 @@ export default {
           align: "center",
         },
       ],
-      // v-combobox with return-object hands the rule one of three
-      // values: null (initial / cleared), a string (free-text entry),
-      // or the selected item object (which carries a Name field).
-      // The rule only meaningfully constrains free-text length, so
-      // collapse the other two cases to an empty-length check.
-      nameRule: (v) => {
-        const name = typeof v === "string" ? v : v && typeof v === "object" ? v.Name || "" : "";
-        return name.length <= this.$config.get("clip") || this.$gettext("Name too long");
-      },
     };
   },
   computed: {

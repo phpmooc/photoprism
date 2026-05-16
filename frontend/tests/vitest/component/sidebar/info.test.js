@@ -1443,10 +1443,13 @@ describe("PSidebarInfo component", () => {
     expect(w.vm.editingField).toBeNull();
   });
 
-  // Inline text fields (title/caption/subject/...) are intentionally NOT
-  // tracked by hasPendingEdit: onInlineFieldBlur() auto-commits them before
-  // any nav source can fire, so they can never be pending at nav time.
-  it("should NOT report hasPendingEdit for a dirty inline text field (auto-commits on blur)", () => {
+  // Inline text fields (title/caption/subject/...) are usually NOT tracked
+  // by hasPendingEdit because onInlineFieldBlur() auto-commits them before
+  // any nav source can fire. The carve-out is hasPendingInlineOverflow:
+  // confirmField() short-circuits on a value above the field's maxLength,
+  // leaving the editor open with invalid text — that case (covered below)
+  // intentionally DOES report pending so the discard dialog can fire.
+  it("should NOT report hasPendingEdit for a dirty inline text field within the cap (auto-commits on blur)", () => {
     const photo = {
       ...mockPhoto,
       Title: "Changed",
@@ -1458,6 +1461,53 @@ describe("PSidebarInfo component", () => {
     });
     w.vm.editingField = "title";
     expect(w.vm.hasPendingEdit()).toBe(false);
+  });
+
+  // Navigation guard: if the user typed past the per-field cap (e.g. 5000-
+  // char Caption against the 4096 cap), confirmField() keeps the editor
+  // open instead of persisting the value. Without the overflow branch in
+  // hasPendingEdit, the next/prev arrow would silently swap the photo
+  // out from under the invalid edit; with it, confirmDiscardPending() can
+  // surface the discard dialog and the "Discard invalid changes?" label
+  // tells the user which kind of edit they're abandoning.
+  it("should report hasPendingEdit when an inline editor's value exceeds the field cap", () => {
+    const photo = {
+      ...mockPhoto,
+      Caption: "x".repeat(5000), // PhotoMaxLength.Caption is 4096
+      wasChanged: () => true,
+    };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+      global: { stubs: { PMap: true } },
+    });
+
+    // No active editor → not pending.
+    expect(w.vm.hasPendingEdit()).toBe(false);
+
+    // Editing the overlength field → pending; discard label flips.
+    w.vm.editingField = "caption";
+    expect(w.vm.hasPendingInlineOverflow()).toBe(true);
+    expect(w.vm.hasPendingEdit()).toBe(true);
+    expect(w.vm.discardDialogText).toBe("Discard invalid changes?");
+  });
+
+  it("should keep the generic discard text when overflow coexists with another pending edit", () => {
+    const photo = {
+      ...mockPhoto,
+      Caption: "x".repeat(5000),
+      wasChanged: () => true,
+    };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+      global: { stubs: { PMap: true } },
+    });
+
+    w.vm.editingField = "caption";
+    w.vm.chipState.labels.removals = [{ Label: { UID: "lbl1" } }];
+
+    expect(w.vm.hasPendingInlineOverflow()).toBe(true);
+    expect(w.vm.hasPendingNonOverflowEdit()).toBe(true);
+    expect(w.vm.discardDialogText).toBe("Discard unsaved changes?");
   });
 
   // Additions go through the instant-save path (addLabelImmediate /
@@ -1950,6 +2000,31 @@ describe("PSidebarInfo component", () => {
 
       expect(photo.update).not.toHaveBeenCalled();
       expect(w.vm.$notify.error).not.toHaveBeenCalled();
+    });
+
+    it("blocks save and keeps the editor open when the value exceeds the field cap", () => {
+      // Inline editor has no parent v-form; the rendered `:rules` only
+      // paint an inline error. The imperative length check inside
+      // confirmField is the actual gate — without it photo.update()
+      // would post overlength input and the "successfully saved" toast
+      // would fire while the server silently drops the value.
+      const photo = buildInlineEditPhoto();
+
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      // Copyright cap is 1024 (PhotoMaxLength.Copyright); push past it.
+      photo.Details = { Copyright: "x".repeat(1025) };
+      w.vm.editingField = "copyright";
+
+      w.vm.confirmField();
+
+      // Editor stays open so the user can fix the overlong input.
+      expect(w.vm.editingField).toBe("copyright");
+      expect(photo.update).not.toHaveBeenCalled();
+      expect(w.vm.$notify.error).toHaveBeenCalledTimes(1);
     });
   });
 

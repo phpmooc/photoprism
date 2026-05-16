@@ -491,6 +491,35 @@ describe("component/photo/batch-edit", () => {
       expect(wrapper.vm.$notify.error).toHaveBeenCalledWith("Failed to save changes");
       expect(wrapper.vm.saving).toBe(false);
     });
+
+    // Vue 3's component proxy intercepts $refs reads; standard assignment
+    // doesn't stick. Inject the mock into the internal instance's refs
+    // object (vm.$.refs) so save()'s `this.$refs.form.validate` resolves
+    // to the spy.
+    const overrideFormRef = (vm, validate) => {
+      vm.$.refs.form = { validate };
+    };
+
+    it("blocks the batch save and notifies when form validation fails", async () => {
+      const validate = vi.fn().mockResolvedValue({ valid: false });
+      overrideFormRef(wrapper.vm, validate);
+
+      await wrapper.vm.save(false);
+
+      expect(validate).toHaveBeenCalled();
+      expect(mockBatchInstance.save).not.toHaveBeenCalled();
+      expect(wrapper.vm.$notify.error).toHaveBeenCalledWith("Changes could not be saved");
+    });
+
+    it("proceeds with the batch save when form validation passes", async () => {
+      const validate = vi.fn().mockResolvedValue({ valid: true });
+      overrideFormRef(wrapper.vm, validate);
+
+      await wrapper.vm.save(false);
+
+      expect(validate).toHaveBeenCalled();
+      expect(mockBatchInstance.save).toHaveBeenCalled();
+    });
   });
 
   describe("Form Field Updates", () => {
@@ -731,6 +760,51 @@ describe("component/photo/batch-edit", () => {
       wrapper.vm.toggleField("Altitude", makeEvent("mdi-undo"));
       expect(wrapper.vm.formData.Altitude.value).toBe(123);
       expect(wrapper.vm.getIcon("input-field", "Altitude")).toBe("mdi-close-circle");
+    });
+  });
+
+  describe("Validation Rules", () => {
+    // Locks each inline-text field to the backend VARCHAR cap on
+    // PhotoMaxLength so a future bare $config.get('clip') regression
+    // (which would cap at 160 instead of the real ceiling) fails here.
+    it("exposes PhotoMaxLength and validates each inline-text field at its real cap", () => {
+      const m = wrapper.vm.PhotoMaxLength;
+      expect(m).toEqual({
+        Title: 200,
+        Caption: 4096,
+        Subject: 1024,
+        Artist: 1024,
+        Copyright: 1024,
+        License: 1024,
+        Keywords: 2048,
+        Notes: 2048,
+      });
+
+      const cases = [
+        ["Title", m.Title],
+        ["Caption", m.Caption],
+        ["Subject", m.Subject],
+        ["Copyright", m.Copyright],
+        ["Artist", m.Artist],
+        ["License", m.License],
+      ];
+
+      for (const [label, cap] of cases) {
+        const [, rule] = wrapper.vm.rules.text(false, 0, cap, label);
+        expect(rule("a".repeat(cap))).toBe(true);
+        expect(rule("a".repeat(cap + 1))).toBe(`${label} is too long`);
+      }
+    });
+
+    // Batch fields can be in Mixed state — getFieldData binds the empty
+    // string for mixed text inputs. rules.text short-circuits on the
+    // empty value via maxLen's null-safety, so the rule passes without
+    // a Mixed-aware branch in the form.
+    it("passes the rule on empty Mixed-state values", () => {
+      const [, rule] = wrapper.vm.rules.text(false, 0, wrapper.vm.PhotoMaxLength.Caption, "Caption");
+      expect(rule("")).toBe(true);
+      expect(rule(null)).toBe(true);
+      expect(rule(undefined)).toBe(true);
     });
   });
 });

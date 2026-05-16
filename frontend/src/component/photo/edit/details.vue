@@ -14,8 +14,7 @@
                 v-model="view.model.Title"
                 :append-inner-icon="view.model.TitleSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="rules.text(false, 0, $config.get('clip'), $pgettext('Photo', 'Title'))"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.Title, $pgettext('Photo', 'Title'))"
                 :label="$pgettext('Photo', 'Title')"
                 placeholder=""
                 autocomplete="off"
@@ -26,7 +25,7 @@
                 v-model="view.model.Caption"
                 :append-inner-icon="view.model.CaptionSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.Caption, $gettext('Caption'))"
                 autocomplete="off"
                 auto-grow
                 :label="$gettext('Caption')"
@@ -295,8 +294,7 @@
                 v-model="view.model.Details.Subject"
                 :append-inner-icon="view.model.Details.SubjectSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="rules.text(false, 0, $config.get('clip'), $gettext('Subject'))"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.Subject, $gettext('Subject'))"
                 autocomplete="off"
                 auto-grow
                 :label="$gettext('Subject')"
@@ -311,8 +309,7 @@
                 v-model="view.model.Details.Copyright"
                 :append-inner-icon="view.model.Details.CopyrightSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="rules.text(false, 0, $config.get('clip'), $gettext('Copyright'))"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.Copyright, $gettext('Copyright'))"
                 autocomplete="off"
                 :label="$gettext('Copyright')"
                 placeholder=""
@@ -325,8 +322,7 @@
                 v-model="view.model.Details.Artist"
                 :append-inner-icon="view.model.Details.ArtistSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="rules.text(false, 0, $config.get('clip'), $gettext('Artist'))"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.Artist, $gettext('Artist'))"
                 autocomplete="off"
                 :label="$gettext('Artist')"
                 placeholder=""
@@ -339,8 +335,7 @@
                 v-model="view.model.Details.License"
                 :append-inner-icon="view.model.Details.LicenseSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                :rules="rules.text(false, 0, $config.get('clip'), $gettext('License'))"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.License, $gettext('License'))"
                 autocomplete="off"
                 auto-grow
                 :label="$gettext('License')"
@@ -355,7 +350,7 @@
                 v-model="view.model.Details.Keywords"
                 :append-inner-icon="view.model.Details.KeywordsSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.Keywords, $gettext('Keywords'))"
                 autocomplete="off"
                 auto-grow
                 :label="$gettext('Keywords')"
@@ -370,7 +365,7 @@
                 v-model="view.model.Details.Notes"
                 :append-inner-icon="view.model.Details.NotesSrc === 'manual' ? 'mdi-check' : ''"
                 :disabled="disabled"
-                hide-details
+                :rules="rules.text(false, 0, PhotoMaxLength.Notes, $gettext('Notes'))"
                 autocomplete="off"
                 auto-grow
                 :label="$gettext('Notes')"
@@ -421,6 +416,7 @@
 <script>
 import countries from "options/countries.json";
 import Thumb from "model/thumb";
+import { MaxLength as PhotoMaxLength } from "model/photo";
 import * as options from "options/options";
 import { rules } from "common/form";
 import PMetaLocationDialog from "component/meta/location/dialog.vue";
@@ -450,6 +446,7 @@ export default {
       readonly: this.$config.get("readonly"),
       options,
       rules,
+      PhotoMaxLength,
       countries,
       featReview: this.$config.feature("review"),
       showDatePicker: false,
@@ -480,6 +477,14 @@ export default {
   },
   created() {
     this.syncData();
+  },
+  mounted() {
+    // Seed validation so the per-field `:rules` are active from the
+    // first render. Without this, Vuetify's `validate-on="invalid-input"`
+    // default keeps the rules dormant until the first failed validate()
+    // — which means overlength input renders no error and save() can
+    // proceed against an invalid value. Mirrors page/settings/account.vue.
+    this.$refs.form?.validate?.();
   },
   methods: {
     setDay(v) {
@@ -626,17 +631,27 @@ export default {
     save(close) {
       if (this.invalidDate) {
         this.$notify.error(this.$gettext("Invalid date"));
-        return;
+        return Promise.resolve();
       }
 
-      this.updateModel();
+      const form = this.$refs.form;
+      const validate = typeof form?.validate === "function" ? form.validate() : Promise.resolve({ valid: true });
 
-      this.view.model.update().then(() => {
-        if (close) {
-          this.$emit("close");
+      return Promise.resolve(validate).then((result) => {
+        if (result && result.valid === false) {
+          this.$notify.error(this.$gettext("Changes could not be saved"));
+          return;
         }
 
-        this.syncData();
+        this.updateModel();
+
+        return this.view.model.update().then(() => {
+          if (close) {
+            this.$emit("close");
+          }
+
+          this.syncData();
+        });
       });
     },
     close() {

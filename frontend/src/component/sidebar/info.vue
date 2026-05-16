@@ -246,7 +246,7 @@
               :menu-props="markerMenuProps"
               :list-props="chipListProps"
               :readonly="markersBusy || !!m.SubjUID"
-              :rules="rules.text(false, 0, $config.get('clip'), $gettext('Name'))"
+              :rules="rules.text(false, 0, SubjectMaxLength.Name, $gettext('Name'))"
               return-object
               hide-no-data
               hide-details="auto"
@@ -463,7 +463,7 @@
     <p-confirm-dialog
       :visible="discardDialog.visible"
       icon="mdi-alert-circle-outline"
-      :text="$gettext('Discard unsaved changes?')"
+      :text="discardDialogText"
       :action="$gettext('Discard')"
       @close="onDiscardCancel"
       @confirm="onDiscardConfirm"
@@ -487,8 +487,10 @@ import { $faceMarkers } from "common/face-markers";
 import * as media from "common/media";
 import typeaheadCache from "common/typeahead-cache";
 import { rules } from "common/form";
-import { Album } from "model/album";
+import { Album, MaxLength as AlbumMaxLength } from "model/album";
+import { MaxLength as LabelMaxLength } from "model/label";
 import { MaxLength as PhotoMaxLength } from "model/photo";
+import { MaxLength as SubjectMaxLength } from "model/subject";
 import PMap from "component/map.vue";
 import PMetaDatetimeDialog from "component/meta/datetime/dialog.vue";
 import PMetaCameraDialog from "component/meta/camera/dialog.vue";
@@ -529,6 +531,7 @@ export default {
       featPeople: this.$config.feature("people"),
       featPlaces: this.$config.feature("places"),
       rules,
+      SubjectMaxLength,
       dateTimeDialog: false,
       cameraDialog: false,
       locationDialog: false,
@@ -924,6 +927,19 @@ export default {
         return false;
       }
       return this.getFieldValue(this.editingField) !== (this.editOriginal ?? "");
+    },
+    // Discard-dialog body text. The default "Discard unsaved changes?"
+    // string covers marker drafts, typed combobox text, and chip
+    // removals (the existing pending-state shapes). When the only
+    // pending state is an overlength inline edit (length gate fired,
+    // editor still open with invalid text) the message shifts to
+    // "Discard invalid changes?" so the user understands which kind
+    // of change they're abandoning.
+    discardDialogText() {
+      if (this.hasPendingInlineOverflow() && !this.hasPendingNonOverflowEdit()) {
+        return this.$gettext("Discard invalid changes?");
+      }
+      return this.$gettext("Discard unsaved changes?");
     },
     // Renders the divider between the rights cluster and the Notes row.
     // For read-only users we drop it when either side is empty so it
@@ -1545,16 +1561,31 @@ export default {
         this.addNameDialog = { visible: false, markerUid: "", name: "" };
       }
     },
-    // Inline text fields (title/caption/subject/...) are excluded on purpose:
-    // onInlineFieldBlur() auto-commits them before any navigation source can
-    // fire, so they can never have pending state at nav time. Chip-section
-    // removals (`chipState.<field>.removals`) ARE counted here because the
-    // user can see and toggle them, but `confirmDiscardPending` auto-commits
-    // them before checking this — by the time the dialog gate runs they're
-    // already gone. The remaining staged inputs that DO open the dialog are
-    // marker drafts, typed-but-uncommitted combobox text, and the open
-    // Add-name confirmation.
+    // Inline text fields (title/caption/subject/...) are usually auto-committed
+    // by onInlineFieldBlur() before any navigation source can fire, so they
+    // typically have no pending state at nav time. The exception is overflow:
+    // confirmField() short-circuits on a value above the field's maxLength
+    // (toasting the per-label "X is too long" error and keeping the editor
+    // open), which leaves an invalid edit pending. hasPendingInlineOverflow()
+    // detects that case so the navigation guard can surface the discard
+    // dialog instead of letting the typed value silently vanish.
+    //
+    // Chip-section removals (`chipState.<field>.removals`) ARE counted here
+    // because the user can see and toggle them, but `confirmDiscardPending`
+    // auto-commits them before checking this — by the time the dialog gate
+    // runs they're already gone. The remaining staged inputs that DO open
+    // the dialog are marker drafts, typed-but-uncommitted combobox text,
+    // and the open Add-name confirmation.
     hasPendingEdit() {
+      return this.hasPendingInlineOverflow() || this.hasPendingNonOverflowEdit();
+    },
+    // Pending state that doesn't come from an overlength inline editor —
+    // i.e. marker drafts, typed-but-uncommitted combobox text, chip
+    // removals, and the Add-name dialog. Split out so discardDialogText
+    // can choose its message based on whether the only blocker is an
+    // invalid inline edit (→ "Discard invalid changes?") or any of the
+    // other shapes (→ "Discard unsaved changes?").
+    hasPendingNonOverflowEdit() {
       for (const uid of Object.keys(this.markerDrafts)) {
         const d = this.markerDrafts[uid];
         if (!d) {
@@ -1575,6 +1606,24 @@ export default {
       // An open Add-name confirmation for an unnamed marker is also pending
       // input until the user picks Add or Cancel.
       return !!(this.addNameDialog && this.addNameDialog.visible);
+    },
+    // hasPendingInlineOverflow returns true when an inline text editor is
+    // open and the current value exceeds the field's cap. Pairs with the
+    // length gate in confirmField() — that gate keeps the editor open so
+    // the user can fix the value; this method ensures navigation sources
+    // (next/prev arrows, sidebar close, lightbox dismiss) surface the
+    // discard dialog instead of silently swapping the photo out from under
+    // the invalid edit.
+    hasPendingInlineOverflow() {
+      if (!this.editingField || !this.photo) {
+        return false;
+      }
+      const fieldDef = this.fieldRegistry[this.editingField];
+      if (!fieldDef || !(fieldDef.maxLength > 0)) {
+        return false;
+      }
+      const currentValue = fieldDef.read(this.photo);
+      return typeof currentValue === "string" && currentValue.length > fieldDef.maxLength;
     },
     // Fire-and-forget commit of any pending chip removals. Mirrors the
     // inline-text auto-commit on blur: the user's intent (clicking ×) is
@@ -1666,6 +1715,21 @@ export default {
       }
 
       const field = this.editingField;
+      const fieldDef = this.fieldRegistry[field];
+
+      // Length gate before save — the inline editor has no parent v-form,
+      // so the rendered `:rules` only paint an inline error; without this
+      // imperative check, photo.update() would persist (or silently drop)
+      // overlength input. Mirrors the addLabelImmediate / addAlbumImmediate
+      // pattern below.
+      if (fieldDef && fieldDef.maxLength > 0) {
+        const currentValue = fieldDef.read(this.photo);
+        if (typeof currentValue === "string" && currentValue.length > fieldDef.maxLength) {
+          this.$notify.error(this.$gettext("%{s} is too long", { s: fieldDef.label }));
+          return;
+        }
+      }
+
       this.editingField = null;
       this.editOriginal = null;
 
@@ -1904,7 +1968,7 @@ export default {
       if (!name) {
         return false;
       }
-      if (name.length > this.$config.get("clip")) {
+      if (name.length > LabelMaxLength.Name) {
         this.$notify.error(this.$gettext("Name too long"));
         return false;
       }
@@ -1956,7 +2020,7 @@ export default {
       if (!title) {
         return false;
       }
-      if (title.length > this.$config.get("clip")) {
+      if (title.length > AlbumMaxLength.Title) {
         this.$notify.error(this.$gettext("Name too long"));
         return false;
       }
@@ -2010,7 +2074,7 @@ export default {
         return;
       }
 
-      if (search.length > this.$config.get("clip")) {
+      if (search.length > LabelMaxLength.Name) {
         this.$notify.error(this.$gettext("Name too long"));
         return;
       }
@@ -2086,7 +2150,7 @@ export default {
         return;
       }
 
-      if (search.length > this.$config.get("clip")) {
+      if (search.length > AlbumMaxLength.Title) {
         this.$notify.error(this.$gettext("Name too long"));
         return;
       }
