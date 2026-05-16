@@ -150,7 +150,7 @@ $config.update().finally(() => {
   app.use(VueSanitize);
 
   // FloatingVue is a library to easily add tooltips to the UI:
-  // https://floating-vue.starpad.dev/guide/installation
+  // https://floating-vue.starpad.dev/guide/config
   FloatingVue.options.themes.tooltip.placement = "top";
   app.use(FloatingVue);
 
