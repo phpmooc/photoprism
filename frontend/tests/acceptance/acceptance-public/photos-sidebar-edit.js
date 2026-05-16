@@ -196,22 +196,40 @@ test.meta("testID", "sidebar-edit-003").meta({ mode: "public" })(
 
     // Skip empty fields: typeText("") is a no-op and v-select has no clear.
     await photoviewer.openSidebarDialog("takenAt");
-    if (initialYear) await pickAutocomplete(dateTimeDialog.year, initialYear);
-    if (initialMonth) await pickAutocomplete(dateTimeDialog.month, initialMonth);
-    if (initialDay) await pickAutocomplete(dateTimeDialog.day, initialDay);
+    if (initialYear) {
+      await pickAutocomplete(dateTimeDialog.year, initialYear);
+    }
+    if (initialMonth) {
+      await pickAutocomplete(dateTimeDialog.month, initialMonth);
+    }
+    if (initialDay) {
+      await pickAutocomplete(dateTimeDialog.day, initialDay);
+    }
     if (initialLocalTime) {
       await t.typeText(dateTimeDialog.localTime, initialLocalTime, { replace: true }).pressKey("tab");
     }
-    if (initialTimezone) await pickAutocomplete(dateTimeDialog.timezone, initialTimezone);
+    if (initialTimezone) {
+      await pickAutocomplete(dateTimeDialog.timezone, initialTimezone);
+    }
     await t.click(dateTimeDialog.confirm);
     await t.expect(dateTimeDialog.root.visible).notOk();
 
     await photoviewer.openSidebarDialog("camera");
-    if (initialCamera) await pickFromSelect(cameraDialog.camera, initialCamera);
-    if (initialLens) await pickFromSelect(cameraDialog.lens, initialLens);
-    if (initialIso) await t.typeText(cameraDialog.iso, initialIso, { replace: true });
-    if (initialExposure) await t.typeText(cameraDialog.exposure, initialExposure, { replace: true });
-    if (initialFnumber) await t.typeText(cameraDialog.fnumber, initialFnumber, { replace: true });
+    if (initialCamera) {
+      await pickFromSelect(cameraDialog.camera, initialCamera);
+    }
+    if (initialLens) {
+      await pickFromSelect(cameraDialog.lens, initialLens);
+    }
+    if (initialIso) {
+      await t.typeText(cameraDialog.iso, initialIso, { replace: true });
+    }
+    if (initialExposure) {
+      await t.typeText(cameraDialog.exposure, initialExposure, { replace: true });
+    }
+    if (initialFnumber) {
+      await t.typeText(cameraDialog.fnumber, initialFnumber, { replace: true });
+    }
     if (initialFocalLength) {
       await t.typeText(cameraDialog.focalLength, initialFocalLength, { replace: true });
     }

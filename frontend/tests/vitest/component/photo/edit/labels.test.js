@@ -12,11 +12,11 @@ function mountPhotoLabels({ modelOverrides = {}, routerOverrides = {}, utilOverr
 
   const model = viewHasModel
     ? {
-        removeLabel: vi.fn(() => Promise.resolve()),
-        addLabel: vi.fn(() => Promise.resolve()),
-        activateLabel: vi.fn(),
-        ...modelOverrides,
-      }
+      removeLabel: vi.fn(() => Promise.resolve()),
+      addLabel: vi.fn(() => Promise.resolve()),
+      activateLabel: vi.fn(),
+      ...modelOverrides,
+    }
     : null;
 
   const router = {

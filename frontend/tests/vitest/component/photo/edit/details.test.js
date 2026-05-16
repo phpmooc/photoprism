@@ -11,9 +11,15 @@ const createMockModel = (overrides = {}) => ({
   localDate: vi.fn().mockReturnValue({
     isValid: true,
     toFormat: (fmt) => {
-      if (fmt === "d") return "1";
-      if (fmt === "L") return "4";
-      if (fmt === "y") return "2024";
+      if (fmt === "d") {
+        return "1";
+      }
+      if (fmt === "L") {
+        return "4";
+      }
+      if (fmt === "y") {
+        return "2024";
+      }
       return "2024-04-01T11:29:54";
     },
     toISO: () => "2024-04-01T11:29:54",
@@ -80,14 +86,24 @@ const makeWrapper = (overrides = {}) => {
         $vuetify: { display: { xs: false } },
         $config: {
           feature: vi.fn().mockImplementation((f) => {
-            if (f === "edit") return true;
-            if (f === "review") return true;
-            if (f === "places") return true;
+            if (f === "edit") {
+              return true;
+            }
+            if (f === "review") {
+              return true;
+            }
+            if (f === "places") {
+              return true;
+            }
             return false;
           }),
           get: vi.fn().mockImplementation((k) => {
-            if (k === "clip") return 255;
-            if (k === "readonly") return false;
+            if (k === "clip") {
+              return 255;
+            }
+            if (k === "readonly") {
+              return false;
+            }
             return "";
           }),
           values: {
@@ -124,7 +140,9 @@ describe("component/photo/edit/details", () => {
   });
 
   afterEach(() => {
-    if (wrapper) wrapper.unmount();
+    if (wrapper) {
+      wrapper.unmount();
+    }
   });
 
   describe("initialization and data sync", () => {
@@ -262,9 +280,15 @@ describe("component/photo/edit/details", () => {
       const mockLocalDate = {
         isValid: true,
         toFormat: vi.fn().mockImplementation((fmt) => {
-          if (fmt === "d") return "15";
-          if (fmt === "L") return "6";
-          if (fmt === "y") return "2023";
+          if (fmt === "d") {
+            return "15";
+          }
+          if (fmt === "L") {
+            return "6";
+          }
+          if (fmt === "y") {
+            return "2023";
+          }
           return "2023-06-15";
         }),
         toISO: () => "2023-06-15T14:30:00",

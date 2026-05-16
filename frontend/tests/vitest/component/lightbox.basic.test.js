@@ -161,7 +161,9 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       document.body.appendChild(scratch);
     });
     afterEach(() => {
-      if (scratch && scratch.parentNode) scratch.parentNode.removeChild(scratch);
+      if (scratch && scratch.parentNode) {
+        scratch.parentNode.removeChild(scratch);
+      }
     });
 
     it("returns false (no-op) when an INPUT is focused — KeyX must not archive", () => {
@@ -216,7 +218,9 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       document.body.appendChild(scratch);
     });
     afterEach(() => {
-      if (scratch && scratch.parentNode) scratch.parentNode.removeChild(scratch);
+      if (scratch && scratch.parentNode) {
+        scratch.parentNode.removeChild(scratch);
+      }
     });
 
     it("calls preventDefault when info is open and an INPUT is focused", () => {
@@ -282,7 +286,9 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       document.body.appendChild(scratch);
     });
     afterEach(() => {
-      if (scratch && scratch.parentNode) scratch.parentNode.removeChild(scratch);
+      if (scratch && scratch.parentNode) {
+        scratch.parentNode.removeChild(scratch);
+      }
     });
 
     it("calls stopPropagation when focus is inside the lightbox tree", () => {
@@ -647,8 +653,12 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
       it("isShortcutDisabledInFaceMarkerMode returns true for every conflicting key and false for the rest", () => {
         const wrapper = mountLightbox();
         const predicate = wrapper.vm.$options.methods.isShortcutDisabledInFaceMarkerMode;
-        for (const code of disabled) expect(predicate(code)).toBe(true);
-        for (const code of enabled) expect(predicate(code)).toBe(false);
+        for (const code of disabled) {
+          expect(predicate(code)).toBe(true);
+        }
+        for (const code of enabled) {
+          expect(predicate(code)).toBe(false);
+        }
         // Escape + Tab stay enabled — Escape via the priority chain,
         // Tab via the v-dialog-level focus handler.
         expect(predicate("Escape")).toBe(false);
@@ -873,7 +883,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         // Start with the user viewing slide N.
         model: new Thumb({ UID: "uid-slide-n" }),
         $config: allowAllConfig,
-        };
+      };
 
       // Sidebar fetch issued for slide N.
       wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n");
@@ -902,7 +912,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         photo: new Photo(),
         model: new Thumb({ UID: "uid-slide-n" }),
         $config: allowAllConfig,
-        };
+      };
 
       wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n");
       // Drain the resolved Promise + race-guard .then.
@@ -923,7 +933,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         photo: placeholder,
         model: new Thumb({ UID: "uid-slide-n" }),
         $config: allowAllConfig,
-        };
+      };
 
       // Calling fetchPhoto must not throw even when findCached rejects.
       expect(() => wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n")).not.toThrow();
@@ -959,7 +969,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         // (not the race-guard) is what protects this.photo here.
         model: new Thumb({ UID: "uid-slide-n" }),
         $config: allowAllConfig,
-        };
+      };
 
       expect(() => wrapper.vm.$options.methods.fetchPhoto.call(ctx, "uid-slide-n")).not.toThrow();
       await Promise.resolve();
@@ -987,7 +997,7 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
         models,
         index: 0,
         $config: allowAllConfig,
-        };
+      };
 
       wrapper.vm.$options.methods.preloadNextPhoto.call(ctx);
 

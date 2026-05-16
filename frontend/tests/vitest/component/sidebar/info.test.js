@@ -55,9 +55,13 @@ function mountSidebar(options = {}) {
   // `faceMarkerMode` directly.
   let faceMarkerMode = props.faceMarkerMode;
   if (faceMarkerMode === undefined) {
-    if (props.addingMarker) faceMarkerMode = "edit";
-    else if (props.markersVisible) faceMarkerMode = "display";
-    else faceMarkerMode = null;
+    if (props.addingMarker) {
+      faceMarkerMode = "edit";
+    } else if (props.markersVisible) {
+      faceMarkerMode = "display";
+    } else {
+      faceMarkerMode = null;
+    }
   }
   const legacy = {
     model: props.modelValue,
@@ -75,9 +79,15 @@ function mountSidebar(options = {}) {
   // (`markersVisible`, `addingMarker`, `markersBusy`, `newMarkerUid`).
   // Each `mountSidebar()` call is treated as a fresh test scope.
   $faceMarkers.reset();
-  if (faceMarkerMode) $faceMarkers.setMode(faceMarkerMode);
-  if (props.markersBusy) $faceMarkers.setBusy(true);
-  if (props.newMarkerUid) $faceMarkers.setPendingNameMarkerUid(props.newMarkerUid);
+  if (faceMarkerMode) {
+    $faceMarkers.setMode(faceMarkerMode);
+  }
+  if (props.markersBusy) {
+    $faceMarkers.setBusy(true);
+  }
+  if (props.newMarkerUid) {
+    $faceMarkers.setPendingNameMarkerUid(props.newMarkerUid);
+  }
 
   // Strip legacy keys so Vue does not warn about unknown props.
   delete props.modelValue;
@@ -2012,7 +2022,9 @@ describe("PSidebarInfo component", () => {
   // return `this` when Files has fewer than 2 entries — so we fall through
   // to the existing photo.FileName branch.
   it("fileName falls back to photo.FileName when originalFile is the photo itself", () => {
-    const photo = { ...mockPhoto, originalFile: function () { return this; }, FileName: "photos/2023/IMG_001.jpg" };
+    const photo = { ...mockPhoto, originalFile: function () {
+      return this; 
+    }, FileName: "photos/2023/IMG_001.jpg" };
     const w = mountSidebar({
       props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
       global: { stubs: { PMap: true }, mocks: { $util: validationUtil } },
@@ -2995,7 +3007,9 @@ describe("PSidebarInfo component", () => {
         global: { stubs: { PMap: true } },
       });
       const total = w.vm.albums.length;
-      if (total === 0) return; // fixture has no albums — nothing to assert
+      if (total === 0) {
+        return;
+      } // fixture has no albums — nothing to assert
       const firstUid = w.vm.albums[0].UID;
       w.vm.togglePendingChipRemoval("albums", firstUid);
 
