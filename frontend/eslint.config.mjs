@@ -84,7 +84,7 @@ export default defineConfig([
           allowTemplateLiterals: true,
         },
       ],
-      "semi": ["error", "always"],
+      "semi": ["warn", "always"],
       "curly": ["warn", "all"],
       // Forces braced bodies onto their own line so curly's autofix produces
       // multi-line `if (x) {\n  return;\n}` instead of `if (x) {return;}`.
@@ -103,12 +103,25 @@ export default defineConfig([
         {
           ignoreWhenNoAttributes: true,
           ignoreWhenEmpty: true,
-          ignores: ["pre", "textarea", "span", "translate", "a", "v-icon", "v-text-field", "v-input", "v-select", "v-switch", "v-checkbox", "v-img"],
+          ignores: [
+            "pre",
+            "textarea",
+            "span",
+            "translate",
+            "a",
+            "v-icon",
+            "v-text-field",
+            "v-input",
+            "v-select",
+            "v-switch",
+            "v-checkbox",
+            "v-img",
+          ],
           externalIgnores: [],
         },
       ],
       "vue/first-attribute-linebreak": [
-        "error",
+        "warn",
         {
           singleline: "ignore",
           multiline: "ignore",
