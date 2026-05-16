@@ -58,7 +58,7 @@ msgstr "Izmantots %{n} GB no %{q} GB"
 msgid "%{n} labels found"
 msgstr "Atrastas %{n} birkas"
 
-#: src/page/people/new.vue:453 src/page/people/new.vue:559
+#: src/page/people/new.vue:449 src/page/people/new.vue:555
 #: src/page/people/recognized.vue:696
 msgid "%{n} people found"
 msgstr "Atrasti %{n} cilvēki"
@@ -69,6 +69,7 @@ msgid "%{n} pictures found"
 msgstr "Atrasti %{n} attēli"
 
 #: src/common/form.js:286 src/common/form.js:291
+#: src/component/lightbox/sidebar.vue:1728
 msgid "%{s} is too long"
 msgstr "%{s} ir pārāk garš"
 
@@ -125,7 +126,7 @@ msgstr "Piekļuves žetons"
 
 #: src/component/navigation.vue:543 src/component/navigation.vue:676
 #: src/component/navigation.vue:860 src/component/service/upload.vue:25
-#: src/locales.js:335 src/model/service.js:70 src/model/user.js:152
+#: src/locales.js:335 src/model/service.js:70 src/model/user.js:151
 #: src/page/settings.vue:112 src/page/settings/general.vue:334
 msgid "Account"
 msgstr "Konts"
@@ -153,7 +154,7 @@ msgstr "Konti"
 msgid "Accuracy"
 msgstr "Precizitāte"
 
-#: src/component/photo/edit/labels.vue:244
+#: src/component/photo/edit/labels.vue:247
 #: src/component/photo/edit/labels.vue:38
 msgid "Action"
 msgstr "Darbība"
@@ -203,13 +204,14 @@ msgstr "Aktivitāte"
 msgid "Add"
 msgstr "Pievienot"
 
-#: src/component/photo/edit/people.vue:97 src/component/sidebar/info.vue:475
+#: src/component/lightbox/sidebar.vue:475
+#: src/component/photo/edit/people.vue:96
 msgid "Add %{s}?"
 msgstr "Pievienot %{s}?"
 
-#: src/component/sidebar/info.vue:23 src/component/sidebar/info.vue:24
-#: src/component/sidebar/info.vue:27 src/component/sidebar/info.vue:50
-#: src/component/sidebar/info.vue:67
+#: src/component/lightbox/sidebar.vue:23 src/component/lightbox/sidebar.vue:24
+#: src/component/lightbox/sidebar.vue:27 src/component/lightbox/sidebar.vue:50
+#: src/component/lightbox/sidebar.vue:67
 msgid "Add a Caption"
 msgstr "Pievienot uzrakstu"
 
@@ -225,12 +227,13 @@ msgstr "Pievienot albumu"
 msgid "Add Link"
 msgstr "Pievienot saiti"
 
-#: src/component/sidebar/info.vue:851
+#: src/component/lightbox/sidebar.vue:897
 msgid "Add Notes"
 msgstr "Pievienot piezīmes"
 
-#: src/component/photo/edit/people.vue:133
-#: src/component/photo/edit/people.vue:97 src/component/sidebar/info.vue:475
+#: src/component/lightbox/sidebar.vue:475
+#: src/component/photo/edit/people.vue:135
+#: src/component/photo/edit/people.vue:96
 msgid "Add person?"
 msgstr "Pievienot personu?"
 
@@ -246,11 +249,11 @@ msgstr "Pievienojiet attēlus no meklēšanas rezultātiem, tos atlasot."
 msgid "Add to album"
 msgstr "Pievienot albumam"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:187
 msgid "Add to all"
 msgstr "Pievienot visiem"
 
-#: src/component/input/chip-selector.vue:181
+#: src/component/input/chip-selector.vue:187
 msgid "Add to all selected photos"
 msgstr "Pievienot visiem atlasītajiem fotoattēliem"
 
@@ -271,11 +274,11 @@ msgstr "Pielāgot datumu un laiku"
 
 #: src/component/meta/location/dialog.vue:18
 #: src/component/photo/batch-edit.vue:274
-#: src/component/photo/edit/details.vue:146
+#: src/component/photo/edit/details.vue:145
 msgid "Adjust Location"
 msgstr "Pielāgot atrašanās vietu"
 
-#: src/options/admin.js:6 src/model/cluster-node.js:5 src/common/util.js:904
+#: src/options/admin.js:6 src/model/cluster-node.js:5 src/common/util.js:903
 #: src/options/auth.js:6
 msgid "Admin"
 msgstr "Administrators"
@@ -320,7 +323,7 @@ msgstr "Pēc diviem mēnešiem"
 msgid "After two weeks"
 msgstr "Pēc divām nedēļām"
 
-#: src/model/album.js:205
+#: src/model/album.js:220
 msgid "Album"
 msgstr "Albums"
 
@@ -337,9 +340,9 @@ msgid "Album deleted"
 msgstr "Albums ir izdzēsts"
 
 #: src/app/routes.js:198 src/component/album/toolbar.vue:118
-#: src/component/navigation.vue:191 src/component/navigation.vue:712
-#: src/component/photo/batch-edit.vue:431 src/component/photo/edit/info.vue:79
-#: src/component/photo/edit/info.vue:80 src/component/sidebar/info.vue:351
+#: src/component/lightbox/sidebar.vue:291 src/component/navigation.vue:191
+#: src/component/navigation.vue:712 src/component/photo/batch-edit.vue:414
+#: src/component/photo/edit/info.vue:79 src/component/photo/edit/info.vue:80
 #: src/options/options.js:257
 msgid "Albums"
 msgstr "Albumi"
@@ -442,7 +445,7 @@ msgid "Altitude"
 msgstr "Augstums"
 
 #: src/component/photo/batch-edit.vue:313
-#: src/component/photo/edit/details.vue:183
+#: src/component/photo/edit/details.vue:180
 msgid "Altitude (m)"
 msgstr "Augstums (m)"
 
@@ -450,7 +453,7 @@ msgstr "Augstums (m)"
 msgid "AM"
 msgstr "AM"
 
-#: src/app/routes.js:279 src/common/util.js:846
+#: src/app/routes.js:279 src/common/util.js:845
 #: src/component/photo/batch-edit.vue:127 src/component/photo/batch-edit.vue:68
 #: src/component/photo/edit/files.vue:132
 #: src/component/photo/edit/files.vue:133
@@ -490,12 +493,12 @@ msgid "Applications"
 msgstr "Programmas"
 
 #: src/component/photo/clipboard.vue:36
-#: src/component/photo/edit/details.vue:406
+#: src/component/photo/edit/details.vue:395
 #: src/component/photo/view/cards.vue:177
 msgid "Approve"
 msgstr "Apstiprināt"
 
-#: src/component/photo/edit/details.vue:402
+#: src/component/photo/edit/details.vue:391
 msgid "Approve and save changes"
 msgstr "Apstiprināt un saglabāt izmaiņas"
 
@@ -504,7 +507,7 @@ msgstr "Apstiprināt un saglabāt izmaiņas"
 msgid "Apps and Devices"
 msgstr "Lietotnes un ierīces"
 
-#: src/component/lightbox.vue:2839 src/component/photo/edit/info.vue:228
+#: src/component/lightbox.vue:2907 src/component/photo/edit/info.vue:228
 #: src/component/photo/edit/info.vue:229
 msgid "Archived"
 msgstr "Arhivēts"
@@ -543,9 +546,11 @@ msgstr "Vai tiešām vēlaties neatgriezeniski dzēst šo failu?"
 msgid "Are you sure?"
 msgstr "Vai esi pārliecināts?"
 
+#: src/component/lightbox/sidebar.vue:854
+#: src/component/photo/batch-edit.vue:382
 #: src/component/photo/batch-edit.vue:384
-#: src/component/photo/edit/details.vue:328
-#: src/component/photo/edit/details.vue:331 src/component/sidebar/info.vue:814
+#: src/component/photo/edit/details.vue:319
+#: src/component/photo/edit/details.vue:321
 msgid "Artist"
 msgstr "Mākslinieks"
 
@@ -560,7 +565,7 @@ msgstr "Malu attiecība"
 msgid "Attributes"
 msgstr "Atribūti"
 
-#: src/app/routes.js:272 src/common/util.js:844
+#: src/app/routes.js:272 src/common/util.js:843
 #: src/component/navigation.vue:198 src/component/navigation.vue:199
 #: src/component/navigation.vue:211 src/component/navigation.vue:220
 #: src/component/navigation.vue:248 src/options/options.js:358
@@ -581,7 +586,7 @@ msgstr "Audita žurnāls"
 msgid "Authentication"
 msgstr "Autentifikācija"
 
-#: src/common/util.js:866
+#: src/common/util.js:865
 msgid "Auto"
 msgstr "Automātiski"
 
@@ -608,7 +613,7 @@ msgstr "Žetons"
 msgid "Base Path"
 msgstr "Saknes ceļš"
 
-#: src/common/util.js:898
+#: src/common/util.js:897
 msgid "Batch"
 msgstr "Partija"
 
@@ -660,7 +665,7 @@ msgstr "Pārlūkot"
 msgid "Browse Files"
 msgstr "Pārlūkot failus"
 
-#: src/component/photo/edit/people.vue:223
+#: src/component/photo/edit/people.vue:220
 msgid "Browse Pictures"
 msgstr "Pārlūkot attēlus"
 
@@ -681,10 +686,10 @@ msgstr "Izmantojot mūsu piedāvāto programmatūru un pakalpojumus, jūs piekr�
 msgid "Calendar"
 msgstr "Kalendārs"
 
-#: src/component/meta/camera/dialog.vue:29
-#: src/component/photo/edit/details.vue:198 src/component/photo/toolbar.vue:121
+#: src/component/lightbox/sidebar.vue:118
+#: src/component/meta/camera/dialog.vue:30
+#: src/component/photo/edit/details.vue:195 src/component/photo/toolbar.vue:121
 #: src/component/photo/view/cards.vue:204 src/component/photo/view/list.vue:40
-#: src/component/sidebar/info.vue:118
 msgid "Camera"
 msgstr "Kamera"
 
@@ -705,8 +710,8 @@ msgstr "Nevar ielādēt vairāk, sasniegts ierobežojums"
 #: src/common/clipboard.js:103 src/common/clipboard.js:139
 #: src/page/albums.vue:1200 src/page/albums.vue:1216 src/page/labels.vue:638
 #: src/page/labels.vue:658 src/page/library/browse.vue:321
-#: src/page/library/browse.vue:337 src/page/people/new.vue:381
-#: src/page/people/new.vue:397 src/page/people/recognized.vue:461
+#: src/page/library/browse.vue:337 src/page/people/new.vue:377
+#: src/page/people/new.vue:393 src/page/people/recognized.vue:461
 #: src/page/people/recognized.vue:477
 msgid "Can't select more items"
 msgstr "Nevar atlasīt vairāk ierakstu"
@@ -717,14 +722,14 @@ msgstr "Nevar atlasīt vairāk ierakstu"
 #: src/component/user/add/dialog.vue:207 src/component/user/edit/dialog.vue:316
 #: src/page/connect.vue:39 src/page/connect.vue:46
 #: src/component/album/delete/dialog.vue:19
-#: src/component/album/edit/dialog.vue:87 src/component/confirm/dialog.vue:23
+#: src/component/album/edit/dialog.vue:86 src/component/confirm/dialog.vue:23
 #: src/component/file/delete/dialog.vue:19
 #: src/component/label/delete/dialog.vue:19
-#: src/component/label/edit/dialog.vue:44
-#: src/component/meta/camera/dialog.vue:120
-#: src/component/meta/datetime/dialog.vue:119
+#: src/component/label/edit/dialog.vue:43
+#: src/component/meta/camera/dialog.vue:118
+#: src/component/meta/datetime/dialog.vue:120
 #: src/component/meta/location/dialog.vue:115
-#: src/component/people/edit/dialog.vue:47
+#: src/component/people/edit/dialog.vue:46
 #: src/component/photo/album/dialog.vue:64
 #: src/component/photo/face-marker-overlay.vue:66
 #: src/component/photo/face-marker-overlay.vue:85
@@ -738,13 +743,16 @@ msgstr "Nevar atlasīt vairāk ierakstu"
 msgid "Cancel"
 msgstr "Atcelt"
 
-#: src/common/util.js:1071 src/common/util.js:1078
+#: src/common/util.js:1070 src/common/util.js:1077
 msgid "Cannot copy to clipboard"
 msgstr "Nevar nokopēt starpliktuvē"
 
-#: src/common/util.js:886 src/component/photo/batch-edit.vue:176
-#: src/component/photo/edit/details.vue:32
-#: src/component/photo/view/cards.vue:194 src/component/sidebar/info.vue:779
+#: src/common/util.js:885 src/component/lightbox/sidebar.vue:813
+#: src/component/photo/batch-edit.vue:173
+#: src/component/photo/batch-edit.vue:176
+#: src/component/photo/edit/details.vue:28
+#: src/component/photo/edit/details.vue:31
+#: src/component/photo/view/cards.vue:194
 msgid "Caption"
 msgstr "Paraksts"
 
@@ -756,7 +764,7 @@ msgstr "Kartītes"
 msgid "Carousel slide {0} of {1}"
 msgstr "Karuseļa slaids {0} no {1}"
 
-#: src/component/album/edit/dialog.vue:60 src/component/photo/toolbar.vue:252
+#: src/component/album/edit/dialog.vue:59 src/component/photo/toolbar.vue:252
 #: src/page/albums.vue:78
 msgid "Category"
 msgstr "Kategorija"
@@ -780,7 +788,9 @@ msgstr "Mainīt privāto atzīmi"
 #: src/component/user/edit/dialog.vue:405 src/component/user/add/dialog.vue:291
 #: src/component/user/add/dialog.vue:296 src/component/user/edit/dialog.vue:425
 #: src/component/user/edit/dialog.vue:430 src/page/settings/account.vue:539
-#: src/page/settings/account.vue:544 src/page/settings/account.vue:447
+#: src/page/settings/account.vue:544 src/component/meta/camera/dialog.vue:214
+#: src/component/photo/batch-edit.vue:1434
+#: src/component/photo/edit/details.vue:636 src/page/settings/account.vue:447
 #: src/page/settings/account.vue:452
 msgid "Changes could not be saved"
 msgstr "Izmaiņas nevarēja saglabāt"
@@ -789,9 +799,9 @@ msgstr "Izmaiņas nevarēja saglabāt"
 #: src/component/user/edit/dialog.vue:494
 #: src/component/user/edit/dialog.vue:418
 #: src/component/album/edit/dialog.vue:172
-#: src/component/label/edit/dialog.vue:102 src/component/lightbox.vue:2791
-#: src/component/photo/batch-edit.vue:1403
-#: src/component/photo/edit/files.vue:552 src/component/service/edit.vue:346
+#: src/component/label/edit/dialog.vue:102 src/component/lightbox.vue:2859
+#: src/component/photo/batch-edit.vue:1466
+#: src/component/photo/edit/files.vue:552 src/component/service/edit.vue:348
 #: src/component/share/dialog.vue:225 src/component/share/dialog.vue:244
 #: src/page/albums.vue:1193 src/page/people/recognized.vue:275
 #: src/page/settings/advanced.vue:491 src/page/settings/content.vue:284
@@ -844,16 +854,16 @@ msgstr "Klienta piekļuves dati"
 #: src/page/admin/sessions.vue:184 src/component/user/edit/dialog.vue:316
 #: src/page/admin/sessions.vue:224 src/page/cluster/nodes.vue:188
 #: src/component/album/edit/dialog.vue:19
-#: src/component/label/edit/dialog.vue:20 src/component/lightbox.vue:1276
-#: src/component/lightbox.vue:1277 src/component/lightbox.vue:458
-#: src/component/meta/camera/dialog.vue:20
+#: src/component/label/edit/dialog.vue:20 src/component/lightbox.vue:1293
+#: src/component/lightbox.vue:1294 src/component/lightbox.vue:469
+#: src/component/lightbox/sidebar.vue:7 src/component/meta/camera/dialog.vue:20
 #: src/component/meta/datetime/dialog.vue:20
 #: src/component/meta/location/dialog.vue:20
 #: src/component/people/edit/dialog.vue:20
 #: src/component/photo/album/dialog.vue:18
 #: src/component/photo/batch-edit.vue:21 src/component/photo/batch-edit.vue:471
-#: src/component/photo/edit/details.vue:391
-#: src/component/photo/edit/details.vue:396 src/component/photo/toolbar.vue:86
+#: src/component/photo/edit/details.vue:380
+#: src/component/photo/edit/details.vue:385 src/component/photo/toolbar.vue:86
 #: src/component/settings/apps.vue:209 src/component/settings/apps.vue:85
 #: src/component/settings/passcode.vue:128
 #: src/component/settings/passcode.vue:129
@@ -864,9 +874,9 @@ msgstr "Klienta piekļuves dati"
 #: src/component/settings/passcode.vue:61 src/component/settings/webdav.vue:74
 #: src/component/share/dialog.vue:126 src/component/share/dialog.vue:70
 #: src/component/share/dialog.vue:71 src/component/share/dialog.vue:80
-#: src/component/sidebar/info.vue:7 src/component/update.vue:25
-#: src/component/upload/dialog.vue:119 src/component/upload/dialog.vue:20
-#: src/locales.js:210 src/page/library/errors.vue:105
+#: src/component/update.vue:25 src/component/upload/dialog.vue:119
+#: src/component/upload/dialog.vue:20 src/locales.js:210
+#: src/page/library/errors.vue:105
 msgid "Close"
 msgstr "Aizvērt"
 
@@ -910,19 +920,11 @@ msgstr "Salīdzināt izdevumus"
 msgid "Complete Rescan"
 msgstr "Veikt pilnu pārlūkošanu"
 
-#: src/component/photo/edit/labels.vue:238
+#: src/component/photo/edit/labels.vue:241
 #: src/component/photo/edit/labels.vue:33
 msgid "Confidence"
 msgstr "Pārliecība"
 
-#: src/component/meta/camera/dialog.vue:123
-#: src/component/meta/camera/dialog.vue:40
-#: src/component/meta/camera/dialog.vue:41
-#: src/component/meta/camera/dialog.vue:53
-#: src/component/meta/datetime/dialog.vue:122
-#: src/component/meta/datetime/dialog.vue:38
-#: src/component/meta/datetime/dialog.vue:39
-#: src/component/meta/datetime/dialog.vue:51
 #: src/component/meta/location/dialog.vue:118
 #: src/component/meta/location/dialog.vue:58
 #: src/component/meta/location/dialog.vue:59
@@ -999,7 +1001,7 @@ msgstr "Dalībnieks"
 msgid "Converting"
 msgstr "Konvertēšana"
 
-#: src/common/util.js:1064
+#: src/common/util.js:1063
 msgid "Copied to clipboard"
 msgstr "Kopēts starpliktuvē"
 
@@ -1013,13 +1015,15 @@ msgstr "Kopēts starpliktuvē"
 msgid "Copy"
 msgstr "Kopēt"
 
+#: src/component/lightbox/sidebar.vue:840
+#: src/component/photo/batch-edit.vue:367
 #: src/component/photo/batch-edit.vue:369
-#: src/component/photo/edit/details.vue:314
-#: src/component/photo/edit/details.vue:317 src/component/sidebar/info.vue:802
+#: src/component/photo/edit/details.vue:306
+#: src/component/photo/edit/details.vue:308
 msgid "Copyright"
 msgstr "Autortiesības"
 
-#: src/component/photo/edit/people.vue:309
+#: src/component/photo/edit/people.vue:306
 msgid "Could not update person cover"
 msgstr "Neizdevās atjaunināt personas profila attēlu"
 
@@ -1028,7 +1032,7 @@ msgid "Couldn't find anything."
 msgstr "Neko nevarēja atrast."
 
 #: src/page/settings/account.vue:369 src/component/photo/batch-edit.vue:289
-#: src/component/photo/edit/details.vue:160 src/component/photo/toolbar.vue:100
+#: src/component/photo/edit/details.vue:159 src/component/photo/toolbar.vue:100
 #: src/page/settings/account.vue:286
 msgid "Country"
 msgstr "Valsts"
@@ -1097,7 +1101,7 @@ msgstr "Datums un laiks"
 
 #: src/page/settings/account.vue:220 src/component/meta/datetime/dialog.vue:30
 #: src/component/photo/batch-edit.vue:194
-#: src/component/photo/edit/details.vue:46 src/page/settings/account.vue:204
+#: src/component/photo/edit/details.vue:45 src/page/settings/account.vue:204
 msgid "Day"
 msgstr "Diena"
 
@@ -1113,7 +1117,7 @@ msgstr "Atkļūdošanas žurnāli"
 #: src/page/admin/users.vue:231 src/options/admin.js:35
 #: src/page/admin/sessions.vue:371 src/page/admin/users.vue:374
 #: src/page/admin/sessions.vue:369 src/page/admin/users.vue:372
-#: src/common/util.js:868 src/model/session.js:42 src/model/user.js:255
+#: src/common/util.js:867 src/model/session.js:42 src/model/user.js:244
 #: src/options/auth.js:21 src/options/auth.js:22 src/options/auth.js:40
 #: src/options/auth.js:41 src/options/options.js:252 src/options/options.js:255
 #: src/options/options.js:293 src/options/options.js:377
@@ -1158,7 +1162,7 @@ msgstr "Dzēst nevajadzīgos indeksa ierakstus, blakusfailus un sīktēlus."
 msgid "deleted"
 msgstr "izdzēsts"
 
-#: src/component/album/edit/dialog.vue:47
+#: src/component/album/edit/dialog.vue:46
 #: src/component/photo/batch-edit.vue:155 src/page/albums.vue:235
 msgid "Description"
 msgstr "Apraksts"
@@ -1248,16 +1252,21 @@ msgstr "Izslēdz vektorgrafikas atbalstu."
 msgid "Disables video transcoding and thumbnail extraction."
 msgstr "Izslēdz video pārkodēšanu un sīktēlu izgūšanu."
 
+#: src/component/lightbox/sidebar.vue:467
 #: src/component/photo/batch-edit.vue:470
-#: src/component/photo/edit/details.vue:395 src/component/sidebar/info.vue:467
+#: src/component/photo/edit/details.vue:384
 msgid "Discard"
 msgstr "Atcelt"
 
-#: src/component/photo/edit/details.vue:391
+#: src/component/photo/edit/details.vue:380
 msgid "Discard changes and close"
 msgstr "Atcelt izmaiņas un aizvērt"
 
-#: src/component/sidebar/info.vue:466
+#: src/component/lightbox/sidebar.vue:940
+msgid "Discard invalid changes?"
+msgstr ""
+
+#: src/component/lightbox/sidebar.vue:942
 msgid "Discard unsaved changes?"
 msgstr "Atteikties no nesaglabātām izmaiņām?"
 
@@ -1288,9 +1297,9 @@ msgstr "Rādīt attēlu parakstus meklēšanas rezultātos."
 msgid "Display picture titles in search results."
 msgstr "Rādīt attēlu nosaukumus meklēšanas rezultātos."
 
-#: src/common/util.js:850 src/component/photo/view/cards.vue:115
+#: src/common/util.js:849 src/component/photo/view/cards.vue:115
 #: src/component/photo/view/cards.vue:239
-#: src/component/photo/view/mosaic.vue:70 src/model/thumb.js:285
+#: src/component/photo/view/mosaic.vue:70 src/model/thumb.js:245
 #: src/options/options.js:370
 msgid "Document"
 msgstr "Dokuments"
@@ -1314,10 +1323,10 @@ msgstr "Neizmantojiet ImageMagick attēlu konvertēšanai."
 msgid "Don't use RawTherapee to convert RAW images."
 msgstr "Neizmantojiet RawTherapee, lai konvertētu RAW attēlus."
 
-#: src/component/settings/apps.vue:51 src/component/settings/apps.vue:52
-#: src/component/settings/apps.vue:61 src/component/settings/apps.vue:77
-#: src/component/settings/apps.vue:88 src/component/share/dialog.vue:162
-#: src/component/sidebar/info.vue:201
+#: src/component/lightbox/sidebar.vue:201 src/component/settings/apps.vue:51
+#: src/component/settings/apps.vue:52 src/component/settings/apps.vue:61
+#: src/component/settings/apps.vue:77 src/component/settings/apps.vue:88
+#: src/component/share/dialog.vue:162
 msgid "Done"
 msgstr "Pabeigts"
 
@@ -1327,7 +1336,7 @@ msgid "Done."
 msgstr "Pabeigts."
 
 #: src/component/album/clipboard.vue:46 src/component/album/toolbar.vue:185
-#: src/component/file/clipboard.vue:24 src/component/lightbox.vue:1503
+#: src/component/file/clipboard.vue:24 src/component/lightbox.vue:1520
 #: src/component/people/clipboard.vue:23 src/component/photo/clipboard.vue:84
 #: src/component/photo/edit/files.vue:59 src/page/settings/content.vue:169
 #: src/page/settings/general.vue:170
@@ -1344,7 +1353,7 @@ msgstr "Lejupielādēt attālinātos failus"
 
 #: src/component/album/clipboard.vue:203 src/component/album/toolbar.vue:234
 #: src/component/file/clipboard.vue:138 src/component/label/clipboard.vue:149
-#: src/component/lightbox.vue:2879 src/component/people/clipboard.vue:125
+#: src/component/lightbox.vue:2947 src/component/people/clipboard.vue:125
 #: src/component/photo/clipboard.vue:414 src/component/photo/edit/files.vue:509
 #: src/component/photo/view/cards.vue:449 src/component/photo/view/list.vue:284
 #: src/page/library/browse.vue:227
@@ -1379,12 +1388,13 @@ msgid "Dynamic Size Limit: %{n}px"
 msgstr "Dinamiskā izmēra ierobežojums: %{n}px"
 
 #: src/component/album/clipboard.vue:35 src/component/album/toolbar.vue:156
-#: src/component/lightbox.vue:1407 src/component/lightbox.vue:1408
-#: src/component/photo/clipboard.vue:60 src/component/sidebar/info.vue:110
-#: src/component/sidebar/info.vue:131 src/component/sidebar/info.vue:164
-#: src/component/sidebar/info.vue:201
-#: src/component/sidebar/inline-toolbar.vue:32
-#: src/page/settings/general.vue:200
+#: src/component/lightbox.vue:1424 src/component/lightbox.vue:1425
+#: src/component/lightbox/sidebar.vue:110
+#: src/component/lightbox/sidebar.vue:131
+#: src/component/lightbox/sidebar.vue:164
+#: src/component/lightbox/sidebar.vue:201
+#: src/component/lightbox/sidebar/toolbar.vue:32
+#: src/component/photo/clipboard.vue:60 src/page/settings/general.vue:200
 msgid "Edit"
 msgstr "Rediģēt"
 
@@ -1402,7 +1412,7 @@ msgstr "Rediģēt kontu"
 msgid "Edit Photo"
 msgstr "Rediģēt fotoattēlu"
 
-#: src/component/photo/batch-edit.vue:625
+#: src/component/photo/batch-edit.vue:629
 msgid "Edit Photos (%{n})"
 msgstr "Rediģēt fotoattēlus (%{n})"
 
@@ -1472,8 +1482,8 @@ msgstr "Ievadiet verifikācijas kodu"
 msgid "Enter your password to confirm the action and continue:"
 msgstr "Ievadiet paroli, lai apstiprinātu darbību un turpinātu:"
 
-#: src/page/connect.vue:14 src/component/lightbox.vue:462
-#: src/page/library/errors.vue:359
+#: src/page/connect.vue:14 src/component/lightbox.vue:473
+#: src/page/library/errors.vue:361
 msgid "Error"
 msgstr "Kļūda"
 
@@ -1483,7 +1493,7 @@ msgstr "Kļūda"
 msgid "Errors"
 msgstr "Kļūdas"
 
-#: src/common/util.js:870
+#: src/common/util.js:869
 msgid "Estimate"
 msgstr "Noteikt"
 
@@ -1519,8 +1529,10 @@ msgstr "Eksperimentālās funkcijas"
 msgid "Expires"
 msgstr "Derīguma termiņš beidzas"
 
-#: src/component/meta/camera/dialog.vue:80
-#: src/component/photo/edit/details.vue:235
+#: src/component/meta/camera/dialog.vue:79
+#: src/component/meta/camera/dialog.vue:83
+#: src/component/photo/edit/details.vue:230
+#: src/component/photo/edit/details.vue:234
 msgid "Exposure"
 msgstr "Ekspozīcija"
 
@@ -1528,12 +1540,12 @@ msgstr "Ekspozīcija"
 msgid "Extract still images and generate thumbnails while indexing."
 msgstr "Izgūt statiskos attēlus un ģenerēt sīktēlus indeksēšanas laikā."
 
-#: src/component/meta/camera/dialog.vue:95
-#: src/component/photo/edit/details.vue:269
+#: src/component/meta/camera/dialog.vue:93
+#: src/component/photo/edit/details.vue:263
 msgid "F Number"
 msgstr "F skaitlis"
 
-#: src/model/face.js:139
+#: src/model/face.js:143
 msgid "Face"
 msgstr "Seja"
 
@@ -1549,27 +1561,31 @@ msgstr "Neizdevās noņemt saiti"
 msgid "Failed to connect account."
 msgstr "Neizdevās savienot kontu."
 
-#: src/component/lightbox.vue:1974
+#: src/component/lightbox.vue:2028
 msgid "Failed to remove face marker"
 msgstr "Neizdevās noņemt sejas marķieri"
 
-#: src/component/lightbox.vue:1921
+#: src/component/lightbox.vue:1961
 msgid "Failed to remove name"
 msgstr "Neizdevās noņemt nosaukumu"
 
-#: src/component/photo/batch-edit.vue:1410 src/component/sidebar/info.vue:1497
-#: src/component/sidebar/info.vue:1707 src/component/sidebar/info.vue:1733
-#: src/component/sidebar/info.vue:1792 src/component/sidebar/info.vue:1812
-#: src/component/sidebar/info.vue:1916 src/component/sidebar/info.vue:1937
-#: src/component/sidebar/info.vue:1963
+#: src/component/lightbox/sidebar.vue:1754
+#: src/component/lightbox/sidebar.vue:2010
+#: src/component/lightbox/sidebar.vue:2053
+#: src/component/lightbox/sidebar.vue:2120
+#: src/component/lightbox/sidebar.vue:2142
+#: src/component/lightbox/sidebar.vue:2256
+#: src/component/lightbox/sidebar.vue:2279
+#: src/component/lightbox/sidebar.vue:2309
+#: src/component/photo/batch-edit.vue:1473
 msgid "Failed to save changes"
 msgstr "Neizdevās saglabāt izmaiņas"
 
-#: src/component/lightbox.vue:1897
+#: src/component/lightbox.vue:1933
 msgid "Failed to save face marker"
 msgstr "Neizdevās saglabāt sejas marķieri"
 
-#: src/component/sidebar/info.vue:1330
+#: src/component/lightbox/sidebar.vue:1479
 msgid "Failed to save name"
 msgstr "Neizdevās saglabāt nosaukumu"
 
@@ -1587,10 +1603,10 @@ msgstr "Uzvārds"
 msgid "Fast"
 msgstr "Ātri"
 
-#: src/component/album/edit/dialog.vue:78
-#: src/component/label/edit/dialog.vue:38
-#: src/component/people/edit/dialog.vue:38
-#: src/component/photo/batch-edit.vue:1465
+#: src/component/album/edit/dialog.vue:77
+#: src/component/label/edit/dialog.vue:37
+#: src/component/people/edit/dialog.vue:37
+#: src/component/photo/batch-edit.vue:1528
 #: src/component/photo/edit/info.vue:121 src/component/photo/edit/info.vue:122
 msgid "Favorite"
 msgstr "Favorīts"
@@ -1608,8 +1624,8 @@ msgstr "Funkcionalitātes pieprasījums"
 msgid "Female"
 msgstr "Sieviete"
 
-#: src/common/util.js:872 src/component/photo/edit/info.vue:94
-#: src/component/sidebar/info.vue:1014 src/model/file.js:262
+#: src/common/util.js:871 src/component/lightbox/sidebar.vue:1098
+#: src/component/photo/edit/info.vue:94 src/model/file.js:270
 msgid "File"
 msgstr "Fails"
 
@@ -1621,15 +1637,15 @@ msgstr "Failu pārlūks"
 msgid "File Conversion"
 msgstr "Failu konvertēšana"
 
-#: src/component/album/edit/dialog.vue:127
-#: src/component/photo/batch-edit.vue:596
-#: src/component/photo/batch-edit.vue:616 src/component/photo/toolbar.vue:407
+#: src/component/album/edit/dialog.vue:126
+#: src/component/photo/batch-edit.vue:600
+#: src/component/photo/batch-edit.vue:620 src/component/photo/toolbar.vue:407
 #: src/component/photo/toolbar.vue:418 src/component/photo/toolbar.vue:429
 #: src/component/photo/view/list.vue:34
 msgid "File Name"
 msgstr "Faila nosaukums"
 
-#: src/component/album/edit/dialog.vue:128 src/component/photo/toolbar.vue:408
+#: src/component/album/edit/dialog.vue:127 src/component/photo/toolbar.vue:408
 #: src/component/photo/toolbar.vue:419 src/component/photo/toolbar.vue:430
 msgid "File Size"
 msgstr "Faila izmērs"
@@ -1655,15 +1671,15 @@ msgstr "Faili ar secīgiem nosaukumiem, piemēram, “IMG_1234 (2)” un “IMG_
 msgid "First page"
 msgstr "Pirmā lapa"
 
-#: src/component/meta/camera/dialog.vue:108
-#: src/component/photo/edit/details.vue:283
+#: src/component/meta/camera/dialog.vue:105
+#: src/component/photo/edit/details.vue:276
 msgid "Focal Length"
 msgstr "Fokusa attālums"
 
 #: src/component/photo/edit/info.vue:28 src/component/photo/edit/info.vue:29
 #: src/component/service/edit.vue:44 src/component/service/edit.vue:86
 #: src/component/service/edit.vue:91 src/component/service/upload.vue:42
-#: src/component/service/upload.vue:48 src/model/folder.js:175
+#: src/component/service/upload.vue:48 src/model/folder.js:181
 #: src/page/library/browse.vue:77
 msgid "Folder"
 msgstr "Mape"
@@ -1703,7 +1719,7 @@ msgstr "Rāmji"
 msgid "Full Access"
 msgstr "Pilna piekļuve"
 
-#: src/component/lightbox.vue:1353 src/component/lightbox.vue:1354
+#: src/component/lightbox.vue:1370 src/component/lightbox.vue:1371
 msgid "Fullscreen"
 msgstr "Pilnekrāna režīms"
 
@@ -1774,7 +1790,7 @@ msgstr "Palīdzība un atbalsts"
 
 #: src/component/navigation.vue:363 src/component/navigation.vue:364
 #: src/component/navigation.vue:376 src/component/navigation.vue:385
-#: src/component/navigation.vue:498 src/component/people/edit/dialog.vue:41
+#: src/component/navigation.vue:498 src/component/people/edit/dialog.vue:40
 msgid "Hidden"
 msgstr "Slēpts"
 
@@ -1786,7 +1802,11 @@ msgstr "Slēptie faili"
 msgid "Hide"
 msgstr "Slēpt"
 
-#: src/component/sidebar/info.vue:214
+#: src/component/lightbox.vue:1542
+msgid "Hide Caption"
+msgstr ""
+
+#: src/component/lightbox/sidebar.vue:214
 msgid "Hide face markers"
 msgstr "Slēpt sejas marķierus"
 
@@ -1813,8 +1833,8 @@ msgstr "Hibrīds"
 msgid "If you lose access to your authenticator app or device, you can use your recovery code to regain access to your account."
 msgstr "Ja zaudējat piekļuvi autentifikatora lietotnei vai ierīcei, varat izmantot atkopšanas kodu, lai atgūtu piekļuvi savam kontam."
 
-#: src/common/util.js:836 src/common/util.js:876
-#: src/component/photo/view/cards.vue:246 src/model/file.js:190
+#: src/common/util.js:835 src/common/util.js:875
+#: src/component/photo/view/cards.vue:246 src/model/file.js:198
 #: src/options/options.js:342
 msgid "Image"
 msgstr "Attēls"
@@ -1883,8 +1903,8 @@ msgstr "Indeksēšana"
 msgid "Indexing media and sidecar files…"
 msgstr "Notiek multivides un blakusfailu indeksēšana…"
 
-#: src/component/lightbox.vue:1301 src/component/lightbox.vue:1302
-#: src/component/sidebar/info.vue:8
+#: src/component/lightbox.vue:1318 src/component/lightbox.vue:1319
+#: src/component/lightbox/sidebar.vue:8
 msgid "Information"
 msgstr "Informācija"
 
@@ -1925,7 +1945,7 @@ msgstr "Nederīga adrese"
 msgid "Invalid country"
 msgstr "Nederīga valsts"
 
-#: src/component/photo/edit/details.vue:622
+#: src/component/photo/edit/details.vue:627
 msgid "Invalid date"
 msgstr "Nederīgs datums"
 
@@ -1934,7 +1954,7 @@ msgstr "Nederīgs datums"
 msgid "Invalid parameters"
 msgstr "Nederīgi parametri"
 
-#: src/component/photo/edit/dialog.vue:286 src/model/thumb.js:314
+#: src/component/photo/edit/dialog.vue:286 src/model/thumb.js:270
 msgid "Invalid photo selected"
 msgstr "Atlasīts nederīgs fotoattēls"
 
@@ -1976,28 +1996,30 @@ msgstr "JPEG izmēra ierobežojums: %{n} pikseļi"
 msgid "JPEGs and thumbnails are automatically rendered as needed."
 msgstr "JPEG faili un to sīktēli tiek automātiski radīti, kad nepieciešams."
 
-#: src/common/util.js:888
+#: src/common/util.js:887
 msgid "Keyword"
 msgstr "Atslēgvārds"
 
-#: src/component/photo/edit/details.vue:361 src/component/sidebar/info.vue:838
+#: src/component/lightbox/sidebar.vue:882
+#: src/component/photo/edit/details.vue:347
+#: src/component/photo/edit/details.vue:350
 msgid "Keywords"
 msgstr "Atslēgvārdi"
 
-#: src/component/photo/edit/labels.vue:226
-#: src/component/photo/edit/labels.vue:23 src/model/label.js:102
+#: src/component/photo/edit/labels.vue:229
+#: src/component/photo/edit/labels.vue:23 src/model/label.js:114
 msgid "Label"
 msgstr "Birka"
 
 #: src/page/cluster/nodes.vue:155 src/app/routes.js:414
-#: src/component/navigation.vue:430 src/component/photo/batch-edit.vue:414
+#: src/component/lightbox/sidebar.vue:351 src/component/navigation.vue:430
+#: src/component/photo/batch-edit.vue:429
 #: src/component/photo/edit/dialog.vue:37
 #: src/component/photo/edit/dialog.vue:38
 #: src/component/photo/edit/dialog.vue:50
 #: src/component/photo/edit/dialog.vue:52
-#: src/component/photo/edit/dialog.vue:53 src/component/sidebar/info.vue:291
-#: src/locales.js:329 src/options/options.js:265
-#: src/page/settings/general.vue:126
+#: src/component/photo/edit/dialog.vue:53 src/locales.js:329
+#: src/options/options.js:265 src/page/settings/general.vue:126
 msgid "Labels"
 msgstr "Birkas"
 
@@ -2056,9 +2078,10 @@ msgstr "Uzziniet vairāk"
 msgid "Legal Information"
 msgstr "Juridiskā informācija"
 
-#: src/component/meta/camera/dialog.vue:45
-#: src/component/photo/edit/details.vue:248
-#: src/component/photo/view/cards.vue:213 src/component/sidebar/info.vue:139
+#: src/component/lightbox/sidebar.vue:139
+#: src/component/meta/camera/dialog.vue:46
+#: src/component/photo/edit/details.vue:243
+#: src/component/photo/view/cards.vue:213
 msgid "Lens"
 msgstr "Objektīvs"
 
@@ -2067,18 +2090,19 @@ msgstr "Objektīvs"
 msgid "Library"
 msgstr "Bibliotēka"
 
-#: src/page/connect.vue:5 src/app/routes.js:69 src/component/navigation.vue:404
+#: src/page/connect.vue:5 src/app/routes.js:69
+#: src/component/lightbox/sidebar.vue:868 src/component/navigation.vue:404
 #: src/component/navigation.vue:405 src/component/navigation.vue:417
 #: src/component/navigation.vue:426 src/component/navigation.vue:539
 #: src/component/navigation.vue:547 src/component/navigation.vue:555
+#: src/component/photo/batch-edit.vue:397
 #: src/component/photo/batch-edit.vue:400
-#: src/component/photo/edit/details.vue:342
-#: src/component/photo/edit/details.vue:346 src/component/sidebar/info.vue:826
-#: src/page/about/license.vue:5
+#: src/component/photo/edit/details.vue:332
+#: src/component/photo/edit/details.vue:335 src/page/about/license.vue:5
 msgid "License"
 msgstr "Licence"
 
-#: src/component/lightbox.vue:1371 src/component/lightbox.vue:1372
+#: src/component/lightbox.vue:1388 src/component/lightbox.vue:1389
 msgid "Like"
 msgstr "Patīk"
 
@@ -2102,7 +2126,7 @@ msgstr "Saraksts"
 msgid "List View"
 msgstr "Saraksta skats"
 
-#: src/common/util.js:840 src/component/photo/batch-edit.vue:124
+#: src/common/util.js:839 src/component/photo/batch-edit.vue:124
 #: src/component/photo/batch-edit.vue:65 src/component/photo/view/cards.vue:112
 #: src/component/photo/view/cards.vue:224 src/component/photo/view/list.vue:81
 #: src/component/photo/view/mosaic.vue:67 src/options/options.js:350
@@ -2133,21 +2157,22 @@ msgstr "Notiek ielāde..."
 msgid "Local"
 msgstr "Vietējais"
 
-#: src/component/meta/datetime/dialog.vue:164
-#: src/component/photo/edit/details.vue:110
+#: src/component/meta/datetime/dialog.vue:165
+#: src/component/photo/edit/details.vue:109
 msgid "Local Time"
 msgstr "Vietējais laiks"
 
 #: src/page/settings/account.vue:359 src/page/settings/account.vue:361
-#: src/common/util.js:878 src/component/album/edit/dialog.vue:39
+#: src/common/util.js:877 src/component/album/edit/dialog.vue:38
+#: src/component/lightbox/sidebar.vue:149
 #: src/component/photo/batch-edit.vue:263
-#: src/component/photo/batch-edit.vue:571
-#: src/component/photo/edit/details.vue:459
-#: src/component/photo/edit/details.vue:569
-#: src/component/photo/edit/details.vue:663
+#: src/component/photo/batch-edit.vue:575
+#: src/component/photo/edit/details.vue:450
+#: src/component/photo/edit/details.vue:574
+#: src/component/photo/edit/details.vue:678
 #: src/component/photo/view/cards.vue:255 src/component/photo/view/list.vue:43
-#: src/component/sidebar/info.vue:149 src/page/albums.vue:390
-#: src/page/settings/account.vue:276 src/page/settings/account.vue:278
+#: src/page/albums.vue:390 src/page/settings/account.vue:276
+#: src/page/settings/account.vue:278
 msgid "Location"
 msgstr "Atrašanās vieta"
 
@@ -2206,7 +2231,7 @@ msgstr "Pārvaldīt kontu"
 msgid "Manager"
 msgstr "Vadītājs"
 
-#: src/common/util.js:900
+#: src/common/util.js:899
 msgid "Manual"
 msgstr "Manuāli"
 
@@ -2218,7 +2243,7 @@ msgstr "Manuāla augšupielāde"
 msgid "Maps"
 msgstr "Kartes"
 
-#: src/common/util.js:880 src/model/marker.js:118
+#: src/common/util.js:879 src/model/marker.js:124
 msgid "Marker"
 msgstr "Marķieris"
 
@@ -2248,7 +2273,7 @@ msgstr "Apvienot %{a} ar %{b}?"
 msgid "Message"
 msgstr "Ziņojums"
 
-#: src/common/util.js:890
+#: src/common/util.js:889
 msgid "Metadata"
 msgstr "Metadati"
 
@@ -2288,12 +2313,12 @@ msgstr "Vienkrāsains"
 
 #: src/page/settings/account.vue:240 src/component/meta/datetime/dialog.vue:50
 #: src/component/photo/batch-edit.vue:213
-#: src/component/photo/edit/details.vue:68 src/component/photo/toolbar.vue:199
+#: src/component/photo/edit/details.vue:67 src/component/photo/toolbar.vue:199
 #: src/page/settings/account.vue:224
 msgid "Month"
 msgstr "Mēnesis"
 
-#: src/component/lightbox.vue:1426
+#: src/component/lightbox.vue:1443
 msgid "More options"
 msgstr "Vairāk iespēju"
 
@@ -2301,7 +2326,7 @@ msgstr "Vairāk iespēju"
 msgid "Mosaic"
 msgstr "Mozaīka"
 
-#: src/component/album/edit/dialog.vue:130 src/component/photo/toolbar.vue:433
+#: src/component/album/edit/dialog.vue:129 src/component/photo/toolbar.vue:433
 msgid "Most Relevant"
 msgstr "Visatbilstošākais"
 
@@ -2313,32 +2338,34 @@ msgstr "Pārvietot failus"
 msgid "Must have at least %{n} characters."
 msgstr "Jābūt vismaz %{n} rakstzīmēm."
 
-#: src/component/lightbox.vue:1320 src/component/lightbox.vue:1321
+#: src/component/lightbox.vue:1337 src/component/lightbox.vue:1338
 msgid "Mute"
 msgstr "Izslēgt skaņu"
 
 #: src/page/cluster/nodes.vue:117 src/page/cluster/nodes.vue:173
-#: src/page/cluster/nodes.vue:244 src/common/util.js:874
+#: src/page/cluster/nodes.vue:244 src/common/util.js:873
+#: src/component/album/edit/dialog.vue:30
 #: src/component/album/edit/dialog.vue:31
-#: src/component/album/edit/dialog.vue:32
+#: src/component/label/edit/dialog.vue:30
 #: src/component/label/edit/dialog.vue:31
-#: src/component/label/edit/dialog.vue:32
+#: src/component/lightbox/sidebar.vue:245
+#: src/component/lightbox/sidebar.vue:249
+#: src/component/people/edit/dialog.vue:30
 #: src/component/people/edit/dialog.vue:31
-#: src/component/people/edit/dialog.vue:32
 #: src/component/photo/edit/files.vue:417 src/component/photo/edit/info.vue:36
-#: src/component/photo/edit/info.vue:37 src/component/photo/edit/people.vue:154
-#: src/component/photo/view/list.vue:43 src/component/service/edit.vue:155
-#: src/component/settings/apps.vue:112 src/component/settings/apps.vue:275
-#: src/component/sidebar/info.vue:245 src/component/sidebar/info.vue:249
-#: src/locales.js:323 src/page/albums.vue:389 src/page/auth/login.vue:80
-#: src/page/people/new.vue:171 src/page/settings/services.vue:145
+#: src/component/photo/edit/info.vue:37 src/component/photo/edit/labels.vue:135
+#: src/component/photo/edit/people.vue:51 src/component/photo/view/list.vue:43
+#: src/component/service/edit.vue:155 src/component/settings/apps.vue:112
+#: src/component/settings/apps.vue:275 src/locales.js:323
+#: src/page/albums.vue:389 src/page/auth/login.vue:80
+#: src/page/people/new.vue:51 src/page/settings/services.vue:145
 msgid "Name"
 msgstr "Vārds"
 
-#: src/component/photo/edit/labels.vue:257
-#: src/component/photo/edit/people.vue:157 src/component/sidebar/info.vue:1693
-#: src/component/sidebar/info.vue:1726 src/component/sidebar/info.vue:1765
-#: src/component/sidebar/info.vue:1833
+#: src/component/lightbox/sidebar.vue:1985
+#: src/component/lightbox/sidebar.vue:2037
+#: src/component/lightbox/sidebar.vue:2091
+#: src/component/lightbox/sidebar.vue:2167
 msgid "Name too long"
 msgstr "Vārds ir pārāk garš"
 
@@ -2356,13 +2383,13 @@ msgstr "Jauns"
 msgid "New Password"
 msgstr "Jauna parole"
 
-#: src/component/album/edit/dialog.vue:123 src/component/photo/toolbar.vue:402
+#: src/component/album/edit/dialog.vue:122 src/component/photo/toolbar.vue:402
 #: src/component/photo/toolbar.vue:414 src/component/photo/toolbar.vue:424
 #: src/page/albums.vue:391
 msgid "Newest First"
 msgstr "Jaunākie vispirms"
 
-#: src/component/lightbox.vue:461 src/locales.js:301
+#: src/component/lightbox.vue:472 src/locales.js:301
 msgid "Next"
 msgstr "Nākamais"
 
@@ -2376,14 +2403,14 @@ msgstr "Nākamais vizuālais materiāls"
 
 #: src/component/people/merge/dialog.vue:19
 #: src/component/photo/archive/dialog.vue:19
-#: src/component/photo/batch-edit.vue:1069
+#: src/component/photo/batch-edit.vue:1114
 #: src/component/photo/edit/info.vue:151 src/component/photo/edit/info.vue:165
 #: src/component/photo/edit/info.vue:179 src/component/photo/edit/info.vue:193
 #: src/component/photo/edit/info.vue:207
 msgid "No"
 msgstr "Nē"
 
-#: src/component/photo/batch-edit.vue:437
+#: src/component/photo/batch-edit.vue:420
 msgid "No albums assigned"
 msgstr "Nav piešķirts neviens albums"
 
@@ -2395,7 +2422,7 @@ msgstr "Nav atrasts neviens albums"
 msgid "No data available"
 msgstr "Dati nav pieejami"
 
-#: src/component/photo/batch-edit.vue:422
+#: src/component/photo/batch-edit.vue:437
 msgid "No labels assigned"
 msgstr "Nav piešķirtas etiķetes"
 
@@ -2412,7 +2439,7 @@ msgid "No more"
 msgstr "Vairs ne"
 
 #: src/component/photo/edit/people.vue:6 src/page/people/new.vue:23
-#: src/page/people/new.vue:449 src/page/people/new.vue:555
+#: src/page/people/new.vue:445 src/page/people/new.vue:551
 #: src/page/people/recognized.vue:55 src/page/people/recognized.vue:692
 msgid "No people found"
 msgstr "Nav atrastas personas"
@@ -2472,12 +2499,12 @@ msgstr "Attēli, kas nav fotoattēli un ir zemas kvalitātes, ir jāpārskata, p
 msgid "None"
 msgstr "Neviens"
 
-#: src/component/lightbox.vue:874 src/component/service/upload.vue:146
+#: src/component/lightbox.vue:885 src/component/service/upload.vue:146
 #: src/component/service/upload.vue:158
 msgid "Not allowed"
 msgstr "Nav atļauts"
 
-#: src/component/lightbox.vue:871
+#: src/component/lightbox.vue:882
 msgid "Not found"
 msgstr "Nav atrasts"
 
@@ -2485,7 +2512,7 @@ msgstr "Nav atrasts"
 msgid "Not sorted."
 msgstr "Nav sakārtots."
 
-#: src/component/lightbox.vue:868 src/component/lightbox.vue:982
+#: src/component/lightbox.vue:879 src/component/lightbox.vue:993
 msgid "Not supported"
 msgstr "Nav atbalstīts"
 
@@ -2501,7 +2528,9 @@ msgstr "Piezīme:"
 msgid "Note: Only WebDAV servers, like Nextcloud or PhotoPrism, can be configured as remote service for backup and file upload."
 msgstr "Piezīme. Kā attālinātus pakalpojumus dublēšanai un failu augšupielādei var konfigurēt tikai WebDAV serverus, piemēram, Nextcloud vai PhotoPrism."
 
-#: src/component/photo/edit/details.vue:376 src/component/sidebar/info.vue:850
+#: src/component/lightbox/sidebar.vue:896
+#: src/component/photo/edit/details.vue:362
+#: src/component/photo/edit/details.vue:365
 msgid "Notes"
 msgstr "Piezīmes"
 
@@ -2528,7 +2557,7 @@ msgstr "OIDC"
 msgid "OK"
 msgstr "Labi"
 
-#: src/component/album/edit/dialog.vue:124 src/component/photo/toolbar.vue:403
+#: src/component/album/edit/dialog.vue:123 src/component/photo/toolbar.vue:403
 #: src/component/photo/toolbar.vue:415 src/component/photo/toolbar.vue:425
 #: src/page/albums.vue:392
 msgid "Oldest First"
@@ -2567,7 +2596,7 @@ msgstr "Atrasta viena mape"
 msgid "One label found"
 msgstr "Atrasta viena etiķete"
 
-#: src/page/people/new.vue:451 src/page/people/new.vue:557
+#: src/page/people/new.vue:447 src/page/people/new.vue:553
 #: src/page/people/recognized.vue:694
 msgid "One person found"
 msgstr "Atrasta viena persona"
@@ -2622,7 +2651,7 @@ msgstr "Sākotnējais nosaukums"
 
 #: src/component/navigation.vue:356 src/component/navigation.vue:357
 #: src/component/navigation.vue:369 src/component/navigation.vue:378
-#: src/component/navigation.vue:491 src/model/file.js:172
+#: src/component/navigation.vue:491 src/model/file.js:180
 #: src/options/options.js:474 src/page/library/browse.vue:7
 #: src/page/settings/content.vue:179 src/page/settings/general.vue:304
 msgid "Originals"
@@ -2648,7 +2677,7 @@ msgstr "{0}. lapa, pašreizējā lapa"
 #: src/component/photo/edit/files.vue:120
 #: src/component/photo/edit/files.vue:121
 #: src/component/photo/edit/files.vue:127
-#: src/component/photo/edit/files.vue:135 src/model/photo.js:901
+#: src/component/photo/edit/files.vue:135 src/model/photo.js:933
 msgid "Pages"
 msgstr "Lapas"
 
@@ -2656,7 +2685,7 @@ msgstr "Lapas"
 msgid "Pagination Navigation"
 msgstr "Lappušu navigācija"
 
-#: src/component/photo/batch-edit.vue:1467
+#: src/component/photo/batch-edit.vue:1530
 #: src/component/photo/edit/info.vue:145 src/component/photo/edit/info.vue:146
 msgid "Panorama"
 msgstr "Panorāma"
@@ -2667,11 +2696,11 @@ msgstr "Panorāma"
 msgid "Panoramas"
 msgstr "Panorāmas"
 
-#: src/component/input/chip-selector.vue:187
+#: src/component/input/chip-selector.vue:193
 msgid "Part of all selected photos"
 msgstr "Daļa no visām atlasītajām fotogrāfijām"
 
-#: src/component/input/chip-selector.vue:185
+#: src/component/input/chip-selector.vue:191
 msgid "Part of some selected photos"
 msgstr "Daļa no dažām atlasītajām fotogrāfijām"
 
@@ -2688,13 +2717,14 @@ msgstr "Parole"
 msgid "Password changed"
 msgstr "Parole nomainīta"
 
-#: src/app/routes.js:429 src/app/routes.js:453 src/component/navigation.vue:283
+#: src/app/routes.js:429 src/app/routes.js:453
+#: src/component/lightbox/sidebar.vue:177 src/component/navigation.vue:283
 #: src/component/navigation.vue:718 src/component/photo/edit/dialog.vue:46
 #: src/component/photo/edit/dialog.vue:47
 #: src/component/photo/edit/dialog.vue:59
 #: src/component/photo/edit/dialog.vue:61
-#: src/component/photo/edit/dialog.vue:62 src/component/sidebar/info.vue:177
-#: src/options/options.js:260 src/page/settings/general.vue:81
+#: src/component/photo/edit/dialog.vue:62 src/options/options.js:260
+#: src/page/settings/general.vue:81
 msgid "People"
 msgstr "Cilvēki"
 
@@ -2706,16 +2736,16 @@ msgstr "Personas, ar kurām kopīgojat saiti, varēs skatīt publisko saturu."
 msgid "Permanently deleted"
 msgstr "Neatgriezeniski dzēsts"
 
-#: src/model/subject.js:134
+#: src/model/subject.js:150
 msgid "Person"
 msgstr "Persona"
 
-#: src/component/photo/edit/people.vue:304
+#: src/component/photo/edit/people.vue:301
 msgid "Person cover updated"
 msgstr "Personas vāks atjaunināts"
 
-#: src/component/photo/edit/people.vue:254
-#: src/component/photo/edit/people.vue:289
+#: src/component/photo/edit/people.vue:251
+#: src/component/photo/edit/people.vue:286
 msgid "Person not found"
 msgstr "Persona nav atrasta"
 
@@ -2723,7 +2753,7 @@ msgstr "Persona nav atrasta"
 msgid "Personal"
 msgstr "Personīgā"
 
-#: src/model/photo.js:1340
+#: src/model/photo.js:1367
 msgid "Photo"
 msgstr "Foto"
 
@@ -2739,12 +2769,12 @@ msgstr "PhotoPrism+ dalība"
 msgid "Photos"
 msgstr "Fotogrāfijas"
 
-#: src/component/photo/batch-edit.vue:590
-#: src/component/photo/batch-edit.vue:610
+#: src/component/photo/batch-edit.vue:594
+#: src/component/photo/batch-edit.vue:614
 msgid "Picture"
 msgstr "Attēls"
 
-#: src/component/album/edit/dialog.vue:126 src/component/photo/toolbar.vue:406
+#: src/component/album/edit/dialog.vue:125 src/component/photo/toolbar.vue:406
 #: src/component/photo/toolbar.vue:417 src/component/photo/toolbar.vue:428
 msgid "Picture Title"
 msgstr "Attēla nosaukums"
@@ -2848,7 +2878,7 @@ msgstr "Priekšskatījums"
 msgid "Preview Images"
 msgstr "Priekšskatīt attēlus"
 
-#: src/component/lightbox.vue:460 src/locales.js:302
+#: src/component/lightbox.vue:471 src/locales.js:302
 msgid "Previous"
 msgstr "Iepriekšējais"
 
@@ -2869,11 +2899,11 @@ msgstr "Iepriekšējais vizuālais materiāls"
 msgid "Primary"
 msgstr "Primārā"
 
-#: src/app/routes.js:293 src/component/album/edit/dialog.vue:81
+#: src/app/routes.js:293 src/component/album/edit/dialog.vue:80
 #: src/component/navigation.vue:120 src/component/navigation.vue:121
 #: src/component/navigation.vue:133 src/component/navigation.vue:142
 #: src/component/navigation.vue:150 src/component/navigation.vue:170
-#: src/component/photo/batch-edit.vue:1466
+#: src/component/photo/batch-edit.vue:1529
 #: src/component/photo/edit/info.vue:129 src/component/photo/edit/info.vue:130
 #: src/page/settings/general.vue:140
 msgid "Private"
@@ -2910,7 +2940,7 @@ msgstr "Nejauši"
 msgid "Rating {0} of {1}"
 msgstr "Vērtējums {0} no {1}"
 
-#: src/common/util.js:838 src/options/options.js:346
+#: src/common/util.js:837 src/options/options.js:346
 msgid "Raw"
 msgstr "Neapstrādāts"
 
@@ -2927,7 +2957,7 @@ msgstr "Atkārtoti indeksēt visus oriģinālus, tostarp jau indeksētos un nema
 msgid "Read-Only Mode"
 msgstr "Tikai lasīšanas režīms"
 
-#: src/component/album/edit/dialog.vue:125 src/component/photo/toolbar.vue:404
+#: src/component/album/edit/dialog.vue:124 src/component/photo/toolbar.vue:404
 #: src/component/photo/toolbar.vue:416 src/component/photo/toolbar.vue:426
 #: src/page/albums.vue:393
 msgid "Recently Added"
@@ -2998,9 +3028,10 @@ msgstr "Atkārtota ielāde…"
 msgid "Remote Sync"
 msgstr "Attālā sinhronizācija"
 
+#: src/component/lightbox/sidebar.vue:313
+#: src/component/lightbox/sidebar.vue:373
 #: src/component/photo/edit/people.vue:20
 #: src/component/photo/face-marker-overlay.vue:78
-#: src/component/sidebar/info.vue:313 src/component/sidebar/info.vue:373
 msgid "Remove"
 msgstr "Noņemt"
 
@@ -3008,15 +3039,15 @@ msgstr "Noņemt"
 msgid "remove failed: unknown album"
 msgstr "Neizdevās noņemt: nezināms albums"
 
-#: src/component/lightbox.vue:1458 src/component/photo/clipboard.vue:120
+#: src/component/lightbox.vue:1475 src/component/photo/clipboard.vue:120
 msgid "Remove from Album"
 msgstr "Noņemt no albuma"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:189
 msgid "Remove from all"
 msgstr "Noņemt no visiem"
 
-#: src/component/input/chip-selector.vue:183
+#: src/component/input/chip-selector.vue:189
 msgid "Remove from all selected photos"
 msgstr "Noņemt no visiem atlasītajiem fotoattēliem"
 
@@ -3037,7 +3068,7 @@ msgstr "Noņemts"
 msgid "Repeated"
 msgstr "Atkārtots"
 
-#: src/common/api.js:103 src/component/lightbox.vue:978
+#: src/common/api.js:103 src/component/lightbox.vue:989
 msgid "Request failed - are you offline?"
 msgstr "Pieprasījums neizdevās. Vai esat bezsaistē?"
 
@@ -3067,12 +3098,12 @@ msgstr "Restartēt"
 #: src/component/user/edit/dialog.vue:110
 #: src/component/user/edit/dialog.vue:111
 #: src/component/user/edit/dialog.vue:120
-#: src/component/user/edit/dialog.vue:126 src/component/lightbox.vue:1488
+#: src/component/user/edit/dialog.vue:126 src/component/lightbox.vue:1505
 #: src/component/photo/clipboard.vue:48
 msgid "Restore"
 msgstr "Atjaunot"
 
-#: src/component/lightbox.vue:2858
+#: src/component/lightbox.vue:2926
 msgid "Restored"
 msgstr "Atjaunots"
 
@@ -3131,17 +3162,26 @@ msgstr "Satelīts"
 #: src/component/album/edit/dialog.vue:43
 #: src/component/album/edit/dialog.vue:44
 #: src/component/album/edit/dialog.vue:54
-#: src/component/album/edit/dialog.vue:90
+#: src/component/album/edit/dialog.vue:89
 #: src/component/label/edit/dialog.vue:27
 #: src/component/label/edit/dialog.vue:28
 #: src/component/label/edit/dialog.vue:39
-#: src/component/label/edit/dialog.vue:47
+#: src/component/label/edit/dialog.vue:46
+#: src/component/lightbox/sidebar/toolbar.vue:22
+#: src/component/meta/camera/dialog.vue:121
+#: src/component/meta/camera/dialog.vue:42
+#: src/component/meta/camera/dialog.vue:43
+#: src/component/meta/camera/dialog.vue:55
+#: src/component/meta/datetime/dialog.vue:123
+#: src/component/meta/datetime/dialog.vue:38
+#: src/component/meta/datetime/dialog.vue:39
+#: src/component/meta/datetime/dialog.vue:51
 #: src/component/people/edit/dialog.vue:30
 #: src/component/people/edit/dialog.vue:31
 #: src/component/people/edit/dialog.vue:42
-#: src/component/people/edit/dialog.vue:50
+#: src/component/people/edit/dialog.vue:49
 #: src/component/photo/batch-edit.vue:481
-#: src/component/photo/edit/details.vue:407 src/component/service/edit.vue:103
+#: src/component/photo/edit/details.vue:396 src/component/service/edit.vue:103
 #: src/component/service/edit.vue:235 src/component/service/edit.vue:93
 #: src/component/service/edit.vue:94 src/component/settings/password.vue:31
 #: src/component/settings/password.vue:32
@@ -3149,15 +3189,16 @@ msgstr "Satelīts"
 #: src/component/settings/password.vue:86 src/component/share/dialog.vue:104
 #: src/component/share/dialog.vue:58 src/component/share/dialog.vue:59
 #: src/component/share/dialog.vue:96
-#: src/component/sidebar/inline-toolbar.vue:22
 msgid "Save"
 msgstr "Saglabāt"
 
-#: src/component/photo/edit/details.vue:402
+#: src/component/meta/camera/dialog.vue:120
+#: src/component/meta/datetime/dialog.vue:122
+#: src/component/photo/edit/details.vue:391
 msgid "Save changes"
 msgstr "Saglabāt izmaiņas"
 
-#: src/component/photo/batch-edit.vue:1464
+#: src/component/photo/batch-edit.vue:1527
 #: src/component/photo/edit/info.vue:137 src/component/photo/edit/info.vue:138
 msgid "Scan"
 msgstr "Skenēt"
@@ -3206,7 +3247,7 @@ msgstr "Noslēpums"
 msgid "Security and Access"
 msgstr "Drošība un piekļuve"
 
-#: src/component/lightbox.vue:1389 src/component/lightbox.vue:1390
+#: src/component/lightbox.vue:1406 src/component/lightbox.vue:1407
 msgid "Select"
 msgstr "Atlasīt"
 
@@ -3222,13 +3263,14 @@ msgstr "Izvēlieties datumu"
 msgid "Select dates"
 msgstr "Izvēlieties datumus"
 
+#: src/component/lightbox/sidebar.vue:328
 #: src/component/photo/album/dialog.vue:38
-#: src/component/photo/batch-edit.vue:436 src/component/sidebar/info.vue:388
-#: src/component/upload/dialog.vue:59
+#: src/component/photo/batch-edit.vue:419 src/component/upload/dialog.vue:59
 msgid "Select or create albums"
 msgstr "Atlasīt vai izveidot albumus"
 
-#: src/component/photo/batch-edit.vue:421 src/component/sidebar/info.vue:328
+#: src/component/lightbox/sidebar.vue:388
+#: src/component/photo/batch-edit.vue:436
 msgid "Select or create labels"
 msgstr "Atlasiet vai izveidojiet etiķetes"
 
@@ -3298,11 +3340,11 @@ msgstr "Sesijas ID"
 msgid "Sessions"
 msgstr "Sesijas"
 
-#: src/component/lightbox.vue:1448
+#: src/component/lightbox.vue:1465
 msgid "Set as Album Cover"
 msgstr "Iestatīt kā albuma vāku"
 
-#: src/component/photo/edit/people.vue:231
+#: src/component/photo/edit/people.vue:228
 msgid "Set as Cover Image"
 msgstr "Iestatīt kā vāka attēlu"
 
@@ -3351,15 +3393,19 @@ msgstr "Rādīt"
 msgid "Show All Labels"
 msgstr "Rādīt visas etiķetes"
 
-#: src/page/people/new.vue:32 src/page/people/new.vue:91
+#: src/page/people/new.vue:32 src/page/people/new.vue:90
 msgid "Show all new faces"
 msgstr "Rādīt visas jaunās sejas"
+
+#: src/component/lightbox.vue:1531
+msgid "Show Caption"
+msgstr ""
 
 #: src/page/settings/content.vue:155
 msgid "Show Captions"
 msgstr "Rādīt parakstus"
 
-#: src/component/sidebar/info.vue:214
+#: src/component/lightbox/sidebar.vue:214
 msgid "Show face markers"
 msgstr "Rādīt sejas marķierus"
 
@@ -3403,7 +3449,7 @@ msgstr "Rādīt vietu skatu ar interaktīvām kartēm, lai varētu pārlūkot fo
 msgid "Show Titles"
 msgstr "Rādīt nosaukumus"
 
-#: src/common/util.js:852 src/model/file.js:186
+#: src/common/util.js:851 src/model/file.js:194
 #: src/page/settings/content.vue:207
 msgid "Sidecar"
 msgstr "Blakusvāģis"
@@ -3433,7 +3479,7 @@ msgstr "Vietnes URL"
 msgid "Size"
 msgstr "Izmērs"
 
-#: src/component/lightbox.vue:1336 src/component/lightbox.vue:1337
+#: src/component/lightbox.vue:1353 src/component/lightbox.vue:1354
 msgid "Slideshow"
 msgstr "Slaidrāde"
 
@@ -3465,7 +3511,7 @@ msgstr "Dažus albumus nevarēja izveidot. Lūdzu, rediģējiet nosaukumus un m�
 msgid "Some albums could not be updated"
 msgstr "Dažus albumus nevarēja atjaunināt"
 
-#: src/component/lightbox.vue:975
+#: src/component/lightbox.vue:986
 msgid "Something went wrong, try again"
 msgstr "Kaut kas nogāja greizi, mēģiniet vēlreiz"
 
@@ -3485,7 +3531,7 @@ msgstr "Kārtot pēc fotoattēlu skaita"
 msgid "Sort by Relevance"
 msgstr "Kārtot pēc atbilstības"
 
-#: src/component/album/edit/dialog.vue:68 src/component/photo/toolbar.vue:161
+#: src/component/album/edit/dialog.vue:67 src/component/photo/toolbar.vue:161
 #: src/page/albums.vue:98
 msgid "Sort Order"
 msgstr "Kārtošanas secība"
@@ -3498,7 +3544,7 @@ msgstr "Kārtots augošā secībā."
 msgid "Sorted descending."
 msgstr "Kārtots dilstošā secībā."
 
-#: src/component/photo/edit/labels.vue:232
+#: src/component/photo/edit/labels.vue:235
 #: src/component/photo/edit/labels.vue:28
 msgid "Source"
 msgstr "Avots"
@@ -3556,9 +3602,11 @@ msgstr "Uzglabāšana"
 msgid "Streets"
 msgstr "Ielas"
 
-#: src/common/util.js:892 src/component/photo/batch-edit.vue:334
-#: src/component/photo/edit/details.vue:298
-#: src/component/photo/edit/details.vue:302 src/component/sidebar/info.vue:790
+#: src/common/util.js:891 src/component/lightbox/sidebar.vue:826
+#: src/component/photo/batch-edit.vue:331
+#: src/component/photo/batch-edit.vue:334
+#: src/component/photo/edit/details.vue:291
+#: src/component/photo/edit/details.vue:294
 msgid "Subject"
 msgstr "Tēma"
 
@@ -3601,9 +3649,9 @@ msgstr "Sinhronizācija"
 msgid "Sync raw and video files"
 msgstr "Sinhronizēt neapstrādātus un video failus"
 
-#: src/component/photo/edit/info.vue:91 src/component/photo/view/cards.vue:199
-#: src/component/photo/view/cards.vue:36 src/component/photo/view/list.vue:37
-#: src/component/sidebar/info.vue:97
+#: src/component/lightbox/sidebar.vue:97 src/component/photo/edit/info.vue:91
+#: src/component/photo/view/cards.vue:199 src/component/photo/view/cards.vue:36
+#: src/component/photo/view/list.vue:37
 msgid "Taken"
 msgstr "Paņemts"
 
@@ -3618,10 +3666,6 @@ msgstr "Reljefs"
 #: src/common/form.js:279
 msgid "Text"
 msgstr "Teksts"
-
-#: src/page/people/new.vue:174
-msgid "Text too long"
-msgstr "Teksts ir pārāk garš"
 
 #: src/page/about/about.vue:80 src/page/about/about.vue:63
 msgid "Thank You for Your Support!"
@@ -3665,14 +3709,14 @@ msgstr "Tas pievieno oriģinālu mapi kā tīkla disku un ļauj atvērt, rediģ�
 msgid "Time"
 msgstr "Laiks"
 
-#: src/component/meta/datetime/dialog.vue:162
-#: src/component/photo/edit/details.vue:110
+#: src/component/meta/datetime/dialog.vue:163
+#: src/component/photo/edit/details.vue:109
 msgid "Time UTC"
 msgstr "Laiks UTC"
 
-#: src/component/meta/datetime/dialog.vue:105
+#: src/component/meta/datetime/dialog.vue:106
 #: src/component/photo/batch-edit.vue:251
-#: src/component/photo/edit/details.vue:127 src/page/settings/general.vue:47
+#: src/component/photo/edit/details.vue:126 src/page/settings/general.vue:47
 msgid "Time Zone"
 msgstr "Laika josla"
 
@@ -3680,7 +3724,7 @@ msgstr "Laika josla"
 msgid "Timeout"
 msgstr "Taimauts"
 
-#: src/common/util.js:894 src/component/photo/view/list.vue:34
+#: src/common/util.js:893 src/component/photo/view/list.vue:34
 msgid "Title"
 msgstr "Nosaukums"
 
@@ -3757,7 +3801,7 @@ msgstr "Tips"
 msgid "Unable to delete"
 msgstr "Nevar izdzēst"
 
-#: src/component/sidebar/info.vue:272
+#: src/component/lightbox/sidebar.vue:272
 msgid "Unassign"
 msgstr "Atcelt"
 
@@ -3765,10 +3809,10 @@ msgstr "Atcelt"
 msgid "Unauthorized"
 msgstr "Neautorizēts"
 
+#: src/component/lightbox/sidebar/toolbar.vue:11
 #: src/component/meta/location/input.vue:40
 #: src/component/meta/location/input.vue:58
 #: src/component/photo/edit/people.vue:43
-#: src/component/sidebar/inline-toolbar.vue:11
 msgid "Undo"
 msgstr "Atsaukt"
 
@@ -3778,24 +3822,27 @@ msgstr "Unikāls ID"
 
 #: src/model/cluster-node.js:42 src/page/settings/account.vue:221
 #: src/page/settings/account.vue:241 src/page/settings/account.vue:261
-#: src/common/util.js:609 src/component/meta/datetime/dialog.vue:31
+#: src/common/util.js:608 src/component/lightbox/sidebar.vue:1005
+#: src/component/lightbox/sidebar.vue:119
+#: src/component/lightbox/sidebar.vue:1801
+#: src/component/lightbox/sidebar.vue:284
+#: src/component/lightbox/sidebar.vue:697
+#: src/component/lightbox/sidebar.vue:709
+#: src/component/meta/datetime/dialog.vue:31
 #: src/component/meta/datetime/dialog.vue:51
 #: src/component/meta/datetime/dialog.vue:71
-#: src/component/photo/edit/details.vue:448
-#: src/component/photo/edit/details.vue:47
-#: src/component/photo/edit/details.vue:69
-#: src/component/photo/edit/details.vue:90 src/component/sidebar/info.vue:119
-#: src/component/sidebar/info.vue:1529 src/component/sidebar/info.vue:284
-#: src/component/sidebar/info.vue:686 src/component/sidebar/info.vue:694
-#: src/component/sidebar/info.vue:929 src/model/album.js:155
-#: src/model/photo.js:1027 src/model/photo.js:1049 src/model/photo.js:1086
-#: src/model/photo.js:1108 src/model/photo.js:321 src/model/photo.js:826
-#: src/model/photo.js:851 src/model/photo.js:874 src/model/photo.js:892
-#: src/model/photo.js:937 src/model/photo.js:945 src/model/user.js:138
+#: src/component/photo/edit/details.vue:438
+#: src/component/photo/edit/details.vue:46
+#: src/component/photo/edit/details.vue:68
+#: src/component/photo/edit/details.vue:89 src/model/album.js:170
+#: src/model/photo.js:1059 src/model/photo.js:1081 src/model/photo.js:1118
+#: src/model/photo.js:1148 src/model/photo.js:329 src/model/photo.js:842
+#: src/model/photo.js:867 src/model/photo.js:890 src/model/photo.js:897
+#: src/model/photo.js:969 src/model/photo.js:977 src/model/user.js:137
 #: src/options/options.js:106 src/options/options.js:124
 #: src/options/options.js:141 src/options/options.js:155
-#: src/options/options.js:167 src/page/library/errors.vue:368
-#: src/page/library/errors.vue:375 src/page/settings/account.vue:205
+#: src/options/options.js:167 src/page/library/errors.vue:370
+#: src/page/library/errors.vue:377 src/page/settings/account.vue:205
 #: src/page/settings/account.vue:225 src/page/settings/account.vue:245
 msgid "Unknown"
 msgstr "Nezināms"
@@ -3936,7 +3983,7 @@ msgstr "Izmantojiet savu atkopšanas kodu vai sazinieties ar administratoru, lai
 #: src/page/admin/sessions.vue:98 src/options/admin.js:14
 #: src/page/admin/sessions.vue:138 src/page/admin/sessions.vue:294
 #: src/page/cluster/nodes.vue:175 src/page/admin/sessions.vue:292
-#: src/locales.js:333 src/model/user.js:370 src/options/auth.js:8
+#: src/locales.js:333 src/model/user.js:359 src/options/auth.js:8
 msgid "User"
 msgstr "Lietotājs"
 
@@ -3969,7 +4016,7 @@ msgstr "Lietotāji"
 msgid "UUID"
 msgstr "UUID"
 
-#: src/common/util.js:848 src/component/photo/view/cards.vue:114
+#: src/common/util.js:847 src/component/photo/view/cards.vue:114
 #: src/component/photo/view/cards.vue:239
 #: src/component/photo/view/mosaic.vue:69 src/options/options.js:366
 msgid "Vector"
@@ -3990,15 +4037,15 @@ msgstr "Verifikācijas kods"
 msgid "Version"
 msgstr "Versija"
 
-#: src/common/util.js:842 src/component/photo/batch-edit.vue:128
+#: src/common/util.js:841 src/component/photo/batch-edit.vue:128
 #: src/component/photo/batch-edit.vue:69 src/component/photo/view/cards.vue:122
 #: src/component/photo/view/cards.vue:220 src/component/photo/view/list.vue:83
-#: src/component/photo/view/mosaic.vue:77 src/model/file.js:193
-#: src/model/photo.js:961 src/model/photo.js:979 src/options/options.js:354
+#: src/component/photo/view/mosaic.vue:77 src/model/file.js:201
+#: src/model/photo.js:1011 src/model/photo.js:993 src/options/options.js:354
 msgid "Video"
 msgstr "Video"
 
-#: src/component/album/edit/dialog.vue:129 src/component/photo/toolbar.vue:409
+#: src/component/album/edit/dialog.vue:128 src/component/photo/toolbar.vue:409
 #: src/component/photo/toolbar.vue:420 src/component/photo/toolbar.vue:431
 msgid "Video Duration"
 msgstr "Video ilgums"
@@ -4023,7 +4070,7 @@ msgstr "Skatīt meklēšanas rezultātus kā sarakstu."
 msgid "Viewer"
 msgstr "Skatītājs"
 
-#: src/common/util.js:902
+#: src/common/util.js:901
 msgid "Vision"
 msgstr "Vīzija"
 
@@ -4036,7 +4083,7 @@ msgstr "Apmeklētājs"
 msgid "Visual Similarity"
 msgstr "Vizuālā līdzība"
 
-#: src/page/library/errors.vue:361
+#: src/page/library/errors.vue:363
 msgid "Warning"
 msgstr "Brīdinājums"
 
@@ -4085,7 +4132,7 @@ msgstr "Darba detaļas"
 
 #: src/page/settings/account.vue:260 src/component/meta/datetime/dialog.vue:70
 #: src/component/photo/batch-edit.vue:232
-#: src/component/photo/edit/details.vue:89 src/component/photo/toolbar.vue:180
+#: src/component/photo/edit/details.vue:88 src/component/photo/toolbar.vue:180
 #: src/page/albums.vue:57 src/page/settings/account.vue:244
 msgid "Year"
 msgstr "Gads"
@@ -4097,7 +4144,7 @@ msgstr "Dzeltens"
 #: src/component/confirm/dialog.vue:12 src/component/confirm/dialog.vue:13
 #: src/component/confirm/dialog.vue:26 src/component/people/merge/dialog.vue:22
 #: src/component/photo/archive/dialog.vue:22
-#: src/component/photo/batch-edit.vue:1068
+#: src/component/photo/batch-edit.vue:1113
 #: src/component/photo/clipboard.vue:156 src/component/photo/edit/files.vue:135
 #: src/component/photo/edit/files.vue:136
 #: src/component/photo/edit/files.vue:142
@@ -4170,7 +4217,7 @@ msgstr "Jūsu pastāvīgais atbalsts palīdz mums regulāri atjaunināt informā
 msgid "Your library is continuously analyzed to automatically create albums of special moments, trips, and places."
 msgstr "Jūsu bibliotēka tiek nepārtraukti analizēta, lai automātiski izveidotu albumus ar īpašiem mirkļiem, ceļojumiem un vietām."
 
-#: src/component/lightbox.vue:459
+#: src/component/lightbox.vue:470
 msgid "Zoom in/out"
 msgstr "Pietuvināt/attālināt"
 
@@ -4194,24 +4241,28 @@ msgctxt "Noun"
 msgid "Archive"
 msgstr "Arhīvs"
 
-#: src/component/sidebar/info.vue:16 src/component/sidebar/info.vue:32
+#: src/component/lightbox/sidebar.vue:16 src/component/lightbox/sidebar.vue:32
 msgctxt "Photo"
 msgid "Add a Title"
 msgstr "Pievienot nosaukumu"
 
+#: src/component/lightbox/sidebar.vue:801
+#: src/component/photo/batch-edit.vue:158
 #: src/component/photo/batch-edit.vue:159
 #: src/component/photo/edit/details.vue:17
-#: src/component/photo/edit/details.vue:19 src/component/photo/edit/info.vue:79
-#: src/component/sidebar/info.vue:769
+#: src/component/photo/edit/details.vue:18 src/component/photo/edit/info.vue:79
 msgctxt "Photo"
 msgid "Title"
 msgstr "Nosaukums"
 
-#: src/component/lightbox.vue:1473 src/component/photo/clipboard.vue:108
+#: src/component/lightbox.vue:1490 src/component/photo/clipboard.vue:108
 #: src/component/photo/view/cards.vue:165
 msgctxt "Verb"
 msgid "Archive"
 msgstr "Arhīvēt"
+
+#~ msgid "Text too long"
+#~ msgstr "Teksts ir pārāk garš"
 
 #~ msgid "Remove Face"
 #~ msgstr "Noņemt seju"
