@@ -13,7 +13,7 @@
         <v-list-item
           v-if="editingField === 'title' || model.Title || isEditable"
           :class="['metadata__item', { clickable: editingField !== 'title' && (isEditable || model.Title) }]"
-          @click.stop="onTextRowClick('title', model.Title)"
+          @click.stop="onTextRowClick($event, 'title', model.Title)"
         >
           <v-text-field
             v-if="editingField === 'title'"
@@ -46,7 +46,7 @@
         <v-list-item
           v-if="editingField === 'caption' || model.Caption || isEditable"
           :class="['metadata__item', { clickable: editingField !== 'caption' && (isEditable || model.Caption) }]"
-          @click.stop="onTextRowClick('caption', model.Caption)"
+          @click.stop="onTextRowClick($event, 'caption', model.Caption)"
         >
           <v-textarea
             v-if="editingField === 'caption'"
@@ -177,18 +177,11 @@
             <div class="text-subtitle-2">{{ $gettext("People") }}</div>
             <template v-if="isEditable || people.length > 0" #append>
               <!--
-                Per-role toggle:
-                - Editable users see the pencil / pencil-off "Edit" toggle.
-                  Draw mode is a strict superset of display mode for editable
-                  users (boxes + names visible, plus drag-to-create and
-                  click-to-remove), so a separate display-mode toggle adds
-                  no value.
-                - Non-editable users see the eye / eye-off "Show face markers"
-                  toggle. Display mode is read-only.
-
-                Both modes hide the lightbox chrome, pause video / slideshow
-                on entry, and gate the conflict-only keyboard shortcuts —
-                see lightbox.vue isShortcutDisabledInFaceMarkerMode.
+                Editable users get the pencil toggle (edit mode is a
+                superset of display, so no separate display toggle);
+                read-only users get the eye toggle. Both modes hide
+                lightbox chrome and gate keyboard shortcuts — see
+                lightbox.vue isShortcutDisabledInFaceMarkerMode.
               -->
               <v-btn
                 v-if="isEditable"
@@ -414,7 +407,7 @@
               v-tooltip="f.icon ? f.label : null"
               :prepend-icon="f.icon"
               :class="['metadata__item', `meta-${f.key}`, { clickable: editingField !== f.key && (isEditable || f.read(photo)) }]"
-              @click.stop="onTextRowClick(f.key, f.read(photo))"
+              @click.stop="onTextRowClick($event, f.key, f.read(photo))"
             >
               <v-textarea
                 v-if="editingField === f.key"
@@ -543,12 +536,11 @@ export default {
       hideEditSave: true,
       editingField: null,
       editOriginal: null,
-      // Per-field combobox state. input/search drive v-model bindings;
-      // `search` also acts as the "typed-but-not-yet-Enter" pending
-      // detector. `key` force-remounts the combobox on Enter to clear
-      // stale dropdown state. `options` is the typeahead list (lazy,
-      // shared cache). `removals` queues Label.ID / Album.UID for the
-      // toolbar ✓; additions skip this and take the instant-save path.
+      // Per-field combobox state: input/search drive v-model; `search`
+      // doubles as the typed-but-not-yet-Enter pending detector; `key`
+      // force-remounts to clear stale dropdown state; `options` is the
+      // typeahead list; `removals` queues IDs for the toolbar ✓ (adds
+      // skip this and take the instant-save path).
       chipState: {
         labels: { input: null, search: "", key: 0, options: [], removals: [] },
         albums: { input: null, search: "", key: 0, options: [], removals: [] },
@@ -573,10 +565,10 @@ export default {
         visible: false,
         resolver: null,
       },
-      // Stores the marker UID (not the transient Marker instance returned
-      // by getMarkers, see P1-8). The live Marker is re-derived from
-      // photo.getMarkers(true) at commit time so a slide-nav between
-      // open + Add/Cancel can't write through a stale reference.
+      // Stores the marker UID, not the Marker instance: the live Marker
+      // is re-derived from photo.getMarkers(true) at commit time so a
+      // slide-nav between open and Add/Cancel can't write through a
+      // stale reference.
       addNameDialog: {
         visible: false,
         markerUid: "",
@@ -585,10 +577,9 @@ export default {
     };
   },
   computed: {
-    // Aliases for parent-owned reactive state. These read through `view` so
-    // every existing template/script reference (this.model.X, this.photo.X, etc.)
-    // keeps working without churn. Mutations are explicit: write to
-    // `this.view.photo.X` / `this.view.model.X`, never to `this.photo` / `this.model`.
+    // Aliases for parent-owned reactive state. Reads go through these;
+    // mutations must target `this.view.photo.X` / `this.view.model.X`
+    // directly, never the aliases.
     model() {
       return this.view?.model;
     },
@@ -604,11 +595,9 @@ export default {
     context() {
       return this.view?.context;
     },
-    // Derived from the shared face-marker state singleton
-    // (`common/face-markers.js`): null = no overlay, 'display' = read-
-    // only markers, 'edit' = drag-to-create + click-to-remove. The
-    // sidebar template binds to `markersVisible` / `addingMarker`
-    // booleans so the eye / pencil icon logic stays compact.
+    // Booleans derived from the face-marker singleton
+    // (`common/face-markers.js`): null = off, 'display' = read-only,
+    // 'edit' = drag-to-create + click-to-remove.
     markersVisible() {
       return this.faceMarkers.active;
     },
@@ -624,11 +613,9 @@ export default {
     isEditable() {
       return this.canEdit && this.photo && this.photo.Details && this.canViewLibrary;
     },
-    // canViewLibrary is true when the current session has full library
-    // access to photos — i.e., admin/user/manager/viewer (full library
-    // members), not visitor/guest/contributor (share-link / restricted).
-    // Gates the photographer-EXIF privacy fields (camera, lens, file
-    // name) and the rights/notes cluster.
+    // True for full library roles (admin/user/manager/viewer), false
+    // for visitor/guest/contributor. Gates photographer-EXIF privacy
+    // fields (camera, lens, file name) and the rights/notes cluster.
     canViewLibrary() {
       return this.$config.allow("photos", "access_library");
     },
@@ -643,18 +630,14 @@ export default {
     canViewLabels() {
       return this.$config.feature("labels") && this.$config.allow("labels", "search");
     },
-    // canViewAlbums gates the Albums section on the backend's albums
-    // resource grant. Visitors and guests have `access_shared` view on
-    // albums via the default grants, so they can see which albums a
-    // shared photo belongs to even though they cannot see people/labels.
+    // Gates the Albums section. Visitors/guests hold `access_shared`,
+    // so they see albums on shared photos even without people/labels.
     canViewAlbums() {
       return this.$config.feature("albums") && this.$config.allow("albums", "search");
     },
-    // canViewPlaces gates the place name / altitude / location row on
-    // the backend's places resource grant. Visitors / guests already
-    // hold view access on places via GrantViewShared / GrantReactShared,
-    // so they see the place name on shared photos when geolocation is
-    // present — matching the backend's redaction policy.
+    // Gates the place name / altitude / location row. Visitors/guests
+    // hold view access via GrantViewShared / GrantReactShared, matching
+    // the backend's redaction policy on shared photos.
     canViewPlaces() {
       return this.$config.allow("places", "view");
     },
@@ -678,10 +661,9 @@ export default {
       if (!this.photo) {
         return "";
       }
-      // Backend returns the "Unknown" placeholder camera (CameraID=1,
-      // Camera={Make:"", Model:"Unknown"}) when no EXIF camera is set, and
-      // formatCamera() happily renders that as " Unknown". Suppress it so
-      // the read-only sidebar doesn't surface an empty camera row.
+      // Backend returns the "Unknown" placeholder camera (CameraID=1)
+      // when no EXIF camera is set; suppress so the row doesn't render
+      // as " Unknown".
       const hasRealCamera =
         (this.photo.CameraID && this.photo.CameraID > 1) ||
         (this.photo.CameraMake && this.photo.CameraMake.trim()) ||
@@ -764,12 +746,9 @@ export default {
       const assigned = new Set(this.albums.map((a) => normalize(a?.Title)).filter(Boolean));
       return this.chipState.albums.options.filter((opt) => !assigned.has(normalize(opt.Title)));
     },
-    // Visible chip lists — `labels` / `albums` minus anything currently
-    // marked for removal in `chipState`. The chip-row wrapper gates on
-    // these so it disappears once the user has soft-removed every chip in
-    // the section (otherwise the wrapper would render as an empty box).
-    // Undo restores the chips by clearing `chipState.<field>.removals`,
-    // which makes these computeds repopulate reactively.
+    // Visible chips = primary list minus soft-removed entries. The
+    // chip-row wrapper gates on these so it collapses once every chip
+    // is removed; Undo restores by clearing `chipState.<field>.removals`.
     visibleLabels() {
       return this.labels.filter((l) => !this.isChipPendingRemoval("labels", l?.Label?.ID));
     },
@@ -928,13 +907,9 @@ export default {
       }
       return this.getFieldValue(this.editingField) !== (this.editOriginal ?? "");
     },
-    // Discard-dialog body text. The default "Discard unsaved changes?"
-    // string covers marker drafts, typed combobox text, and chip
-    // removals (the existing pending-state shapes). When the only
-    // pending state is an overlength inline edit (length gate fired,
-    // editor still open with invalid text) the message shifts to
-    // "Discard invalid changes?" so the user understands which kind
-    // of change they're abandoning.
+    // Discard-dialog body text: shifts to "Discard invalid changes?"
+    // when the only pending state is an overlength inline edit, so the
+    // user knows which kind of change they're abandoning.
     discardDialogText() {
       if (this.hasPendingInlineOverflow() && !this.hasPendingNonOverflowEdit()) {
         return this.$gettext("Discard invalid changes?");
@@ -991,10 +966,8 @@ export default {
       }
       return this.isEditable && this.featPlaces;
     },
-    // Returns the merged row's title: the place name when the user holds
-    // places-view ACL and a place name is available; otherwise the
-    // coordinates line so the row never renders empty when the v-if
-    // gate has admitted it.
+    // Returns the merged row's title: place name when the user holds
+    // places-view ACL, else coordinates so the row never renders empty.
     locationTitle() {
       if (this.canViewPlaces && this.placeName) {
         return this.placeName;
@@ -1028,10 +1001,9 @@ export default {
       }
       return this.canViewPlaces && !!this.placeName;
     },
-    // Prefers originalFile() so video / Live / Animated show .mp4 / .mov
-    // / .gif instead of the generated JPEG cover. Returns null (not "")
-    // so Vuetify's `:subtitle != null` gate hides the slot instead of
-    // rendering an empty `<v-list-item-subtitle>`.
+    // Prefers originalFile() so video / Live / Animated show .mp4 etc.
+    // instead of the JPEG cover. Returns null (not "") so Vuetify's
+    // `:subtitle != null` gate hides the slot cleanly.
     fileName() {
       if (!this.canViewLibrary || !this.photo) {
         return null;
@@ -1049,10 +1021,8 @@ export default {
       return primary?.Name || null;
     },
     fileInfo() {
-      // Gate on UID so the empty-Photo placeholder (limited-access
-      // sessions) skips `getImageInfo()` and falls through to the Thumb
-      // helper — otherwise the localized "Unknown" sentinel would render
-      // as the row title.
+      // Gate on UID so the limited-access empty-Photo placeholder falls
+      // through to the Thumb helper instead of rendering "Unknown".
       if (this.photo && this.photo.UID) {
         switch (this.photo.Type) {
           case media.Video:
@@ -1113,13 +1083,9 @@ export default {
     },
   },
   mounted() {
-    // Warm the typeahead options for editable sessions so the combobox
-    // dropdown is populated by the time the user focuses the input.
-    // The shared cache (common/typeahead-cache.js) deduplicates concurrent
-    // callers, so a sidebar mount during an open batch-edit session adds
-    // no extra network round-trips.
-    // isEditable already requires canViewLibrary so we don't repeat the
-    // ACL check here; only preload the lists the user is allowed to see.
+    // Warm the typeahead cache so chip comboboxes are populated when
+    // focused. The shared cache (common/typeahead-cache.js) dedupes
+    // concurrent callers, so remounts during batch-edit cost nothing.
     if (this.isEditable) {
       if (this.canViewLabels) {
         this.loadChipOptions("labels");
@@ -1160,13 +1126,9 @@ export default {
       }
       this.locationDialog = true;
     },
-    // onLocationRowClick dispatches the combined Location row's click:
-    // (1) edit mode -> open the location dialog; (2) read-only with
-    // coordinates -> copy them to the clipboard so they paste into
-    // mapping tools; (3) read-only with only a place name -> copy the
-    // place name. Mirrors the row-level click semantics used by the
-    // text-metadata rows but adds a coordinates-first preference under
-    // (2) so the existing copy-coords gesture survives the merge.
+    // onLocationRowClick: edit mode opens the location dialog;
+    // read-only copies coordinates if present, else the place name.
+    // Coordinates-first preserves the existing copy-coords gesture.
     onLocationRowClick() {
       if (this.isEditable && this.featPlaces) {
         this.openLocationDialog();
@@ -1176,16 +1138,14 @@ export default {
         this.$util.copyText(this.placeName);
       }
     },
-    // onTextRowClick routes a sidebar text-row click. In edit mode it
-    // enters the inline editor for the given field (Title, Caption,
-    // Subject, Artist, Copyright, License, Keywords, Notes). In
-    // read-only mode it copies the displayed value to the clipboard so
-    // users can grab metadata without pinch-selecting. No-op when the
-    // row is already in edit mode or the value is empty.
-    onTextRowClick(field, value) {
-      if (this.editingField === field) {
+    // onTextRowClick enters the inline editor (edit mode) or copies the
+    // value to the clipboard (read-only). Bails on link clicks so the
+    // browser follows the href in v-html fields like caption and notes.
+    onTextRowClick(ev, field, value) {
+      if (ev?.target?.closest?.("a") || this.editingField === field) {
         return;
       }
+
       if (this.isEditable) {
         this.startEditing(field);
       } else if (value) {
@@ -1207,10 +1167,9 @@ export default {
       }
       f.write(this.view.photo, value);
     },
-    // Function ref shared by every inline editor. Vue invokes it with the
-    // mounted component on mount and null on unmount; since each editor is
-    // gated by a unique `editingField === '<key>'`, only one is mounted at
-    // a time, so the latest non-null call always identifies the active one.
+    // Function ref shared by every inline editor. Only one is mounted
+    // at a time (gated by `editingField === '<key>'`), so the latest
+    // non-null call identifies the active editor.
     setInlineEditorRef(el) {
       if (el) {
         this._inlineEditorEl = el;
@@ -1236,13 +1195,9 @@ export default {
       }
       return Boolean(f.read(this.photo));
     },
-    // Enter handler for the merged details textareas. Commits when the
-    // field opts in via `commitOnEnter` (single-line fields: Subject,
-    // Artist, Copyright, License, Keywords) and Shift is not held;
-    // Caption + Notes leave commitOnEnter unset so plain Enter falls
-    // through to the textarea's default newline insertion. Shift+Enter
-    // also falls through, giving power users a way to add a line break
-    // even on the single-line fields.
+    // Plain Enter commits when the field opts in via `commitOnEnter`
+    // (single-line fields); otherwise it falls through to insert a
+    // newline. Shift+Enter always inserts a newline.
     onInlineEnter(ev, f) {
       if (!f?.commitOnEnter || ev.shiftKey) {
         return;
@@ -1251,11 +1206,9 @@ export default {
       ev.stopPropagation();
       this.confirmField();
     },
-    // undoInlineEdit reverts the active inline editor to its
-    // editOriginal value without exiting edit mode — distinct from
-    // cancelEditing (Escape) which reverts AND exits. Wired to the
-    // Undo button on every inline-text toolbar so mouse users get
-    // parity with the keyboard cancel.
+    // Reverts the active inline editor to editOriginal without exiting
+    // edit mode (cancelEditing/Escape also exits). Wired to the toolbar
+    // Undo button for mouse parity with the keyboard cancel.
     undoInlineEdit() {
       if (!this.editingField || this.editOriginal === null) {
         return;
@@ -1278,21 +1231,17 @@ export default {
         }
       });
     },
-    // Eye-icon click handler (non-editable users only — display mode
-    // is read-only). Emits `toggle-face-marker-mode` so the lightbox
-    // can flip between `null` and `FaceMarkerDisplay`. Gates only on
-    // `markersBusy` so an in-flight marker write doesn't race a mode
-    // toggle; intentionally does NOT gate on `isEditable` because
-    // display mode doesn't require edit permission.
+    // Eye-icon handler: flips between `null` and `FaceMarkerDisplay`.
+    // Gates only on `markersBusy`, not `isEditable`, because display
+    // mode doesn't require edit permission.
     onToggleFaceMarkerMode() {
       if (this.markersBusy) {
         return;
       }
       this.$emit("toggle-face-marker-mode");
     },
-    // Pencil-icon click handler (editable users only — edit mode adds
-    // drag-to-create + click-to-remove). Emits `toggle-face-marker-edit`
-    // so the lightbox can flip between `null` and `FaceMarkerEdit`.
+    // Pencil-icon handler: flips between `null` and `FaceMarkerEdit`,
+    // which adds drag-to-create + click-to-remove.
     onToggleFaceMarkerEdit() {
       if (!this.isEditable || this.markersBusy) {
         return;
@@ -1303,11 +1252,9 @@ export default {
       if (!this.isEditable || this.markersBusy || !marker || !marker.SubjUID) {
         return;
       }
-      // When the user types a fresh name and clicks ⏏ on the eject icon:
-      // clearSubject flips SubjUID, the combobox re-renders editable, and
-      // the implicit @blur from the re-render would commit the typed name
-      // we just rejected. The timestamp lets confirmMarkerName bail when
-      // an icon click triggered the unmount (P1-7).
+      // Without this timestamp, the implicit @blur from the combobox
+      // re-render after clearSubject would commit the typed name the
+      // user just rejected. confirmMarkerName checks it and bails.
       this._lastDestructiveMarkerActionAt = Date.now();
       this.$emit("eject-marker", marker);
     },
@@ -1315,14 +1262,10 @@ export default {
     unwrapMarkerName(value) {
       return typeof value === "object" && value !== null ? value.Name || "" : value || "";
     },
-    // Reconciles the local markerDrafts map with the latest markers from
-    // photo.getMarkers(true). Fires from the `people` watcher on every
-    // photo-cache mutation. The `editing` flag is the guard for P1-3:
-    // when the user is actively typing into a marker's combobox, an
-    // unrelated WS-driven photo update (vision worker, label change,
-    // etc.) re-runs this method but must NOT overwrite the typed text.
-    // confirmMarkerName / cancelMarkerName / onAddNameConfirm clear the
-    // flag after committing or discarding the edit.
+    // Reconciles markerDrafts with the latest markers on every
+    // photo-cache mutation. The `editing` flag prevents an unrelated
+    // WS update from clobbering text the user is currently typing;
+    // confirmMarkerName / cancelMarkerName / onAddNameConfirm clear it.
     syncMarkerDrafts(markers) {
       const seen = new Set();
       markers.forEach((m) => {
@@ -1357,11 +1300,9 @@ export default {
     markerInputSearch(uid) {
       return this.unwrapMarkerName(this.markerInputValue(uid));
     },
-    // Records typed text from the v-combobox into the per-marker draft and
-    // flips `editing` to true so a concurrent WS update can't snap the
-    // input back to the backend value mid-keystroke (P1-3). The flag is
-    // cleared by commitMarkerName / cancelMarkerName / onAddName* once
-    // the edit reaches a settled state.
+    // Records typed text into the per-marker draft and sets `editing`
+    // so a concurrent WS update can't snap the input back mid-keystroke.
+    // commit / cancel / onAddName* clear the flag at settled states.
     setMarkerInputValue(uid, value) {
       if (!uid) {
         return;
@@ -1385,31 +1326,27 @@ export default {
         }
       });
     },
-    // Match a typed name against knownPeople case-insensitively so the backend
-    // doesn't create a duplicate subject when the input only differs in case.
-    // Locale `undefined` defers to the user's active locale so case-folding
-    // works for Turkish dotted/dotless i, German ß, Cyrillic, Hebrew, etc.
+    // Locale-aware case-insensitive match so the backend doesn't create
+    // a duplicate when the typed name differs only in case (handles
+    // Turkish i, German ß, Cyrillic, Hebrew, etc.).
     findKnownPerson(name) {
       if (!name) {
         return null;
       }
       return this.knownPeople.find((p) => p && p.Name && p.Name.localeCompare(name, undefined, { sensitivity: "base" }) === 0) || null;
     },
-    // Resolves a marker by UID from the current photo. Used by the
-    // Add-name dialog confirm path so a stale Marker reference held in
-    // addNameDialog can't write through to a marker that no longer
-    // exists on this photo (P1-8). Returns null when the marker has been
-    // removed (e.g. rejected) or the slide moved to a different photo.
+    // Resolves a marker by UID from the current photo. Used by Add-name
+    // confirm so a stale Marker reference can't write through after the
+    // marker was rejected or the slide moved on.
     findMarker(uid) {
       if (!uid || !this.photo || typeof this.photo.getMarkers !== "function") {
         return null;
       }
       return this.photo.getMarkers(true).find((m) => m && m.UID === uid) || null;
     },
-    // confirmMarkerName commits typed text from the per-marker draft; "blur"
-    // routes unnamed markers through the Add-name confirmation. Bails when
-    // another mutation is in flight, the marker is invalid, or a destructive
-    // icon was clicked within the last 200 ms.
+    // Commits typed text from the per-marker draft. "blur" routes
+    // unnamed markers through Add-name confirmation. Bails when busy,
+    // invalid, or a destructive icon fired in the last 200 ms.
     confirmMarkerName(marker, source = "enter") {
       if (!marker || !marker.UID) {
         return;
@@ -1486,11 +1423,9 @@ export default {
       this.setMarkerInputValue(marker.UID, value.Name);
       this.confirmMarkerName(marker, "enter");
     },
-    // Resolves the dialog's stored markerUid against the live photo. If
-    // the marker has been rejected, navigated away from, or otherwise
-    // disappeared, the commit is dropped silently — the dialog already
-    // closed, and surfacing an error for a self-resolved state would just
-    // confuse the user.
+    // Resolves the stored markerUid against the live photo and drops
+    // the commit silently if the marker is gone (rejected, slide moved,
+    // etc.) — the dialog already closed.
     onAddNameConfirm() {
       const { markerUid, name } = this.addNameDialog;
       this.addNameDialog = { visible: false, markerUid: "", name: "" };
@@ -1531,11 +1466,9 @@ export default {
       }
       draft.current = draft.original;
       draft.editing = false;
-      // Blur the marker's own input so the user gets a visual cue the edit
-      // was dropped; @blur re-fires confirmMarkerName but it's a no-op
-      // now that current === original AND editing is false. Scoped to the
-      // marker's input (P1-9) rather than document.activeElement so an
-      // unrelated focused element isn't blurred by mistake.
+      // Blur the marker's own input (scoped, not document.activeElement)
+      // for visual feedback. The @blur re-fires confirmMarkerName but
+      // it's a no-op since current === original and editing is false.
       const input = this.$el && this.$el.querySelector(`[data-marker-uid="${marker.UID}"] input`);
       if (input && typeof input.blur === "function") {
         input.blur();
@@ -1561,30 +1494,17 @@ export default {
         this.addNameDialog = { visible: false, markerUid: "", name: "" };
       }
     },
-    // Inline text fields (title/caption/subject/...) are usually auto-committed
-    // by onInlineFieldBlur() before any navigation source can fire, so they
-    // typically have no pending state at nav time. The exception is overflow:
-    // confirmField() short-circuits on a value above the field's maxLength
-    // (toasting the per-label "X is too long" error and keeping the editor
-    // open), which leaves an invalid edit pending. hasPendingInlineOverflow()
-    // detects that case so the navigation guard can surface the discard
-    // dialog instead of letting the typed value silently vanish.
-    //
-    // Chip-section removals (`chipState.<field>.removals`) ARE counted here
-    // because the user can see and toggle them, but `confirmDiscardPending`
-    // auto-commits them before checking this — by the time the dialog gate
-    // runs they're already gone. The remaining staged inputs that DO open
-    // the dialog are marker drafts, typed-but-uncommitted combobox text,
-    // and the open Add-name confirmation.
+    // True when an edit is staged that the navigation guard should
+    // warn about. Split into overflow (open editor at maxLength+) vs
+    // non-overflow so the discard dialog can pick the right copy.
+    // Chip removals auto-commit via confirmDiscardPending before this
+    // runs, so they're not counted here.
     hasPendingEdit() {
       return this.hasPendingInlineOverflow() || this.hasPendingNonOverflowEdit();
     },
-    // Pending state that doesn't come from an overlength inline editor —
-    // i.e. marker drafts, typed-but-uncommitted combobox text, chip
-    // removals, and the Add-name dialog. Split out so discardDialogText
-    // can choose its message based on whether the only blocker is an
-    // invalid inline edit (→ "Discard invalid changes?") or any of the
-    // other shapes (→ "Discard unsaved changes?").
+    // Pending state that isn't an overlength inline editor: marker
+    // drafts, typed combobox text, chip removals, Add-name dialog.
+    // Split out so discardDialogText can pick the right message.
     hasPendingNonOverflowEdit() {
       for (const uid of Object.keys(this.markerDrafts)) {
         const d = this.markerDrafts[uid];
@@ -1595,11 +1515,9 @@ export default {
           return true;
         }
       }
-      // Pending chip removals (staged via × icon) and typed-but-uncommitted
-      // text in the always-visible combobox both count as pending. Pressing
-      // Enter would fire the instant-save path (addLabelImmediate /
-      // addAlbumImmediate), but until then the characters live only in
-      // chipState.<field>.search and would silently vanish on navigation.
+      // Pending chip removals (× icon) and typed-but-uncommitted combobox
+      // text both count: Enter would instant-save, but until then the
+      // characters live only in chipState.<field>.search.
       if (Object.values(this.chipState).some((s) => s.removals.length || (s.search || "").trim() !== "")) {
         return true;
       }
@@ -1607,13 +1525,9 @@ export default {
       // input until the user picks Add or Cancel.
       return !!(this.addNameDialog && this.addNameDialog.visible);
     },
-    // hasPendingInlineOverflow returns true when an inline text editor is
-    // open and the current value exceeds the field's cap. Pairs with the
-    // length gate in confirmField() — that gate keeps the editor open so
-    // the user can fix the value; this method ensures navigation sources
-    // (next/prev arrows, sidebar close, lightbox dismiss) surface the
-    // discard dialog instead of silently swapping the photo out from under
-    // the invalid edit.
+    // True when an inline editor is open with a value above the cap.
+    // Pairs with confirmField()'s length gate so navigation sources
+    // surface the discard dialog instead of dropping the invalid edit.
     hasPendingInlineOverflow() {
       if (!this.editingField || !this.photo) {
         return false;
@@ -1656,12 +1570,9 @@ export default {
         }
       });
     },
-    // Async guard used by the lightbox before closing / hiding / navigating.
-    // Returns a Promise<boolean>: true = safe to proceed, false = user
-    // canceled. Pending chip removals auto-commit BEFORE the dialog gate,
-    // so the discard prompt only fires for state the user could plausibly
-    // still want to keep (marker drafts, typed combobox text, the Add-name
-    // dialog) — never for chip × clicks, which are deliberate and final.
+    // Async guard before close / hide / nav. Returns Promise<boolean>:
+    // true = safe, false = canceled. Chip removals auto-commit first so
+    // the dialog only fires for state the user might still want to keep.
     confirmDiscardPending() {
       this.autoCommitChipRemovals();
       this.flushDirtyMarkerDrafts();
@@ -1717,11 +1628,9 @@ export default {
       const field = this.editingField;
       const fieldDef = this.fieldRegistry[field];
 
-      // Length gate before save — the inline editor has no parent v-form,
-      // so the rendered `:rules` only paint an inline error; without this
-      // imperative check, photo.update() would persist (or silently drop)
-      // overlength input. Mirrors the addLabelImmediate / addAlbumImmediate
-      // pattern below.
+      // Length gate: the inline editor has no parent v-form, so without
+      // this imperative check photo.update() would persist overlength
+      // input. Mirrors addLabelImmediate / addAlbumImmediate.
       if (fieldDef && fieldDef.maxLength > 0) {
         const currentValue = fieldDef.read(this.photo);
         if (typeof currentValue === "string" && currentValue.length > fieldDef.maxLength) {
@@ -1737,10 +1646,8 @@ export default {
         return;
       }
 
-      // The inline-edit binding (v-model="photo.X") already mutated the photo
-      // optimistically; on success sync the matching Thumb fields, on
-      // failure roll back so the user sees the title/caption revert and
-      // gets a notification instead of a silent ghost edit.
+      // v-model already mutated the photo optimistically; on success
+      // sync the matching Thumb fields, on failure roll back + notify.
       this.photo
         .update()
         .then(() => {
@@ -1769,11 +1676,9 @@ export default {
       this.editOriginal = null;
       this._editStartedAt = null;
     },
-    // Blur handler for inline text fields (title/caption/subject/artist/
-    // copyright/license/keywords/notes). Commits the edit instead of
-    // silently reverting so the user does not lose their typing when
-    // they click away, swipe to the next photo, or press the nav arrow.
-    // Escape still cancels explicitly via cancelEditing().
+    // Blur handler for inline text fields: commits instead of reverting
+    // so click-away / swipe / nav arrow don't lose typing. Escape still
+    // cancels explicitly via cancelEditing().
     onInlineFieldBlur() {
       if (this._editStartedAt && Date.now() - this._editStartedAt < 200) {
         return;
@@ -1784,14 +1689,9 @@ export default {
       this.confirmField();
     },
     formatTime(model) {
-      // Prefer the full Photo's getDateString() — it has the Year /
-      // Month / Day Unknown-fallback baked in (Unknown / year-only /
-      // month + year) and is the single source of truth for that
-      // formatting. The Thumb model from viewer.Result
-      // (`internal/entity/search/viewer/result.go`) carries
-      // TakenAtLocal / TimeZone but no Year / Month / Day, so we can't
-      // detect Unknown components on the Thumb alone; we fall back to
-      // a plain TakenAtLocal format for the brief window before the
+      // Prefer Photo.getDateString() — it's the source of truth for the
+      // Unknown / year-only / month+year fallbacks. The Thumb model
+      // lacks Year/Month/Day, so we fall back to TakenAtLocal until the
       // full photo loads.
       if (this.photo && typeof this.photo.getDateString === "function") {
         return this.photo.getDateString(true);
@@ -1863,20 +1763,16 @@ export default {
         typeaheadCache
           .getAlbums()
           .then((models) => {
-            // Map to plain {Title, UID} objects so v-combobox doesn't
-            // try to track the rich Album model instance internally —
-            // its reactive metadata (getters, methods, _request slots)
-            // breaks v-combobox's input handling and the user can't
-            // type. Mirrors the labels mapping above.
+            // Plain {Title, UID} objects: the rich Album model's
+            // reactive metadata breaks v-combobox input handling.
+            // Mirrors the labels mapping above.
             this.chipState.albums.options = models.map((a) => ({ Title: a.Title, UID: a.UID })).sort(collator("Title"));
           })
           .catch(() => {});
       }
     },
-    // Clears the typed text and selection for one combobox. The key
-    // bump force-remounts the v-combobox / v-autocomplete so any stale
-    // dropdown state (a half-rendered no-data row, a tracked input
-    // value Vuetify retained after the model went null) goes with it.
+    // Clears typed text + selection for one combobox; the key bump
+    // force-remounts the v-combobox to drop stale dropdown state.
     clearChipInput(field) {
       if (!field) {
         // Legacy callers without a field argument clear both —
@@ -1892,10 +1788,8 @@ export default {
       state.search = "";
       state.key++;
     },
-    // Esc inside a chip combobox clears the typed text and the staged
-    // pending removals for that field, then drops focus from the input.
-    // Matches the inline-text Esc semantic (revert to baseline) without
-    // crossing into editingField (chip sections no longer have one).
+    // Esc inside a chip combobox clears typed text and staged removals
+    // for that field — chip parallel to the inline-text Esc revert.
     onChipEscape(field) {
       const state = this.chipState[field];
       if (!state) {
@@ -1923,10 +1817,8 @@ export default {
         state.removals.push(key);
       }
     },
-    // Clears all pending removals for one chip section in a single click.
-    // Wired to the Undo icon in the section toolbar; restores soft-removed
-    // chips by emptying `chipState.<field>.removals`, which makes the
-    // `visibleLabels` / `visibleAlbums` computeds repopulate reactively.
+    // Clears all pending removals for one chip section. Wired to the
+    // section's Undo icon; restores soft-removed chips reactively.
     undoChipRemovals(field) {
       const state = this.chipState[field];
       if (!state) {
@@ -1939,12 +1831,10 @@ export default {
         s.removals = [];
       });
     },
-    // Click + Enter behavior on a primary chip: navigate to the related
-    // label / album page in both read-only and editable contexts — the chip
-    // acts like a link. Removal lives on the × icon's own click handler and
-    // the keyboard Delete / Backspace path via `onChipDelete`. The two chip
-    // shapes differ: labels are wrapped (`{ Label: { ID, ... } }`) while
-    // albums come through directly (`{ UID, ... }`).
+    // Click/Enter on a primary chip navigates to the related page in
+    // both modes — chips act like links. Removal lives on the × icon
+    // and Delete/Backspace via `onChipDelete`. Note the shape asymmetry:
+    // labels are wrapped (`{ Label: { ID, ... } }`), albums aren't.
     onChipActivate(field, item) {
       if (!item) {
         return;
@@ -1955,11 +1845,9 @@ export default {
         return this.navigateToAlbum(item);
       }
     },
-    // Removal entry point: wired to the chip's × icon click and to the
-    // chip's keyboard Delete / Backspace handler. No-op outside edit mode
-    // so read-only chips behave as plain links; in edit mode it toggles
-    // pending removal so the chip disappears from `visibleLabels` /
-    // `visibleAlbums` until the user clicks Undo or auto-commit runs.
+    // Removal entry: wired to × icon and Delete/Backspace. No-op
+    // outside edit mode (read-only chips stay as links); in edit mode
+    // toggles pending removal until Undo or auto-commit.
     onChipDelete(field, item) {
       if (!item || !this.isEditable) {
         return;
@@ -1967,12 +1855,9 @@ export default {
       const key = field === "labels" ? item?.Label?.ID : item.UID;
       this.togglePendingChipRemoval(field, key);
     },
-    // Validates `rawName` and, when valid, fires `Photo.addLabel(name)`
-    // immediately. The model method chains `setValues(r.data)` so the new
-    // label appears as a real primary chip on `this.photo.Labels` as soon
-    // as the response lands — there's no transient pending-add chip. On
-    // rejection the caller sees a $notify.error and the chip never appears.
-    // Returns true when a save was triggered (caller clears the input).
+    // Validates `rawName` and fires Photo.addLabel immediately; no
+    // transient pending-add chip. Returns true when a save fired
+    // (caller clears the input).
     addLabelImmediate(rawName) {
       if (!this.photo) {
         return false;
@@ -2000,10 +1885,9 @@ export default {
       if (this.visibleLabels.some((l) => this.$util.normalizeTitle(l?.Label?.Name) === norm)) {
         return false;
       }
-      // Match against the system-wide label list — if a normalized match
-      // exists, send the canonical existing-label name so the backend
-      // doesn't create a near-duplicate (e.g. typed `Hello Cat` reuses an
-      // existing `hello-cat` label) and the user sees the canonical casing.
+      // Match against the system-wide label list and send the canonical
+      // name on a normalized hit, so the backend doesn't mint a
+      // near-duplicate (e.g. `Hello Cat` reuses existing `hello-cat`).
       const existing = this.chipState.labels.options.find((l) => this.$util.normalizeTitle(l.Name) === norm);
       const finalName = existing ? existing.Name : name;
       this.photo.addLabel(finalName).catch(() => {
@@ -2017,11 +1901,9 @@ export default {
       }
       return this.albums.some((a) => this.$util.normalizeTitle(a?.Title) === norm);
     },
-    // Validates `album` and, when valid, fires `Photo.addToAlbum(uid)`
-    // immediately. The model method evicts the LRU cache and refetches
-    // the canonical photo so `this.photo.Albums` repopulates with the
-    // saved state — no transient pending-add chip. Caller in onAlbumEnter
-    // wraps brand-new albums in `Album.save()` first so a UID exists.
+    // Validates `album` and fires Photo.addToAlbum immediately; no
+    // transient pending-add chip. onAlbumEnter wraps new albums in
+    // Album.save() first so a UID exists.
     addAlbumImmediate(album) {
       if (!this.photo) {
         return false;
@@ -2072,15 +1954,10 @@ export default {
       const target = ev && ev.target ? ev.target : null;
       return target && typeof target.value === "string" ? target.value : "";
     },
-    // Enter inside the Labels combobox. Mirrors onAlbumEnter's structure:
-    // empty → no-op; too-long → notify and leave the typed text so the
-    // user can fix it; otherwise hand off to addLabelImmediate (which
-    // does its own normalize + canonicalize + already-on-photo dedup) and
-    // ALWAYS clear the input + bump the key so the menu closes — even
-    // when the label was already on the photo and no API call fired. The
-    // earlier `if (addLabelImmediate(...)) { clear }` shape left the
-    // input populated and the menu open in the already-on-photo case,
-    // which felt unresolved compared to the Albums combobox.
+    // Enter inside the Labels combobox: empty → no-op; too-long →
+    // notify and leave the text; otherwise hand off to addLabelImmediate
+    // and ALWAYS clear the input so the menu closes even when the label
+    // was already on the photo and no API call fired.
     onLabelEnter(ev) {
       const search = this.pendingChipName("labels", ev).trim();
       if (!search) {
@@ -2106,15 +1983,11 @@ export default {
       const removals = state.removals.slice();
       state.removals = [];
 
-      // photo.removeLabel chains .then((r) => this.setValues(r.data)) (see
-      // model/photo.js), so a successful response repopulates
-      // this.photo.Labels with the backend-provided list. The websocket
-      // photos.updated subscriber additionally evicts the cached entry via
-      // evictCachedFromEntities, so the next read after navigation
-      // rehydrates from GET /photos/:uid. confirmAlbums takes a different
-      // path because album mutations only emit albums.updated (not
-      // photos.updated) — see Photo.removeFromAlbum / addToAlbum for the
-      // explicit evict+refind. The asymmetry is intentional.
+      // removeLabel's setValues(r.data) repopulates this.photo.Labels;
+      // the photos.updated WS subscriber evicts the cache for the next
+      // navigation. Album mutations emit albums.updated (not
+      // photos.updated), which is why confirmAlbums does its own
+      // evict+refind — see Photo.removeFromAlbum / addToAlbum.
       if (removals.length) {
         Promise.all(removals.map((id) => this.photo.removeLabel(id))).catch(() => {
           this.$notify.error(this.$gettext("Failed to save changes"));
@@ -2132,11 +2005,9 @@ export default {
       const removals = state.removals.slice();
       state.removals = [];
 
-      // Photo.removeFromAlbum owns the evict+refind dance per call, so the
+      // Photo.removeFromAlbum owns the evict+refind per call, so the
       // sidebar's this.photo.Albums reflects the saved state without an
-      // extra Photo.evictCache + find here. See model/photo.js for the
-      // contract; the per-call extra GET is acceptable for the typical
-      // 1-2 chip removals at a time.
+      // extra evictCache + find here.
       if (removals.length) {
         Promise.all(removals.map((uid) => this.photo.removeFromAlbum(uid))).catch(() => {
           this.$notify.error(this.$gettext("Failed to save changes"));
@@ -2144,13 +2015,10 @@ export default {
       }
     },
     onAlbumSelected(value) {
-      // v-combobox emits update:model-value transiently while the user
-      // types free text (the model can momentarily flip to a string or
-      // a Title-only stub before settling). Bail silently on anything
-      // that isn't a real album object — clearing the input here would
-      // bump chipState.albums.key, force-remount the v-combobox, and
-      // kill focus mid-keystroke. Free-text Enter is committed via
-      // onAlbumEnter, which owns the canonical clear path.
+      // v-combobox emits update:model-value transiently during free-text
+      // typing. Bail silently on non-album values — clearing here would
+      // remount the combobox and kill focus mid-keystroke. Free-text
+      // Enter is committed via onAlbumEnter.
       if (!value || typeof value !== "object" || !value.UID) {
         return;
       }
@@ -2176,15 +2044,11 @@ export default {
 
       const options = this.chipState.albums.options;
 
-      // Normalized exact-match against the full known-albums list first.
-      // normalizeTitle ignores case and converts every punctuation character
-      // to whitespace, so `Hello Cat`, `hello-cat`, `hello,cat`, and
-      // `hello.CAT` all resolve to the same canonical album. This mirrors
-      // the Labels validation pipeline. Substring fuzzy matching is
-      // intentionally NOT applied here — typing `test` must not silently
-      // merge into an existing `LRUTEST-ALBUM-…`. Users pick partial
-      // matches via the dropdown (click or arrow-key + Enter on a
-      // highlighted item, which fires `onAlbumSelected`).
+      // Normalized exact-match first: normalizeTitle is case- and
+      // punctuation-insensitive (`Hello Cat`, `hello-cat`, `hello.CAT`
+      // all collide). No substring fuzzy match — `test` must not silently
+      // merge into `LRUTEST-ALBUM-…`; partial matches go through the
+      // dropdown via onAlbumSelected.
       const exactMatch = options.find((a) => this.$util.normalizeTitle(a.Title) === norm);
       if (exactMatch) {
         this.onAlbumSelected(exactMatch);
