@@ -6,7 +6,6 @@
         :key="item.value || item.title"
         :text="getChipTooltip(item)"
         location="top"
-        :disabled="$vuetify?.display?.mobile === true"
       >
         <template #activator="{ props }">
           <div
