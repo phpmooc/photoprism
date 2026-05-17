@@ -20,6 +20,9 @@ func TestParseDriver(t *testing.T) {
 	})
 	t.Run("Postgres", func(t *testing.T) {
 		assert.Equal(t, DriverPostgres, ParseDriver("postgres"))
+		// URI-style DSNs spell the driver "postgresql"; accept it as a Postgres alias.
+		assert.Equal(t, DriverPostgres, ParseDriver("postgresql"))
+		assert.Equal(t, DriverPostgres, ParseDriver("PostgreSQL"))
 	})
 	t.Run("SQLite3", func(t *testing.T) {
 		assert.Equal(t, DriverSQLite3, ParseDriver("sqlite3"))
@@ -44,7 +47,6 @@ func TestParseDriver(t *testing.T) {
 	t.Run("Unknown", func(t *testing.T) {
 		// Unknown inputs return an empty string so the caller's `default` arm fires.
 		assert.Equal(t, "", ParseDriver("oracle"))
-		assert.Equal(t, "", ParseDriver("postgresql"))
 		assert.Equal(t, "", ParseDriver("garbage"))
 	})
 }

@@ -19,17 +19,14 @@ const (
 )
 
 // ParseDriver canonicalizes a user-supplied driver identifier to one of the
-// DriverMySQL/DriverPostgres/DriverSQLite3/DriverTiDB constants. Comparison is
-// case-insensitive and tolerates surrounding whitespace. "mariadb" collapses
-// to DriverMySQL because both share the same wire protocol and GORM dialect.
-// The aliases "sqlite", "test", "file" and the empty string normalize to
-// DriverSQLite3. Unrecognized inputs return an empty string so callers can
-// distinguish them from supported drivers in a switch.
+// DriverMySQL/DriverPostgres/DriverSQLite3/DriverTiDB constants (case- and
+// whitespace-insensitive). Aliases: "mariadb" → MySQL (shared GORM dialect),
+// "postgresql" → Postgres, "sqlite"/"test"/"file"/"" → SQLite3; unknown → "".
 func ParseDriver(s string) string {
 	switch strings.ToLower(strings.TrimSpace(s)) {
 	case DriverMySQL, DriverMariaDB:
 		return DriverMySQL
-	case DriverPostgres:
+	case DriverPostgres, "postgresql":
 		return DriverPostgres
 	case DriverSQLite3, "sqlite", "test", "file", "":
 		return DriverSQLite3
