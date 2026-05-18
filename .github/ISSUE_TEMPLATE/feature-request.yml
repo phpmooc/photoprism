@@ -1,26 +1,42 @@
 name: Feature Request
 description: Suggest a new feature or enhancement.
-title: "Category: Short feature description (PLEASE CHANGE)"
+title: "Feature: Edit the title before submitting"
 type: Feature
 assignees: []
 body:
   - type: markdown
     attributes:
       value: |
-        Be sure to [check our roadmap](https://link.photoprism.app/roadmap) and [search GitHub for similar features](https://github.com/photoprism/photoprism/issues) before submitting a new request.
+        PLEASE PROCEED ONLY IF YOU ARE SURE THAT THIS IS NOT A TECHNICAL SUPPORT INCIDENT AND/OR POSSIBLY A PROBLEM WITH SOME OTHER SOFTWARE YOU ARE USING.
+        CHECK OUR PUBLIC ROADMAP AND TRY TO FIND EXISTING FEATURE REQUESTS FIRST:
+
+        - https://link.photoprism.app/roadmap
+        - https://github.com/photoprism/photoprism/issues
+
+        THANK YOU! 💎
   - type: checkboxes
     id: request-prep
     attributes:
-      label: Confirmation
+      label: Before You Continue
       description: Make sure you completed these steps before opening a new request.
       options:
-        - label: I checked this request against the roadmap and existing issues
+        - label: This is not a support request, and I checked the roadmap and existing issues
           required: true
+  - type: textarea
+    id: user-story
+    attributes:
+      label: User Story
+      description: |
+        All issue descriptions MUST begin with one sentence in the format `As a <role>, I want <goal>, so that <outcome>.`
+        Follow the user story with information about the problem the feature solves, the alternatives you considered, and any other relevant details in the sections below.
+      placeholder: As a <role>, I want <goal>, so that <outcome>.
+    validations:
+      required: true
   - type: textarea
     id: problem-statement
     attributes:
       label: What Problem Does This Solve and Why Is It Valuable?
-      description: Explain the underlying problem and why solving it matters to many users.
+      description: Explain the underlying problem and why it is important to solve it.
       placeholder: Describe the problem, why it is important, and who is affected.
     validations:
       required: true
@@ -36,11 +52,38 @@ body:
     id: alternatives
     attributes:
       label: What Alternatives Have You Considered?
-      description: Describe other options you explored and why they are less suitable.
+      description: Describe alternative solutions, workarounds, or related features you evaluated.
       placeholder: Mention any alternative solutions, workarounds, or related features you evaluated.
   - type: textarea
     id: additional-context
     attributes:
       label: Additional Context
-      description: Share relevant context, references, or screenshots that illustrate the request.
-      placeholder: Add links, references, or screenshots that help explain the request.
+      description: Add any other context or screenshots about the feature request here.
+      placeholder: Add any other context or screenshots that help explain the request.
+  - type: textarea
+    id: open-questions
+    attributes:
+      label: Open Questions
+      description: Use checklist items to capture ambiguities, tradeoffs, or decisions that still need clarification.
+      placeholder: |
+        - [ ] <question> — options A/B/C and implications.
+        - [ ] <question> — potential ambiguity or conflict to clarify.
+      render: markdown
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Use checklist items and RFC 2119 keywords such as MUST, SHOULD, and MAY to define the expected behavior.
+      placeholder: |
+        - [ ] <component> MUST <expected behavior>
+        - [ ] <component> SHOULD <expected behavior>
+        - [ ] <component> MAY <expected behavior>
+      render: markdown
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: References
+      description: Add links to external documentation, references, or examples.
+      placeholder: Add links to documentation, references, or examples that support the request.
