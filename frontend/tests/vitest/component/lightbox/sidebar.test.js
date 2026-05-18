@@ -2039,6 +2039,30 @@ describe("PLightboxSidebar component", () => {
       expect(w.vm.$notify.error).not.toHaveBeenCalled();
     });
 
+    it("trims surrounding whitespace before checking the field cap so a value that fits after trim still saves", () => {
+      // Mirrors the backend trim performed by txt.Clip; without it a user
+      // typing "x"*1024 + trailing spaces would trip the cap and the
+      // editor would stay open even though the trimmed value fits the
+      // column.
+      const photo = buildInlineEditPhoto();
+      photo.update.mockResolvedValueOnce({});
+      const w = mountSidebar({
+        props: { modelValue: mockModel, photo, canEdit: true, context: contexts.Photos },
+        global: { stubs: { PMap: true } },
+      });
+
+      // Copyright cap is 1024; "x"*1024 + trailing spaces is fine after trim.
+      photo.Details = { Copyright: "x".repeat(1024) + "   " };
+      w.vm.editingField = "copyright";
+
+      w.vm.confirmField();
+
+      // Trimmed value persisted on the photo and the editor closed.
+      expect(photo.Details.Copyright).toBe("x".repeat(1024));
+      expect(w.vm.editingField).toBeNull();
+      expect(w.vm.$notify.error).not.toHaveBeenCalled();
+    });
+
     it("blocks save and keeps the editor open when the value exceeds the field cap", () => {
       // Inline editor has no parent v-form; the rendered `:rules` only
       // paint an inline error. The imperative length check inside

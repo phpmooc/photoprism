@@ -1638,14 +1638,18 @@ export default {
       const field = this.editingField;
       const fieldDef = this.fieldRegistry[field];
 
-      // Length gate: the inline editor has no parent v-form, so without
-      // this imperative check photo.update() would persist overlength
-      // input. Mirrors addLabelImmediate / addAlbumImmediate.
-      if (fieldDef && fieldDef.maxLength > 0) {
+      // Trim before the length gate so trailing whitespace doesn't trip the cap; Photo.update() trims again.
+      if (fieldDef) {
         const currentValue = fieldDef.read(this.photo);
-        if (typeof currentValue === "string" && currentValue.length > fieldDef.maxLength) {
-          this.$notify.error(this.$gettext("%{s} is too long", { s: fieldDef.label }));
-          return;
+        if (typeof currentValue === "string") {
+          const trimmed = currentValue.trim();
+          if (trimmed !== currentValue) {
+            fieldDef.write(this.photo, trimmed);
+          }
+          if (fieldDef.maxLength > 0 && trimmed.length > fieldDef.maxLength) {
+            this.$notify.error(this.$gettext("%{s} is too long", { s: fieldDef.label }));
+            return;
+          }
         }
       }
 
