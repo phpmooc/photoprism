@@ -7,7 +7,7 @@ body:
   - type: markdown
     attributes:
       value: |
-        Before submitting a request, please check our GitHub roadmap and issues to see if an existing request matches your needs:
+        Before submitting a new request, please check our GitHub roadmap and issues for similar requests:
         - https://link.photoprism.app/roadmap
         - https://github.com/photoprism/photoprism/issues
   - type: checkboxes
