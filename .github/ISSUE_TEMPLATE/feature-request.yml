@@ -7,10 +7,10 @@ body:
   - type: markdown
     attributes:
       value: |
-        Please proceed only if you are sure that this is not a technical support incident and/or a problem with some other software you are using.
         Before submitting a request, check our public roadmap to see if an existing feature request matches your needs:
         - https://link.photoprism.app/roadmap
         - https://github.com/photoprism/photoprism/issues
+        Thank you! 💎
   - type: checkboxes
     id: request-prep
     attributes:
