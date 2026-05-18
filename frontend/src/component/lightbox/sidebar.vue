@@ -293,11 +293,12 @@
                 :key="a.UID"
                 tabindex="0"
                 class="meta-chip meta-chip--primary"
+                :title="a.Title"
                 @click.stop.prevent="onChipActivate('albums', a)"
                 @keydown.enter.stop.prevent="onChipActivate('albums', a)"
                 @keydown.delete.stop.prevent="onChipDelete('albums', a)"
               >
-                {{ a.Title }}
+                <span class="meta-chip__label text-truncate">{{ a.Title }}</span>
                 <v-icon
                   v-if="isEditable"
                   icon="mdi-close-circle"
@@ -353,11 +354,12 @@
                 :key="l.Label.UID"
                 tabindex="0"
                 class="meta-chip meta-chip--primary"
+                :title="l.Label.Name"
                 @click.stop.prevent="onChipActivate('labels', l)"
                 @keydown.enter.stop.prevent="onChipActivate('labels', l)"
                 @keydown.delete.stop.prevent="onChipDelete('labels', l)"
               >
-                {{ l.Label.Name }}
+                <span class="meta-chip__label text-truncate">{{ l.Label.Name }}</span>
                 <v-icon
                   v-if="isEditable"
                   icon="mdi-close-circle"
