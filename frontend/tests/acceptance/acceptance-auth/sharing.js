@@ -215,7 +215,7 @@ test.meta("testID", "sharing-003").meta({ type: "short", mode: "auth" })("Common
 
   // Deny-list: edit affordances, face-marker controls, and every
   // restricted section must be gone.
-  await t.expect(photoviewer.inlinePencils.exists).notOk();
+  await photoviewer.assertSidebarIsReadOnly();
   await t.expect(photoviewer.markersVisibilityToggle.exists).notOk();
   await t.expect(photoviewer.markerAddButton.exists).notOk();
   // Merged file row renders for restricted sessions (type + size as
