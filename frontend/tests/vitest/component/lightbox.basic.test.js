@@ -752,9 +752,10 @@ describe("PLightbox (low-mock, jsdom-friendly)", () => {
     });
   });
 
-  it("formatCaption returns sanitized caption html", () => {
-    const wrapper = mountLightbox();
-    const caption = wrapper.vm.$.ctx.formatCaption({
+  it("captionPlugin.formatCaption returns sanitized caption html", async () => {
+    const Captions = (await import("common/captions")).default;
+    const plugin = new Captions({ on() {} }, {});
+    const caption = plugin.formatCaption({
       Title: `Title <img src=x onerror="alert(1)">`,
       Caption: `Visit https://example.com/?q=1&x=2`,
     });

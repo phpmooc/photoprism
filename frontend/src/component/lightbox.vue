@@ -297,6 +297,10 @@ export default {
     this.subscriptions.push(this.$event.subscribe("lightbox.open", this.openLightbox.bind(this)));
     this.subscriptions.push(this.$event.subscribe("lightbox.pause", this.pauseLightbox.bind(this)));
     this.subscriptions.push(this.$event.subscribe("lightbox.close", this.onClose.bind(this)));
+    // Pick up Title/Caption edits made by other clients so the dynamic
+    // caption reflects them on the next layout pass without waiting for
+    // the slide to be re-created.
+    this.subscriptions.push(this.$event.subscribe("photos.updated", this.onPhotosUpdated.bind(this)));
   },
   beforeUnmount() {
     // Exit fullscreen mode if enabled, has no effect otherwise.
@@ -1108,18 +1112,14 @@ export default {
         // toggleCaption() calls pswp.updateSize(true) to force a
         // re-layout when this flips.
         enabled: () => !this.hideCaption,
-        captionContent: (slide) => {
+        // Resolve slide → model here; the plugin owns the HTML format
+        // (sanitization, title/caption layout) so it can stay in sync
+        // with the sidebar's caption renderer.
+        getModel: (slide) => {
           if (!slide || !this.models || slide?.index < 0) {
-            return "";
+            return null;
           }
-
-          const model = this.models[slide.index];
-
-          if (model) {
-            return this.formatCaption(model);
-          }
-
-          return "";
+          return this.models[slide.index] || null;
         },
       });
 
@@ -1655,44 +1655,6 @@ export default {
         this.hideDialog();
       });
     },
-    // Returns the picture (model) caption as sanitized HTML, if any.
-    formatCaption(model) {
-      if (!model) {
-        return "";
-      }
-
-      let caption = "";
-
-      if (model.Title) {
-        caption += `<h4>${this.$util.encodeHTML(model.Title.trim())}</h4>`;
-      }
-
-      /*
-        TODO: Find a good position for the date information that works for all screen sizes and image dimensions.
-              We MAY postpone this and display it along with other metadata in the new sidebar.
-       */
-      /* if (model.TakenAtLocal) {
-         caption += `<div>${this.$util.formatDate(model.TakenAtLocal)}</div>`;
-      } */
-
-      if (model.Description && !model.Caption) {
-        model.Caption = model.Description;
-      }
-
-      let text = typeof model.Caption === "string" ? model.Caption.trim() : "";
-
-      if (text) {
-        if (!caption && text.split("\n").length < 2) {
-          // Render large caption if there is no title and it has only one line.
-          caption += `<h4>${this.$util.encodeHTML(text)}</h4>`;
-        } else {
-          // Render small caption otherwise.
-          caption += `<p>${this.$util.encodeHTML(text)}</p>`;
-        }
-      }
-
-      return this.$util.sanitizeHtml(caption);
-    },
     // Removes any event listeners before the lightbox is fully closed.
     onClose() {
       // Exit full screen mode only if it was not previously enabled.
@@ -1796,6 +1758,47 @@ export default {
 
       // Ensure that content is focused.
       this.focusContent();
+    },
+    // Mirrors Title/Caption mutations from photos.updated WS events onto the
+    // in-memory slide models so the dynamic caption (and any other model-bound
+    // UI) reflects edits made by other clients. The lightbox stays mounted in
+    // the background after close, so skip work unless it is actually visible
+    // with a live PhotoSwipe instance.
+    onPhotosUpdated(ev, data) {
+      if (!this.visible || !this.lightbox || !this.models.length) {
+        return;
+      }
+      if (!data || !Array.isArray(data.entities)) {
+        return;
+      }
+      if (ev.split(".")[1] !== "updated") {
+        return;
+      }
+
+      let currentChanged = false;
+      for (const values of data.entities) {
+        if (!values || typeof values !== "object" || !values.UID) {
+          continue;
+        }
+        const idx = this.models.findIndex((m) => m && m.UID === values.UID);
+        if (idx < 0) {
+          continue;
+        }
+        const model = this.models[idx];
+        if (typeof values.Title === "string") {
+          model.Title = values.Title;
+        }
+        if (typeof values.Caption === "string") {
+          model.Caption = values.Caption;
+        }
+        if (idx === this.index) {
+          currentChanged = true;
+        }
+      }
+
+      if (currentChanged) {
+        this.captionPlugin?.refreshCurrentCaption();
+      }
     },
     // Fetches the full Photo model for the given UID using the LRU
     // cache, delegated to the Thumb model so the photo-fetch policy
@@ -3037,6 +3040,10 @@ export default {
       }
 
       appStorage.setItem("lightbox.sidebar", `${this.sidebarVisible.toString()}`);
+
+      // Push edits made through the sidebar into the (possibly hidden)
+      // caption element so it doesn't fade back in with stale HTML.
+      this.captionPlugin?.refreshCurrentCaption();
 
       // Resize and focus content element.
       this.$nextTick(() => {
