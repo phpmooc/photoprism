@@ -327,6 +327,23 @@ describe("PLightboxSidebar component", () => {
     expect(result).toBe("June 2024");
   });
 
+  // Limited-access sessions get an empty Photo placeholder whose default
+  // getDateString() renders "Unknown" against empty Year/Month/Day. The UID
+  // gate makes formatTime fall through to the Thumb's TakenAtLocal instead.
+  it("skips photo.getDateString and uses Thumb.TakenAtLocal for the empty Photo placeholder", () => {
+    const getDateString = vi.fn().mockReturnValue("Unknown");
+    const emptyPhoto = { UID: "", getDateString, getMarkers: vi.fn().mockReturnValue([]) };
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo: emptyPhoto, canEdit: false, context: contexts.Photos },
+      global: { stubs: { PMap: true } },
+    });
+
+    const result = w.vm.formatTime(mockModel);
+
+    expect(getDateString).not.toHaveBeenCalled();
+    expect(result).toBe("January 1, 2023, 10:00 AM");
+  });
+
   // Camera, lens, and EXIF info
   it("should display camera info from photo prop", () => {
     expect(wrapper.vm.cameraInfo).toBe("Canon EOS R5");
@@ -3478,6 +3495,29 @@ describe("PLightboxSidebar component", () => {
         global: { stubs: { PMap: true } },
       });
       expect(w.vm.fileTypeName).toBe("File");
+    });
+
+    // Limited-access sessions never load the full Photo; the empty
+    // placeholder Photo.getDefaults() returns is seeded Type="image" and
+    // would mask the Thumb's real type (e.g. live) without the UID gate.
+    it("mediaType / fileTypeName / fileIcon fall through to Thumb.Type when Photo is the empty placeholder", () => {
+      const thumbModel = { ...mockModel, Type: "live" };
+      const emptyPhoto = { UID: "", Type: "image", getMarkers: vi.fn().mockReturnValue([]) };
+      const w = mountSidebar({
+        props: {
+          modelValue: thumbModel,
+          photo: emptyPhoto,
+          canEdit: false,
+          context: contexts.Photos,
+        },
+        global: {
+          stubs: { PMap: true },
+          mocks: { $config: restrictedConfig(true) },
+        },
+      });
+      expect(w.vm.mediaType).toBe("live");
+      expect(w.vm.fileTypeName).toBe("live");
+      expect(w.vm.fileIcon).toBe("mdi-play-circle-outline");
     });
   });
 

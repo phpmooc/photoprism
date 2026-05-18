@@ -1043,8 +1043,17 @@ export default {
       }
       return "";
     },
+    // mediaType returns the active media type for icon / label lookup.
+    // Gate on UID: Photo.getDefaults() seeds an empty Photo with Type=image,
+    // which would mask the Thumb's real type for limited-access sessions.
+    mediaType() {
+      if (this.photo && this.photo.UID && this.photo.Type) {
+        return this.photo.Type;
+      }
+      return this.model?.Type || "";
+    },
     fileIcon() {
-      switch (this.photo?.Type || this.model?.Type) {
+      switch (this.mediaType) {
         case media.Raw:
           return "mdi-raw";
         case media.Video:
@@ -1064,8 +1073,7 @@ export default {
     // Localized media-type label for the file row tooltip, with a
     // generic "File" fallback when Type is missing.
     fileTypeName() {
-      const type = this.photo?.Type || this.model?.Type;
-      return this.$util.typeName(type, this.$gettext("File"));
+      return this.$util.typeName(this.mediaType, this.$gettext("File"));
     },
   },
   watch: {
@@ -1689,11 +1697,11 @@ export default {
       this.confirmField();
     },
     formatTime(model) {
-      // Prefer Photo.getDateString() — it's the source of truth for the
-      // Unknown / year-only / month+year fallbacks. The Thumb model
-      // lacks Year/Month/Day, so we fall back to TakenAtLocal until the
-      // full photo loads.
-      if (this.photo && typeof this.photo.getDateString === "function") {
+      // Prefer Photo.getDateString() — source of truth for the Unknown /
+      // year-only / month+year fallbacks. Gate on UID so limited-access
+      // sessions (empty Photo placeholder) fall through to TakenAtLocal
+      // instead of getDateString rendering "Unknown" against empty defaults.
+      if (this.photo && this.photo.UID && typeof this.photo.getDateString === "function") {
         return this.photo.getDateString(true);
       }
 
