@@ -25,15 +25,15 @@ All issue descriptions MUST begin with a one-sentence user story in the format s
 
 ### Background
 
-**Describe what problem this solves and why this would be valuable to many users**
+**What problem does this solve, and why would it be valuable to many users?**
 
 A clear and concise description of what the problem is and why it is important to solve it.
 
-**Describe the solution you'd like**
+**What solution do you propose?**
 
 A clear and concise description of what you suggest to happen.
 
-**Describe alternatives you've considered**
+**Which alternatives or workarounds have you considered?**
 
 A clear and concise description of any alternative solutions or features you've considered.
 
