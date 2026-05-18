@@ -53,7 +53,7 @@
             :ref="setInlineEditorRef"
             v-model="photo.Caption"
             :rows="1"
-            :max-rows="6"
+            :max-rows="14"
             density="compact"
             auto-grow
             hide-details="auto"

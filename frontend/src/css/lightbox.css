@@ -151,6 +151,10 @@
     scrollbar-color: rgba(var(--v-theme-on-surface), 0.2) transparent;
 }
 
+.p-lightbox__container > .p-lightbox__sidebar .meta-scrollable.meta-caption {
+    max-height: 320px;
+}
+
 .p-lightbox__container > .p-lightbox__sidebar .meta-scrollable::-webkit-scrollbar {
     width: 4px;
 }
