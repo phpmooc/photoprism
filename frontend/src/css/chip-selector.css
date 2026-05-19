@@ -39,6 +39,8 @@
     cursor: pointer;
     user-select: none;
     min-height: 32px;
+    max-width: 100%;
+    min-width: 0;
     transition: all 0.2s ease;
 }
 
@@ -46,11 +48,22 @@
     display: flex;
     align-items: center;
     gap: 6px;
+    min-width: 0;
+    max-width: 100%;
 }
 
 .chip__icon {
     font-size: 16px;
     opacity: 0.9;
+    flex-shrink: 0;
+}
+
+/* Allow the label to shrink within the chip's inline-flex layout so
+   Vuetify's `text-truncate` (overflow + ellipsis + nowrap) can engage on
+   single-word titles like `WWWWWWW…`; the chip itself is constrained by
+   `max-width: 100%` against its flex-wrap parent. */
+.chip__text {
+    min-width: 0;
 }
 
 /* Chip States — class names mirror the `item.action` value the chip-selector

@@ -22,7 +22,7 @@
               <v-icon v-if="getChipIcon(item)" class="chip__icon">
                 {{ getChipIcon(item) }}
               </v-icon>
-              <span class="chip__text">{{ item.title }}</span>
+              <span class="chip__text text-truncate">{{ item.title }}</span>
             </div>
           </div>
         </template>
