@@ -4,7 +4,7 @@ import { style, colors, variables } from "ui";
 /* Theme Color Variations */
 
 export const variations = {
-  colors: ["primary", "highlight", "secondary", "surface", "surface-variant", "table", "navigation"],
+  colors: ["primary", "highlight", "secondary", "surface", "surface-variant", "table", "navigation", "add", "remove"],
   lighten: 2,
   darken: 1,
 };
@@ -41,7 +41,8 @@ let themes = {
       "success": "#4db6ac", // Successful-outcome notification color (saved toast, completed-job indicator).
       "warning": "#bc9714", // Caution / recoverable-concern notification color (warning banners, paused indicators).
       "favorite": "#FFD600", // Favorite-star color.
-      "remove": "#da4e4c", // Destructive "remove from collection" action color (distinct from `error`, which is a fault state).
+      "add": "#00897B",
+      "remove": "#aa504f", // Destructive "remove from collection" action color (distinct from `error`, which is a fault state).
       "restore": "#00d48a", // Restore-from-trash / undo-remove action color.
       "album": "#ed9e00", // Album identity color (album icons, chips, thumbnail accents).
       "on-album": "#ffffff", // Text/icon color on album-tinted backgrounds.
@@ -71,18 +72,19 @@ let themes = {
     name: "lightbox",
     colors: {
       "background": "#0c0d0d", // Page canvas; near-black so the photo dominates. Also painted onto `navigation` rows.
+      "on-background": "#ffffff", // Text and icon color readable against `background`.
       "surface": "#151515", // Default container surface (sidebar, dropdown menus, dialog v-card); one step above `background`.
-      "on-surface": "#ffffff", // Body text and icon color on `surface`, `surface-bright`, `surface-light`, and `card`.
+      "on-surface": "#f9fafb", // Body text and icon color on `surface`, `surface-bright`, `surface-light`, and `card`.
       "surface-bright": "#171717", // Lifted variant of `surface`; raised tiles, hover backgrounds (matches `card` currently).
-      "surface-variant": "#bdbdbd", // Light-gray tone used by Vuetify defaults for active dropdown rows, focus rings, etc.
-      "on-surface-variant": "#1c1c1c", // Inverse pair of `surface-variant`; also painted as the tooltip background.
+      "surface-variant": "#1c1c1c", // Inverse pair of `surface-variant`; also painted as the tooltip background.
+      "on-surface-variant": "#bdbdbd", // Light-gray tone used by Vuetify defaults for active dropdown rows, focus rings, etc.
       "card": "#171717", // Dedicated card-container background; raised dialog v-cards inherit this via the VCard default.
       "selected": "#3d3f40", // Active list-item background; one step above `highlight` for a distinct, neutral gray.
       "table": "#242424", // VDataTable row and header background.
       "button": "#232425", // Secondary button color (e.g. dialog "Cancel"); the neutral companion to `highlight`.
-      "highlight": "#383838", // Primary button color (Save / Confirm); softened from #3d3f40 on May 13 to keep the action calm.
+      "highlight": "#424041", // Primary button color (Save / Confirm); softened from #3d3f40 on May 13 to keep the action calm.
       "switch": "#101112", // VSwitch track background when off.
-      "primary": "#ebebeb", // Brand/identity accent; desaturated near-white to keep the lightbox grayscale (focus rings).
+      "primary": "#F2F3F3", // Brand/identity accent; desaturated near-white to keep the lightbox grayscale (focus rings).
       "secondary": "#191919", // Background for secondary panels (tab strips, expansion-panel headers, nav drawer sections).
       "secondary-light": "#1e1e1e", // Lifted variant of `secondary`; backs `.meta-chip` and the chip-selector chips.
       "accent": "#2D2E2E", // Small-decoration tint for hover/focus subtleties; not a primary action color.
@@ -115,6 +117,8 @@ let themes = {
       "theme-overlay-multiplier": 0.16, // Vuetify elevation-overlay multiplier; kept low to keep raised surfaces near-black.
       "high-emphasis-opacity": 0.96, // Body-text alpha on `surface`; under 1.0 so pure-white doesn't read as harsh.
       "medium-emphasis-opacity": 0.88, // Secondary-text alpha (captions, helpers); above the 0.7 dark default for legibility.
+      "label-opacity": 0.67, // Floating-label and helper-text alpha on inputs.
+      "disabled-opacity": 0.75, // Alpha applied to disabled controls.
     },
   },
 
@@ -418,7 +422,9 @@ let themes = {
       "info": "#7887df",
       "success": "#26A69A",
       "warning": "#bfa965",
-      "remove": "#e57373",
+      "add": "#94d5c4",
+      "remove": "#e45d6a",
+      "on-remove": "#F3F3F5",
       "restore": "#64b5f6",
       "album": "#ffab00",
       "download": "#00bfa5",
@@ -590,12 +596,15 @@ let themes = {
       "danger": "#9f2727",
       "info": "#4aa2bc",
       "on-info": "#323742",
-      "success": "#1ac5c1",
+      "success": "#89d1cf",
       "on-success": "#323742",
       "warning": "#d88a0b",
       "on-warning": "#b87d16",
       "favorite": "#EBCB8B",
-      "remove": "#BF616A",
+      "add": "#b2ddd2",
+      "on-add": "#323742",
+      "remove": "#e49ca4",
+      "on-remove": "#323742",
       "restore": "#81A1C1",
       "album": "#EBCB8B",
       "download": "#8FBCBB",
