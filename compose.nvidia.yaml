@@ -98,7 +98,7 @@ services:
       PHOTOPRISM_HTTP_PORT: 2342
       PHOTOPRISM_HTTP_COMPRESSION: "zstd,gzip"       # improves transfer speed and bandwidth utilization (none, gzip, zstd, or comma-separated list e.g. "zstd,gzip")
       MYSQL_TCP_PORT: "${MARIADB_PORT:-4001}"        # default MariaDB database port used by the "mariadb" client (see .my.cnf)
-      PGPORT: "${POSTGRES_PORT:-4002}"               # default PostgreSQL database port used by "qsql"
+      PGPORT: "${POSTGRES_PORT:-4002}"               # default PostgreSQL database port used by "psql"
       PHOTOPRISM_DATABASE_DRIVER: "mysql"
       PHOTOPRISM_DATABASE_SERVER: "mariadb:${MARIADB_PORT:-4001}"
       PHOTOPRISM_DATABASE_NAME: "photoprism"
