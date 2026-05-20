@@ -219,7 +219,7 @@ services:
   ## Release Notes: https://www.postgresql.org/docs/release/
   postgres:
     image: postgres:18-alpine
-    ## Only starts this service if the "all" or "postgres" profile is specified:
+    ## Only starts if the "all" or "postgres" profile is specified:
     ## docker compose --profile postgres up -d
     profiles: [ "all", "postgres" ]
     stop_grace_period: 10s
@@ -244,7 +244,7 @@ services:
   ## Web UI: https://qdrant.localssl.dev/dashboard
   qdrant:
     image: qdrant/qdrant:latest
-    ## Only starts this service if the "all" or "qdrant" profile is specified:
+    ## Only starts if the "all" or "qdrant" profile is specified:
     ## docker compose --profile qdrant up -d
     profiles: [ "all", "qdrant" ]
     stop_grace_period: 10s
@@ -277,7 +277,7 @@ services:
   ## docker compose exec ollama ollama pull gemma3:latest
   ollama:
     image: ollama/ollama:latest
-    ## Only starts this service if the "all", "ollama", or "vision" profile is specified:
+    ## Only starts if the "all", "ollama", or "vision" profile is specified:
     ## docker compose --profile ollama up -d
     profiles: [ "all", "ollama", "vision" ]
     stop_grace_period: 10s
@@ -328,7 +328,7 @@ services:
   ## see https://github.com/open-webui/open-webui
   open-webui:
     image: ghcr.io/open-webui/open-webui:main
-    ## Only starts this service if the "all", "ollama", "open-webui", or "vision" profile is specified:
+    ## Only starts if the "all", "ollama", "open-webui", or "vision" profile is specified:
     ## docker compose --profile open-webui up -d
     profiles: [ "all", "ollama", "open-webui", "vision" ]
     stop_grace_period: 10s
@@ -356,7 +356,7 @@ services:
   ## see https://github.com/photoprism/photoprism-vision
   photoprism-vision:
     image: photoprism/vision:latest
-    ## Only starts this service if the "all" or "vision" profile is specified:
+    ## Only starts if the "all" or "vision" profile is specified:
     ## docker compose --profile vision up -d
     profiles: [ "all", "vision" ]
     stop_grace_period: 15s
@@ -443,7 +443,7 @@ services:
   ## Login with "user / photoprism" and "admin / photoprism".
   keycloak:
     image: quay.io/keycloak/keycloak:25.0
-    ## Only starts this service if the "all", "auth", or "keycloak" profile is specified:
+    ## Only starts if the "all", "auth", or "keycloak" profile is specified:
     ## docker compose --profile keycloak up -d
     profiles: [ "all", "auth", "keycloak" ]
     stop_grace_period: 10s
@@ -479,7 +479,7 @@ services:
   ## ./photoprism client add --id=cs5cpu17n6gj2qo5 --secret=xcCbOrw6I0vcoXzhnOmXhjpVSyFq0l0e -s metrics -n Prometheus -e 60 -t 1
   prometheus:
     image: prom/prometheus:latest
-    ## Only starts this service if the "all", "auth", or "prometheus" profile is specified:
+    ## Only starts if the "all", "auth", or "prometheus" profile is specified:
     ## docker compose --profile prometheus up -d
     profiles: [ "all", "auth", "prometheus" ]
     stop_grace_period: 10s
