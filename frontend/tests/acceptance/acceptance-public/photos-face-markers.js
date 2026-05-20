@@ -92,7 +92,7 @@ test.meta("testID", "face-markers-005").meta({ mode: "public" })(
   }
 );
 
-test.meta("testID", "face-markers-006").meta({ mode: "public" })("Common: Named markers expose only the eject (unassign) icon", async (t) => {
+test.meta("testID", "face-markers-006").meta({ mode: "public" })("Common: Named markers expose only the Unassign icon in edit mode", async (t) => {
   await photoviewer.openSidebarOnFirstPhoto("faces:no");
 
   // Create a named marker we control so the assertion is non-vacuous.
@@ -102,14 +102,14 @@ test.meta("testID", "face-markers-006").meta({ mode: "public" })("Common: Named 
   await t.expect(photoviewer.faceMarkerConfirmButton.visible).ok();
   await photoviewer.confirmMarkerDraft();
   const unnamed = photoviewer.unnamedPersonRows.nth(-1);
-  await t.typeText(unnamed.find(".meta-inline-marker input"), "EjectIconTest").pressKey("enter");
+  await t.typeText(unnamed.find(".meta-inline-marker input"), "UnassignIconTest").pressKey("enter");
 
-  const named = photoviewer.namedPersonRows.withText("EjectIconTest");
+  const named = photoviewer.namedPersonRows.withText("UnassignIconTest");
   await t.expect(named.visible).ok();
-  await t.expect(named.find(".meta-marker-eject").exists).ok();
+  await t.expect(named.find(".meta-marker-clear-subject").exists).ok();
 
-  // Undo: eject clears the subject link, then remove the now-unnamed marker.
-  await photoviewer.ejectMarker(named);
+  // Undo: clearing the subject unlinks the name, then remove the now-unnamed marker.
+  await photoviewer.clearMarkerSubject(named);
   await photoviewer.removeLastUnnamedMarker();
   await t.expect(photoviewer.personRow.count).eql(0);
 });
@@ -158,8 +158,8 @@ test.meta("testID", "face-markers-008").meta({ mode: "public" })("Common: Naming
   const namedRow = photoviewer.namedPersonRows.withText("SidebarFaceTestPerson");
   await t.expect(namedRow.visible).ok();
 
-  // Undo: eject clears the subject link, then remove the now-unnamed marker.
-  await photoviewer.ejectMarker(namedRow);
+  // Undo: clearing the subject unlinks the name, then remove the now-unnamed marker.
+  await photoviewer.clearMarkerSubject(namedRow);
   await photoviewer.removeLastUnnamedMarker();
   await t.expect(photoviewer.personRow.count).eql(beforeRows);
 });
@@ -193,7 +193,7 @@ test.meta("testID", "face-markers-010").meta({ mode: "public" })("Common: Blurri
   await t.expect(photoviewer.personRow.count).eql(beforeRows);
 });
 
-test.meta("testID", "face-markers-009").meta({ mode: "public" })("Common: Ejecting a named marker removes the subject link but keeps the marker", async (t) => {
+test.meta("testID", "face-markers-009").meta({ mode: "public" })("Common: Unassigning a named marker removes the subject link but keeps the marker", async (t) => {
   await photoviewer.openSidebarOnFirstPhoto("faces:no");
   const beforeRows = await photoviewer.getPersonRowCount();
 
@@ -204,15 +204,15 @@ test.meta("testID", "face-markers-009").meta({ mode: "public" })("Common: Ejecti
   await t.expect(photoviewer.faceMarkerConfirmButton.visible).ok();
   await photoviewer.confirmMarkerDraft();
   const unnamed = photoviewer.unnamedPersonRows.nth(-1);
-  await t.typeText(unnamed.find(".meta-inline-marker input"), "SidebarEjectTest").pressKey("enter");
+  await t.typeText(unnamed.find(".meta-inline-marker input"), "SidebarClearSubjectTest").pressKey("enter");
 
-  const namedRow = photoviewer.namedPersonRows.withText("SidebarEjectTest");
+  const namedRow = photoviewer.namedPersonRows.withText("SidebarClearSubjectTest");
   await t.expect(namedRow.visible).ok();
   const totalAfterName = await photoviewer.personRow.count;
 
-  await photoviewer.ejectMarker(namedRow);
+  await photoviewer.clearMarkerSubject(namedRow);
 
-  // Eject clears the subject link without removing the marker — total rows stay, the named row goes away.
+  // Clearing the subject unlinks the name without removing the marker — total rows stay, the named row goes away.
   await t.expect(photoviewer.personRow.count).eql(totalAfterName);
   await t.expect(namedRow.exists).notOk();
 
