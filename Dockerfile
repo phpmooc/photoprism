@@ -25,4 +25,9 @@ WORKDIR "/go/src/github.com/photoprism/photoprism"
 COPY . .
 COPY --chown=root:root /scripts/dist/ /scripts/
 
+# Re-install the dev "mariadb" client config so a custom MARIADB_PORT in .env
+# is honored even when the base image was built before the port=<n> line was
+# removed (no-op once the next dated base image picks up the new .my.cnf).
+COPY --chown=root:root --chmod=644 .my.cnf /etc/my.cnf
+
 RUN sudo /scripts/install-yt-dlp.sh
