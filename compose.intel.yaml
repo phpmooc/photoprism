@@ -1,7 +1,10 @@
 services:
   ## PhotoPrism (Development Environment for Intel QSV hardware transcoding)
   photoprism:
-    build: .
+    build:
+      context: .
+      args:
+        WORKING_DIR: "${WORKING_DIR:-/go/src/github.com/photoprism/photoprism}"
     image: photoprism/photoprism:develop
     depends_on:
       - mariadb
