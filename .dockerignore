@@ -70,6 +70,7 @@ venv
 .nv
 .eslintcache
 .gocache
+.gitconfig
 .DS_Store
 .DS_Store?
 ._*
