@@ -58,11 +58,11 @@ body:
       label: Which software versions do you use?
       description: Include all relevant software versions so we can reproduce the environment.
       value: |
-        - PhotoPrism Edition & Build Number:
-        - Database Type & Versions:
-        - Operating Systems:
-        - Browser Types & Versions:
-        - Ad Blockers & Plugins:
+        - PhotoPrism Edition & Version (Build):
+        - Database Type & Version(s):
+        - Operating System(s):
+        - Browser Type & Version(s):
+        - Ad Blockers, Antivirus, and Plugins:
     validations:
       required: true
   - type: textarea
@@ -71,8 +71,8 @@ body:
       label: On what device is PhotoPrism installed?
       description: Provide hardware details, especially for performance, import, or indexing issues.
       value: |
-        - CPU/Device Type:
-        - Physical Memory & Swap Space (GB):
+        - CPU/Device Type(s):
+        - Physical Memory & Swap in GB:
         - Storage (HDD/SSD/RAID, USB, Network):
   - type: textarea
     id: networking-setup
