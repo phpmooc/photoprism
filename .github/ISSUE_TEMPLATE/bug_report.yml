@@ -30,11 +30,6 @@ body:
         2. Click ...
         3. Scroll to ...
         4. Expected vs. actual result
-      value: |
-        1. Go to ...
-        2. Click ...
-        3. Scroll to ...
-        4. Expected vs. actual result
     validations:
       required: true
   - type: checkboxes
@@ -63,11 +58,11 @@ body:
       label: Which software versions do you use?
       description: Include all relevant software versions so we can reproduce the environment.
       value: |
-        - PhotoPrism Architecture & Build Number (AMD64, ARM64, ARMv7, ...):
-        - Database Type & Version (MariaDB, MySQL, SQLite, ...):
-        - Operating System Types & Versions (Linux, Windows, Android, ...):
-        - Browser Types & Versions (Firefox, Chrome, Safari on iPhone, ...):
-        - Ad Blockers, Browser Plugins, or Firewall Software:
+        - PhotoPrism Edition & Build Number:
+        - Database Type & Versions:
+        - Operating Systems:
+        - Browser Types & Versions:
+        - Ad Blockers & Plugins:
     validations:
       required: true
   - type: textarea
@@ -76,10 +71,9 @@ body:
       label: On what device is PhotoPrism installed?
       description: Provide hardware details, especially for performance, import, or indexing issues.
       value: |
-        - Device / Processor Type (Raspberry Pi 4, Intel Core i7-3770, AMD Ryzen 7 3800X, ...):
+        - CPU/Device Type:
         - Physical Memory & Swap Space (GB):
-        - Storage Type (HDD, SSD, RAID, USB, Network Storage, ...):
-        - Additional Context:
+        - Storage (HDD/SSD/RAID, USB, Network):
   - type: textarea
     id: networking-setup
     attributes:

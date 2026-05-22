@@ -62,12 +62,12 @@ body:
       label: Acceptance Criteria
       description: Use checklist items and RFC 2119 keywords such as MUST, SHOULD, and MAY to define the expected behavior.
       placeholder: |
-        - [ ] <component> MUST <expected behavior>
-        - [ ] <component> SHOULD <expected behavior>
-        - [ ] <component> MAY <expected behavior>
+        - [ ] <component> MUST <expected behavior>.
+        - [ ] <component> SHOULD <expected behavior>.
+        - [ ] <component> MAY <expected behavior>.
       value: |
-        - [ ] <component> MUST <expected behavior>
-        - [ ] <component> SHOULD <expected behavior>
-        - [ ] <component> MAY <expected behavior>
+        - [ ] <component> MUST <expected behavior>.
+        - [ ] <component> SHOULD <expected behavior>.
+        - [ ] <component> MAY <expected behavior>.
     validations:
       required: true
