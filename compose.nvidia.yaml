@@ -202,7 +202,18 @@ services:
       OLLAMA_MULTIUSER_CACHE: "false"  # optimize prompt caching for multi-user scenarios
       OLLAMA_NOPRUNE: "false"          # disables pruning of model blobs at startup
       OLLAMA_NOHISTORY: "true"         # disables readline history
-      OLLAMA_FLASH_ATTENTION: "true"   # required for OLLAMA_KV_CACHE_TYPE quantization
+      # OLLAMA_FLASH_ATTENTION — small speedup on supported architectures
+      # (gemma3, gptoss, mistral3, qwen3*). Silently no-op on unsupported
+      # architectures and on CPU. Required to enable OLLAMA_KV_CACHE_TYPE
+      # quantization. Set to "false" for Qwen3-2507 builds (gh#12432).
+      OLLAMA_FLASH_ATTENTION: "true"
+      # OLLAMA_KV_CACHE_TYPE — cache precision (f16 is the default):
+      #   f16  — native precision, works on every architecture
+      #   q8_0 — halves cache VRAM; clean for qwen3*/gpt-oss/mistral3;
+      #          5x slowdown on gemma3 (gh#9683/#11949); no-op for
+      #          gemma4/qwen2.5vl (not on FA allowlist — gh#13337)
+      #   q4_0 — quarters cache VRAM; usable on qwen, hurts gemma;
+      #          only reach for it when VRAM-constrained
       OLLAMA_KV_CACHE_TYPE: "f16"      # cache precision: f16 (default), q8_0, q4_0
       OLLAMA_SCHED_SPREAD: "false"     # allows scheduling models across all GPUs.
       # OLLAMA_DEBUG: "true"             # shows additional debug information
