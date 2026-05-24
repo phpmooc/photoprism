@@ -199,9 +199,12 @@ export default [
     beforeEnter: (to, from, next) => {
       if ($session.loginRequired()) {
         next({ name: loginRoute });
-      } else if ($config.deny("cluster", "access_all")) {
-        next({ name: $session.getDefaultRoute() });
       } else {
+        // Any logged-in user may enter /cluster — the page filters which
+        // tabs are visible based on per-resource grants (Nodes / Activity
+        // gate on `cluster.access_all` and `cluster.audit`; the My
+        // Instances chooser is visible to everyone). When no tabs remain,
+        // cluster.vue redirects to the user's default route in `created()`.
         next();
       }
     },
