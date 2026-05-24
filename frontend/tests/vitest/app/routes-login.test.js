@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import "../fixtures";
-import routes from "app/routes";
+import routes, { safeReturnTo } from "app/routes";
 import { $config, $session } from "app/session";
 
 // Find the /login route's beforeEnter so it can be invoked directly with
@@ -165,5 +165,59 @@ describe("app/routes /login guard", () => {
 
     expect(getDefault).toHaveBeenCalled();
     expect(next).toHaveBeenCalledWith({ name: "browse" });
+  });
+
+  // The Portal OIDC OP redirects unauthenticated users to
+  // /portal/admin/login?return_to=<authorize URL> via a top-level browser
+  // navigation, so the global router guard never gets to record the deep
+  // link via setLoginRedirectUrl(). The login route reads the inbound
+  // `return_to` query parameter directly to bridge the hand-off.
+  it("records a safe return_to query param as the post-login deep link", () => {
+    const next = vi.fn();
+
+    loginGuard({ query: { return_to: "/oauth/authorize?client_id=abc&state=x" } }, {}, next);
+
+    expect($session.hasLoginRedirectUrl()).toBe(true);
+    expect($session.getLoginRedirectUrl()).toBe("/oauth/authorize?client_id=abc&state=x");
+    expect(next).toHaveBeenCalledWith();
+  });
+
+  it("ignores an unsafe return_to that escapes the current origin", () => {
+    const next = vi.fn();
+
+    loginGuard({ query: { return_to: "https://attacker.example/steal" } }, {}, next);
+
+    expect($session.hasLoginRedirectUrl()).toBe(false);
+    expect(next).toHaveBeenCalledWith();
+  });
+});
+
+describe("app/routes safeReturnTo", () => {
+  it("accepts root-relative paths", () => {
+    expect(safeReturnTo("/library/photos")).toBe("/library/photos");
+    expect(safeReturnTo("/oauth/authorize?client_id=x&state=y")).toBe("/oauth/authorize?client_id=x&state=y");
+  });
+  it("accepts absolute URLs on the same origin and returns the path+query+hash", () => {
+    const here = window.location?.origin;
+    if (!here) {
+      return;
+    }
+    expect(safeReturnTo(here + "/portal/admin/cluster")).toBe("/portal/admin/cluster");
+    expect(safeReturnTo(here + "/oauth/authorize?client_id=x#frag")).toBe("/oauth/authorize?client_id=x#frag");
+  });
+  it("rejects cross-origin absolutes", () => {
+    expect(safeReturnTo("https://attacker.example/steal")).toBe("");
+    expect(safeReturnTo("http://attacker.example/steal")).toBe("");
+  });
+  it("rejects protocol-relative and backslash-prefixed values that some browsers misparse", () => {
+    expect(safeReturnTo("//attacker.example/")).toBe("");
+    expect(safeReturnTo("\\\\attacker.example\\path")).toBe("");
+  });
+  it("rejects empty, whitespace, or non-string inputs", () => {
+    expect(safeReturnTo("")).toBe("");
+    expect(safeReturnTo("   ")).toBe("");
+    expect(safeReturnTo(undefined)).toBe("");
+    expect(safeReturnTo(null)).toBe("");
+    expect(safeReturnTo(42)).toBe("");
   });
 });
