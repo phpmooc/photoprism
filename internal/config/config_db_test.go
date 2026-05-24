@@ -49,6 +49,18 @@ func TestConfig_DatabaseDriverName(t *testing.T) {
 		resetDatabaseOptions(c)
 		assert.Equal(t, "SQLite", c.DatabaseDriverName())
 	})
+	t.Run("Whitespace", func(t *testing.T) {
+		c := NewConfig(CliTestContext())
+		resetDatabaseOptions(c)
+		c.options.DatabaseDriver = "   "
+		assert.Equal(t, "SQLite", c.DatabaseDriverName())
+	})
+	t.Run("Auto", func(t *testing.T) {
+		c := NewConfig(CliTestContext())
+		resetDatabaseOptions(c)
+		c.options.DatabaseDriver = " AUTO "
+		assert.Equal(t, "SQLite", c.DatabaseDriverName())
+	})
 	t.Run("MySQLReportsAsMariaDB", func(t *testing.T) {
 		c := NewConfig(CliTestContext())
 		resetDatabaseOptions(c)
@@ -61,6 +73,12 @@ func TestConfig_DatabaseDriverName(t *testing.T) {
 		resetDatabaseOptions(c)
 		c.options.DatabaseDriver = dsn.DriverMariaDB
 		assert.Equal(t, "MariaDB", c.DatabaseDriverName())
+	})
+	t.Run("PostgresReportsAsSQLite", func(t *testing.T) {
+		c := NewConfig(CliTestContext())
+		resetDatabaseOptions(c)
+		c.options.DatabaseDriver = dsn.DriverPostgres
+		assert.Equal(t, "SQLite", c.DatabaseDriverName())
 	})
 	t.Run("DeprecatedTiDBReportsAsSQLite", func(t *testing.T) {
 		// DatabaseDriver() warns and rewrites "tidb" to SQLite3 before this runs.

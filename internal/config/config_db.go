@@ -37,7 +37,7 @@ func (c *Config) DatabaseDriver() string {
 	switch dsn.ParseDriver(c.options.DatabaseDriver) {
 	case dsn.DriverMySQL, dsn.DriverMariaDB:
 		c.options.DatabaseDriver = dsn.DriverMySQL
-	case dsn.DriverSQLite3:
+	case dsn.DriverSQLite3, dsn.DriverNone, dsn.DriverAuto:
 		c.options.DatabaseDriver = dsn.DriverSQLite3
 	case dsn.DriverTiDB:
 		log.Warnf("config: database driver 'tidb' is deprecated, using sqlite")
@@ -58,10 +58,14 @@ func (c *Config) DatabaseDriverName() string {
 	switch c.DatabaseDriver() {
 	case dsn.DriverMySQL:
 		return "MariaDB"
+	case dsn.DriverPostgres:
+		return "PostgreSQL"
 	case dsn.DriverSQLite3:
 		return "SQLite"
+	case dsn.DriverAuto:
+		return "Auto"
 	default:
-		return "unsupported database"
+		return "Unsupported"
 	}
 }
 
