@@ -91,17 +91,17 @@ func Vips(imageName string, imageBuffer []byte, hash, thumbPath string, width, h
 		return "", nil, err
 	}
 
-	// Remove metadata from thumbnail.
-	if err = img.RemoveMetadata(); err != nil {
-		log.Debugf("vips: %s in %s (remove metadata)", err, clean.Log(filepath.Base(imageName)))
-		return "", nil, err
-	}
-
 	// Guard against zero-dimension intermediates so callers see the real cause
 	// instead of an opaque libvips "unable to write to target" further downstream.
 	if w, h := img.Width(), img.Height(); w <= 0 || h <= 0 {
 		err = fmt.Errorf("vips: produced empty %dx%d image for %s", w, h, clean.Log(filepath.Base(imageName)))
-		log.Debugf("%s (empty image)", err)
+		log.Debugf("%s (create thumbnail)", err)
+		return "", nil, err
+	}
+
+	// Remove metadata from thumbnail.
+	if err = img.RemoveMetadata(); err != nil {
+		log.Debugf("vips: %s in %s (remove metadata)", err, clean.Log(filepath.Base(imageName)))
 		return "", nil, err
 	}
 
