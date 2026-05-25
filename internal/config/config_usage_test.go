@@ -118,6 +118,15 @@ func TestConfig_FilesQuotaReached(t *testing.T) {
 	c.options.FilesQuota = uint64(0)
 }
 
+func TestConfig_StorageLow(t *testing.T) {
+	c := TestConfig()
+
+	free, low, err := c.StorageLow()
+	assert.NoError(t, err)
+	assert.False(t, low, "test storage filesystem must not be reported as low")
+	assert.NotZero(t, free)
+}
+
 func TestConfig_UsersQuotaReached(t *testing.T) {
 	c := TestConfig()
 

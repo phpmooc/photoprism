@@ -9,8 +9,13 @@ import (
 	"github.com/photoprism/photoprism/internal/auth/acl"
 	"github.com/photoprism/photoprism/internal/entity/query"
 	"github.com/photoprism/photoprism/pkg/fs"
+	"github.com/photoprism/photoprism/pkg/fs/disk"
 	"github.com/photoprism/photoprism/pkg/fs/duf"
 )
+
+// StorageLowThresholdPct is the percentage of total capacity below which the
+// storage folder is considered critically low on free space.
+const StorageLowThresholdPct = 1.0
 
 var usageCache = gc.New(5*time.Minute, 5*time.Minute)
 
@@ -178,6 +183,12 @@ func (c *Config) UsersQuota() int {
 // UsersQuotaReached checks whether the maximum number of user accounts has been reached or exceeded.
 func (c *Config) UsersQuotaReached(role acl.Role) bool {
 	return c.UsersQuotaExceeded(99, role)
+}
+
+// StorageLow reports whether the storage folder has insufficient free space
+// for safe writes during indexing, conversion, or backups.
+func (c *Config) StorageLow() (free uint64, low bool, err error) {
+	return disk.StorageLow(c.StoragePath(), StorageLowThresholdPct)
 }
 
 // UsersQuotaExceeded checks whether the number of user accounts specified in percent has been exceeded.

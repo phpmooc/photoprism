@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/dustin/go-humanize"
 	"github.com/karrick/godirwalk"
 
 	"github.com/photoprism/photoprism/internal/config"
@@ -17,6 +18,7 @@ import (
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
+	"github.com/photoprism/photoprism/pkg/fs/disk"
 	"github.com/photoprism/photoprism/pkg/i18n"
 	"github.com/photoprism/photoprism/pkg/media"
 )
@@ -62,6 +64,25 @@ func (ind *Index) Cancel() {
 	mutex.IndexWorker.Cancel()
 }
 
+// storageLow reports whether the storage path is too full to start an index run.
+// Logs the free amount and publishes a localized notification when that is the case.
+func (ind *Index) storageLow() bool {
+	free, low, err := ind.conf.StorageLow()
+	if err != nil {
+		log.Warnf("index: %s (check storage free)", clean.Error(err))
+		return false
+	}
+
+	if !low {
+		return false
+	}
+
+	log.Errorf("index: only %s free in storage path %s (%.1f%% threshold)",
+		humanize.Bytes(free), clean.Log(ind.conf.StoragePath()), config.StorageLowThresholdPct)
+	event.ErrorMsg(i18n.ErrInsufficientStorage)
+	return true
+}
+
 // Start indexes media files in the originals folder according to the provided options.
 // It streams work to worker goroutines, updates duplicate caches, and returns both
 // the set of processed paths and the number of files that were changed.
@@ -87,6 +108,13 @@ func (ind *Index) Start(o IndexOptions) (found fs.Done, updated int) {
 		return found, updated
 	} else if fs.DirIsEmpty(originalsPath) {
 		event.InfoMsg(i18n.ErrOriginalsEmpty)
+		return found, updated
+	}
+
+	// Reset the cached disk usage so a freshly freed disk is detected immediately.
+	disk.FlushFree()
+
+	if ind.storageLow() {
 		return found, updated
 	}
 
