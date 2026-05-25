@@ -38,6 +38,10 @@ const LoginPage = "login";
 // login.* keys survive auth.gohtml's session.* wipe after the OIDC roundtrip.
 const LoginRedirectKey = "login.next";
 const LogoutSignalKey = "login.logout";
+// One-shot flag (per browser tab) for the OIDC auto-redirect attempt. Stored
+// in sessionStorage so a closed tab clears it, and so a failed/abandoned OIDC
+// roundtrip can fall back to the local login form instead of looping.
+const OidcAttemptKey = "login.oidc.attempt";
 
 const resolveStorageNamespace = (config) => {
   if (typeof config?.storageNamespace === "string" && config.storageNamespace !== "") {
@@ -506,6 +510,10 @@ export default class Session {
   clearLoginRedirectUrl() {
     this.loginRedirect = false;
     this.localStorage?.removeItem(LoginRedirectKey);
+    // The OIDC attempt flag is paired with the deep-link target: clearing
+    // the target (after successful login or logout) frees the next deep-link
+    // arrival to trigger a fresh OIDC roundtrip.
+    this.sessionStorage?.removeItem(OidcAttemptKey);
 
     return this;
   }
@@ -737,6 +745,26 @@ export default class Session {
     const raised = this.localStorage.getItem(LogoutSignalKey) === "1";
     if (raised) {
       this.localStorage.removeItem(LogoutSignalKey);
+    }
+    return raised;
+  }
+
+  // Marks that an OIDC auto-redirect attempt is in flight for this tab.
+  markOidcAttempt() {
+    this.sessionStorage?.setItem(OidcAttemptKey, "1");
+    return this;
+  }
+
+  // Reads and clears the OIDC attempt flag. Returns true once per tab between
+  // markOidcAttempt() calls, so /login can fall back to the form when an OIDC
+  // roundtrip fails or is abandoned instead of looping back to the IdP.
+  consumeOidcAttempt() {
+    if (!this.sessionStorage) {
+      return false;
+    }
+    const raised = this.sessionStorage.getItem(OidcAttemptKey) === "1";
+    if (raised) {
+      this.sessionStorage.removeItem(OidcAttemptKey);
     }
     return raised;
   }

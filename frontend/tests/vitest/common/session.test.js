@@ -632,6 +632,68 @@ describe("common/session", () => {
     });
   });
 
+  describe("OIDC attempt one-shot", () => {
+    // The /login route guard uses markOidcAttempt + consumeOidcAttempt to cap
+    // auto-OIDC at one attempt per browser tab. Without it, a deep-link target
+    // persisted to localStorage during a failed/abandoned OIDC roundtrip would
+    // re-trigger the redirect on every subsequent /login visit, locking the
+    // user out of the local form indefinitely.
+    it("markOidcAttempt sets a one-shot flag in namespaced sessionStorage", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-oidc-attempt-set";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, createConfig("/library", namespaceKey));
+
+      session.markOidcAttempt();
+      const key = buildNamespace(namespaceKey) + "login.oidc.attempt";
+      expect(window.sessionStorage.getItem(key)).toBe("1");
+    });
+
+    it("consumeOidcAttempt returns true once then false", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-oidc-attempt-consume";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, createConfig("/library", namespaceKey));
+
+      expect(session.consumeOidcAttempt()).toBe(false);
+
+      session.markOidcAttempt();
+      expect(session.consumeOidcAttempt()).toBe(true);
+      expect(session.consumeOidcAttempt()).toBe(false);
+
+      const key = buildNamespace(namespaceKey) + "login.oidc.attempt";
+      expect(window.sessionStorage.getItem(key)).toBeNull();
+    });
+
+    it("clearLoginRedirectUrl also clears the OIDC attempt so the next deep link can retry", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-oidc-attempt-paired";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, createConfig("/library", namespaceKey));
+
+      session.setLoginRedirectUrl("/library/people");
+      session.markOidcAttempt();
+      session.clearLoginRedirectUrl();
+
+      const key = buildNamespace(namespaceKey) + "login.oidc.attempt";
+      expect(window.sessionStorage.getItem(key)).toBeNull();
+      expect(session.consumeOidcAttempt()).toBe(false);
+    });
+
+    it("onLogout clears the OIDC attempt alongside the deep link target", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-oidc-attempt-logout";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, createConfig("/library", namespaceKey));
+
+      session.markOidcAttempt();
+      session.onLogout(true);
+
+      const key = buildNamespace(namespaceKey) + "login.oidc.attempt";
+      expect(window.sessionStorage.getItem(key)).toBeNull();
+    });
+  });
+
   describe("Photo cache invalidation on reset", () => {
     // Session.reset() dynamically imports model/photo and calls
     // Photo.clearCache() so metadata fetched under one role cannot leak

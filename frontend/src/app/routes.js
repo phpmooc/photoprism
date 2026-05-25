@@ -125,17 +125,21 @@ export default [
       }
 
       if ($session.loginRequired()) {
-        // Auto-OIDC fires only for deep-link arrivals — the global router
-        // guard records the originally-requested URL via
-        // setLoginRedirectUrl() before sending the user here. A direct
-        // visit to /library/login leaves hasLoginRedirectUrl() false so
-        // the form stays visible and local/LDAP/AD credentials still work,
-        // even when PHOTOPRISM_OIDC_REDIRECT is enabled (the flag opts
-        // deep links into IdP SSO, it does not make OIDC the only path).
-        // The one-shot logout signal suppresses one auto-bounce so users
-        // can re-authenticate locally immediately after signing out.
+        // Auto-OIDC fires only for deep-link arrivals (loginRedirectUrl set
+        // by the global router guard), and only once per browser tab: a prior
+        // attempt flag set on the way out clears here so a failed/abandoned
+        // IdP roundtrip falls back to the local form instead of looping.
         const oidc = $config.values?.ext?.oidc;
-        if (oidc?.enabled && oidc?.redirect && oidc?.loginUri && $session.hasLoginRedirectUrl() && !$session.consumeLogoutSignal()) {
+        const oidcInFlight = $session.consumeOidcAttempt();
+        if (
+          oidc?.enabled &&
+          oidc?.redirect &&
+          oidc?.loginUri &&
+          $session.hasLoginRedirectUrl() &&
+          !$session.consumeLogoutSignal() &&
+          !oidcInFlight
+        ) {
+          $session.markOidcAttempt();
           $session.followRedirect(oidc.loginUri);
           next(false);
           return;

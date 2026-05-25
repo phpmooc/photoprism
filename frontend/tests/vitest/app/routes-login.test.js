@@ -134,6 +134,53 @@ describe("app/routes /login guard", () => {
     expect(next).toHaveBeenCalledWith();
   });
 
+  // One-shot guard: the first deep-link arrival auto-redirects to OIDC and
+  // marks the attempt; a second arrival within the same tab (typical of a
+  // failed/abandoned IdP roundtrip) consumes the flag and shows the form
+  // instead of looping back to OIDC.
+  it("auto-redirects only once per tab so a failed OIDC roundtrip falls back to the form", () => {
+    $config.values = {
+      ...$config.values,
+      ext: { oidc: { enabled: true, redirect: true, loginUri: "/api/v1/oidc/login" } },
+    };
+    $session.setLoginRedirectUrl("/library/people");
+    const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
+    const firstNext = vi.fn();
+    const secondNext = vi.fn();
+
+    loginGuard({}, {}, firstNext);
+    expect(followRedirect).toHaveBeenCalledTimes(1);
+    expect(firstNext).toHaveBeenCalledWith(false);
+
+    // Simulate the user dismissing the IdP and arriving back at /login. The
+    // deep-link target is still in localStorage; the attempt flag in
+    // sessionStorage breaks the loop.
+    loginGuard({}, {}, secondNext);
+    expect(followRedirect).toHaveBeenCalledTimes(1);
+    expect(secondNext).toHaveBeenCalledWith();
+  });
+
+  it("re-arms the OIDC auto-redirect after a successful login or explicit logout", () => {
+    $config.values = {
+      ...$config.values,
+      ext: { oidc: { enabled: true, redirect: true, loginUri: "/api/v1/oidc/login" } },
+    };
+    $session.setLoginRedirectUrl("/library/people");
+    const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
+
+    loginGuard({}, {}, vi.fn());
+    expect(followRedirect).toHaveBeenCalledTimes(1);
+
+    // Successful login (or onLogout) clears both the deep-link target and
+    // the attempt flag via clearLoginRedirectUrl. A fresh deep-link arrival
+    // should be allowed to auto-redirect again.
+    $session.clearLoginRedirectUrl();
+    $session.setLoginRedirectUrl("/library/albums/new/view");
+
+    loginGuard({}, {}, vi.fn());
+    expect(followRedirect).toHaveBeenCalledTimes(2);
+  });
+
   // Post-OIDC roundtrip: auth.gohtml writes the new session and reloads
   // /library/login. The guard must consume the stored deep-link URL and
   // hard-navigate back to it instead of falling through to the default
