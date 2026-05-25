@@ -543,12 +543,8 @@ func validateSiteURL(u string) bool {
 	return false
 }
 
-// normalizeRedirectURIs validates each entry against the redirect-URI policy
-// (absolute URL, scheme http with loopback/cluster-internal-only or https,
-// no fragment, no whitespace) and returns the trimmed slice. Duplicates are
-// dropped to keep the persisted set tidy. Returns a non-nil empty slice
-// when the input was non-nil and contained only empty strings — callers
-// use the nil/non-nil distinction to mean "no change" vs "clear all".
+// normalizeRedirectURIs validates each entry and returns a deduplicated slice.
+// nil in = nil out ("no change"); non-nil in = non-nil out (replaces the persisted set).
 func normalizeRedirectURIs(in []string) ([]string, error) {
 	if in == nil {
 		return nil, nil
@@ -575,9 +571,7 @@ func normalizeRedirectURIs(in []string) ([]string, error) {
 	return out, nil
 }
 
-// validateRedirectURI mirrors validateSiteURL's scheme policy (HTTPS always
-// allowed; HTTP only on loopback / cluster-internal hosts) plus the OAuth
-// 2.0 redirect-URI hardening: absolute URL with host, no fragment.
+// validateRedirectURI accepts HTTPS or loopback / cluster-internal HTTP, with a host and no fragment.
 func validateRedirectURI(u string) bool {
 	parsed, err := url.Parse(strings.TrimSpace(u))
 	if err != nil || parsed.Scheme == "" || parsed.Host == "" {

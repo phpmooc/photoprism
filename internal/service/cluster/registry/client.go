@@ -158,9 +158,7 @@ func (r *ClientRegistry) Put(n *Node) error {
 		m.NodeUUID = n.UUID
 	}
 
-	// RedirectURIs round-trips through the node DTO: nil means "no change"
-	// so callers that don't touch the field don't accidentally clear it;
-	// a non-nil slice (even empty) replaces the persisted set.
+	// nil = no change so callers that don't touch the field can't clear it; non-nil replaces.
 	if n.RedirectURIs != nil {
 		data.RedirectURIs = append([]string(nil), n.RedirectURIs...)
 	}
