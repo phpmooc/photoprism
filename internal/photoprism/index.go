@@ -180,9 +180,10 @@ func (ind *Index) Start(o IndexOptions) (found fs.Done, updated int) {
 			// Stop the walk if storage drops below the threshold mid-scan.
 			// The disk-free cache rate-limits this to one actual probe per CacheTTL;
 			// Cancel ensures the warning fires only once instead of once per file.
+			// Returning a distinct error so the top-level walk log names the actual cause.
 			if ind.storageLow() {
 				ind.Cancel()
-				return errors.New("canceled")
+				return errors.New("insufficient storage")
 			}
 
 			isDir, _ := info.IsDirOrSymlinkToDir()
