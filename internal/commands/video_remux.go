@@ -49,12 +49,12 @@ func videoRemuxAction(ctx *cli.Context) error {
 			return err
 		}
 
-		plans, preflight, err := videoBuildRemuxPlans(conf, results, ctx.Bool(videoForceFlag.Name))
+		plans, preflight, skipped, err := videoBuildRemuxPlans(conf, results, ctx.Bool(videoForceFlag.Name))
 		if err != nil {
 			return err
 		}
 
-		if len(plans) == 0 {
+		if len(plans) == 0 && skipped == 0 {
 			log.Infof("remux: found no matching videos")
 			return nil
 		}
@@ -76,7 +76,7 @@ func videoRemuxAction(ctx *cli.Context) error {
 			}
 		}
 
-		var processed, skipped, failed int
+		var processed, failed int
 		convert := get.Convert()
 
 		for _, plan := range plans {
@@ -120,42 +120,49 @@ type videoRemuxPlan struct {
 }
 
 // videoBuildRemuxPlans prepares remux operations and preflight size checks from search results.
-func videoBuildRemuxPlans(conf *config.Config, results []search.Photo, force bool) ([]videoRemuxPlan, []videoOutputPlan, error) {
+func videoBuildRemuxPlans(conf *config.Config, results []search.Photo, force bool) ([]videoRemuxPlan, []videoOutputPlan, int, error) {
 	plans := make([]videoRemuxPlan, 0, len(results))
 	preflight := make([]videoOutputPlan, 0, len(results))
+	skipped := 0
 
 	for _, found := range results {
 		videoFile, ok := videoPrimaryFile(found)
 		if !ok {
 			log.Warnf("remux: missing video file for %s", clean.Log(found.PhotoUID))
+			skipped++
 			continue
 		}
 
 		if videoFile.FileSidecar {
 			log.Warnf("remux: skipping sidecar file %s", clean.Log(videoFile.FileName))
+			skipped++
 			continue
 		}
 
 		if videoFile.MediaType == entity.MediaLive {
 			log.Warnf("remux: skipping live photo video %s", clean.Log(videoFile.FileName))
+			skipped++
 			continue
 		}
 
 		srcPath := photoprism.FileName(videoFile.FileRoot, videoFile.FileName)
 		if !fs.FileExistsNotEmpty(srcPath) {
 			log.Warnf("remux: missing file %s", clean.Log(srcPath))
+			skipped++
 			continue
 		}
 
 		if !videoCodecIsAvc(videoFile.FileCodec) && !force {
 			if !videoFallbackCodecAvc(srcPath) {
 				log.Warnf("remux: skipping non-AVC video %s", clean.Log(videoFile.FileName))
+				skipped++
 				continue
 			}
 		}
 
 		if ffmpeg.Exclude().Contains(videoFile.FileCodec, fs.FileType(srcPath).String()) {
 			log.Warnf("remux: skipping %s because format %s is on the FFmpeg exclude list", clean.Log(videoFile.FileName), clean.Log(videoFile.FileCodec))
+			skipped++
 			continue
 		}
 
@@ -165,7 +172,7 @@ func videoBuildRemuxPlans(conf *config.Config, results []search.Photo, force boo
 
 		if conf.ReadOnly() || !fs.PathWritable(filepath.Dir(srcPath)) || !fs.Writable(srcPath) {
 			if !conf.SidecarWritable() || !fs.PathWritable(conf.SidecarPath()) {
-				return nil, nil, config.ErrReadOnly
+				return nil, nil, skipped, config.ErrReadOnly
 			}
 
 			sidecarBase := videoSidecarPath(srcPath, conf.OriginalsPath(), conf.SidecarPath())
@@ -176,6 +183,7 @@ func videoBuildRemuxPlans(conf *config.Config, results []search.Photo, force boo
 
 		if destPath != srcPath && fs.FileExistsNotEmpty(destPath) && !force {
 			log.Warnf("remux: output already exists %s", clean.Log(destPath))
+			skipped++
 			continue
 		}
 
@@ -193,7 +201,7 @@ func videoBuildRemuxPlans(conf *config.Config, results []search.Photo, force boo
 		})
 	}
 
-	return plans, preflight, nil
+	return plans, preflight, skipped, nil
 }
 
 // videoRemuxFile runs ffmpeg remuxing and refreshes previews/thumbnails before reindexing.
