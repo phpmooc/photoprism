@@ -2,6 +2,7 @@ package config
 
 import (
 	"math"
+	"os"
 	"time"
 
 	gc "github.com/patrickmn/go-cache"
@@ -11,11 +12,16 @@ import (
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/fs/disk"
 	"github.com/photoprism/photoprism/pkg/fs/duf"
+	"github.com/photoprism/photoprism/pkg/txt"
 )
 
 // StorageLowThresholdPct is the percentage of total capacity below which the
 // storage folder is considered critically low on free space.
 const StorageLowThresholdPct = 1.0
+
+// skipStorageCheck disables the free-disk probe in StorageLow when set via
+// PHOTOPRISM_STORAGE_SKIP_CHECK, e.g. on filesystems where duf cannot read free space.
+var skipStorageCheck = txt.Bool(os.Getenv(EnvVar("STORAGE_SKIP_CHECK")))
 
 var usageCache = gc.New(5*time.Minute, 5*time.Minute)
 
@@ -187,6 +193,10 @@ func (c *Config) UsersQuotaReached(role acl.Role) bool {
 
 // StorageLow reports whether the storage folder is critically low on free disk space for safe indexing writes.
 func (c *Config) StorageLow() (free uint64, low bool, err error) {
+	if skipStorageCheck {
+		return 0, false, nil
+	}
+
 	return disk.StorageLow(c.StoragePath(), StorageLowThresholdPct)
 }
 

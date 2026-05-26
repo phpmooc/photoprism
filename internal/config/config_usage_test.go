@@ -128,6 +128,24 @@ func TestConfig_StorageLow(t *testing.T) {
 	assert.NotZero(t, free)
 }
 
+func TestConfig_StorageLow_SkipCheck(t *testing.T) {
+	c := TestConfig()
+
+	// Seed a low entry so the check would normally return low=true.
+	disk.SetFree(c.StoragePath(), 1, 1000)
+	t.Cleanup(disk.FlushFree)
+
+	// Toggling skipStorageCheck mirrors what PHOTOPRISM_STORAGE_SKIP_CHECK does at startup.
+	prev := skipStorageCheck
+	skipStorageCheck = true
+	t.Cleanup(func() { skipStorageCheck = prev })
+
+	free, low, err := c.StorageLow()
+	assert.NoError(t, err)
+	assert.False(t, low, "skip flag must bypass the disk probe")
+	assert.Zero(t, free)
+}
+
 func TestConfig_InsufficientStorage(t *testing.T) {
 	c := TestConfig()
 
