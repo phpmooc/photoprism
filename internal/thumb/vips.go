@@ -110,7 +110,17 @@ func Vips(imageName string, imageBuffer []byte, hash, thumbPath string, width, h
 	switch fs.FileType(thumbName) {
 	case fs.ImagePng:
 		format = "png"
-		thumbBuffer, _, err = img.ExportPng(VipsPngExportParams(width, height))
+		pngParams := VipsPngExportParams(width, height)
+		thumbBuffer, _, err = img.ExportPng(pngParams)
+		// Retry without the ICC profile if libpng rejected the iCCP chunk
+		// (e.g. malformed profile length), so a broken color tag does not
+		// block thumbnail generation.
+		if err != nil && img.HasICCProfile() {
+			log.Debugf("vips: %s in %s (export png with icc profile); retrying without profile", err, clean.Log(filepath.Base(imageName)))
+			if iccErr := img.RemoveICCProfile(); iccErr == nil {
+				thumbBuffer, _, err = img.ExportPng(pngParams)
+			}
+		}
 	default:
 		format = "jpeg"
 		thumbBuffer, _, err = img.ExportJpeg(VipsJpegExportParams(width, height))

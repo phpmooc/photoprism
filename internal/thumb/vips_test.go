@@ -26,6 +26,26 @@ func TestVips(t *testing.T) {
 		assert.True(t, strings.HasSuffix(fileName, dst))
 		assert.FileExists(t, dst)
 	})
+	t.Run("ColorsBadIccProfile", func(t *testing.T) {
+		// Regression for #5612 / #5613: Samsung Galaxy JPEGs ship an ICC
+		// profile whose 4-byte size header is off by two bytes. libpng then
+		// aborts the PNG export with "Incorrect data in iCCP". The PNG path
+		// must retry without the broken profile so indexing still succeeds.
+		colorThumb := Sizes[Colors]
+		src := "testdata/icc_profile_bad_length.jpg"
+		dst := "testdata/vips/1/4/4/144456789098765432_3x3_resize.png"
+
+		assert.FileExists(t, src)
+
+		fileName, _, err := Vips(src, nil, "144456789098765432", "testdata/vips", colorThumb.Width, colorThumb.Height, colorThumb.Options...)
+
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		assert.True(t, strings.HasSuffix(fileName, dst))
+		assert.FileExists(t, dst)
+	})
 	t.Run("InteropIndexColors", func(t *testing.T) {
 		thumb := Sizes[Tile500]
 		src := "testdata/interop_index.jpg"
