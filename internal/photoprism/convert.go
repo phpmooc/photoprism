@@ -1,7 +1,6 @@
 package photoprism
 
 import (
-	"errors"
 	"fmt"
 	"path/filepath"
 	"runtime/debug"
@@ -90,7 +89,7 @@ func (w *Convert) Start(dir string, ext []string, force bool) (err error) {
 			}()
 
 			if mutex.IndexWorker.Canceled() {
-				return errors.New("canceled")
+				return ErrCanceled
 			}
 
 			isDir, _ := info.IsDirOrSymlinkToDir()

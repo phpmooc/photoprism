@@ -48,7 +48,6 @@ var (
 )
 
 // Free returns the cached free and total bytes for the filesystem that owns path.
-// Falls through to duf.PathInfo on cache miss or after CacheTTL has elapsed.
 func Free(path string) (free, total uint64, err error) {
 	now := time.Now()
 
@@ -97,7 +96,6 @@ func SetFree(path string, free, total uint64) {
 }
 
 // StorageLow reports whether free space on path is below minPct percent of total.
-// Threshold values outside (0, 100) are treated as never low. Shares the Free cache.
 func StorageLow(path string, minPct float64) (free uint64, low bool, err error) {
 	if minPct <= 0 || minPct >= 100 {
 		free, _, err = Free(path)

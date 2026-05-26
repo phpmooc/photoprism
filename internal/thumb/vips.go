@@ -133,17 +133,15 @@ func Vips(imageName string, imageBuffer []byte, hash, thumbPath string, width, h
 	return thumbName, thumbBuffer, nil
 }
 
-// wrapVipsExportErr annotates a libvips export error with the target format,
-// the destination filename, and the requested dimensions.
+// wrapVipsExportErr annotates a libvips export error with the target format, filename, and dimensions.
 func wrapVipsExportErr(format, thumbName string, width, height int, err error) error {
 	return fmt.Errorf("vips: %s export failed for %s at %dx%d (%w)",
 		format, clean.Log(filepath.Base(thumbName)), width, height, err)
 }
 
-// wrapVipsWriteErr annotates a thumbnail file-write error with the destination
-// path so disk-full or permission failures are obvious in the log.
+// wrapVipsWriteErr annotates a thumbnail file-write error with the destination filename.
 func wrapVipsWriteErr(thumbName string, err error) error {
-	return fmt.Errorf("vips: failed to write thumbnail %s (%w)", clean.Log(thumbName), err)
+	return fmt.Errorf("vips: failed to write thumbnail %s (%w)", clean.Log(filepath.Base(thumbName)), err)
 }
 
 // VipsImportParams provides parameters for opening files with libvips.

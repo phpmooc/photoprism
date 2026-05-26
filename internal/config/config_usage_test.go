@@ -142,7 +142,6 @@ func TestConfig_InsufficientStorage(t *testing.T) {
 
 		assert.False(t, c.InsufficientStorage())
 	})
-
 	t.Run("QuotaOnly", func(t *testing.T) {
 		c.options.FilesQuota = 1
 		FlushUsageCache()
@@ -150,7 +149,6 @@ func TestConfig_InsufficientStorage(t *testing.T) {
 
 		assert.True(t, c.InsufficientStorage())
 	})
-
 	t.Run("StorageLowOnly", func(t *testing.T) {
 		c.options.FilesQuota = 0
 		FlushUsageCache()
@@ -158,7 +156,6 @@ func TestConfig_InsufficientStorage(t *testing.T) {
 
 		assert.True(t, c.InsufficientStorage())
 	})
-
 	t.Run("Both", func(t *testing.T) {
 		c.options.FilesQuota = 1
 		FlushUsageCache()

@@ -231,7 +231,6 @@ func TestWrapVipsExportErr(t *testing.T) {
 		assert.Contains(t, err.Error(), "unable to write to target")
 		assert.True(t, errors.Is(err, inner), "wrapped error must remain unwrappable")
 	})
-
 	t.Run("StripsDirectory", func(t *testing.T) {
 		// Only the basename should appear in the message so logs stay compact.
 		err := wrapVipsExportErr("jpeg", "/cache/deep/nested/path/photo.jpg", 1920, 1080, errors.New("boom"))
@@ -248,8 +247,16 @@ func TestWrapVipsWriteErr(t *testing.T) {
 
 		assert.Error(t, err)
 		assert.Contains(t, err.Error(), "failed to write thumbnail")
-		assert.Contains(t, err.Error(), "/cache/1/2/3/colors.png")
+		assert.Contains(t, err.Error(), "colors.png")
 		assert.Contains(t, err.Error(), "no space left on device")
 		assert.True(t, errors.Is(err, inner), "wrapped error must remain unwrappable")
+	})
+	t.Run("StripsDirectory", func(t *testing.T) {
+		// Only the basename should appear so the server filesystem layout is not leaked
+		// to the UI via the event-bus log hook.
+		err := wrapVipsWriteErr("/photoprism/storage/cache/thumbnails/1/2/3/photo.jpg", errors.New("boom"))
+
+		assert.Contains(t, err.Error(), "photo.jpg")
+		assert.NotContains(t, err.Error(), "/photoprism/storage")
 	})
 }

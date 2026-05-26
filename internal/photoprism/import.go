@@ -53,15 +53,13 @@ func (imp *Import) thumbPath() string {
 	return imp.conf.ThumbCachePath()
 }
 
-// insufficientStorage reports whether the configured quota is reached or the
-// storage path is critically low on free disk space.
-// Emits a localized notification when that is the case.
+// insufficientStorage reports whether the import must abort due to quota or low free disk space.
 func (imp *Import) insufficientStorage() bool {
 	if !imp.conf.InsufficientStorage() {
 		return false
 	}
 
-	log.Errorf("import: insufficient storage in path %s", clean.Log(imp.conf.StoragePath()))
+	log.Errorf("import: aborting due to insufficient storage")
 	event.ErrorMsg(i18n.ErrInsufficientStorage)
 	return true
 }
@@ -150,7 +148,13 @@ func (imp *Import) Start(opt ImportOptions) fs.Done {
 			}()
 
 			if mutex.IndexWorker.Canceled() {
-				return errors.New("canceled")
+				return ErrCanceled
+			}
+
+			// Stop the walk if storage drops below the threshold mid-import.
+			if imp.insufficientStorage() {
+				imp.Cancel()
+				return ErrInsufficientStorage
 			}
 
 			isDir, _ := info.IsDirOrSymlinkToDir()

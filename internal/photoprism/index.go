@@ -64,12 +64,12 @@ func (ind *Index) Cancel() {
 	mutex.IndexWorker.Cancel()
 }
 
-// storageLow reports whether the storage path is too full to start an index run.
-// Logs the free amount and publishes a localized notification when that is the case.
+// storageLow reports whether the storage path is too full to start or continue an index run.
 func (ind *Index) storageLow() bool {
 	free, low, err := ind.conf.StorageLow()
+
 	if err != nil {
-		log.Warnf("index: %s (check storage free)", clean.Error(err))
+		log.Warnf("index: %s (check disk space)", clean.Error(err))
 		return false
 	}
 
@@ -77,8 +77,7 @@ func (ind *Index) storageLow() bool {
 		return false
 	}
 
-	log.Errorf("index: only %s free in storage path %s (%.1f%% threshold)",
-		humanize.Bytes(free), clean.Log(ind.conf.StoragePath()), config.StorageLowThresholdPct)
+	log.Errorf("index: only %s free, below %.1f%% threshold", humanize.Bytes(free), config.StorageLowThresholdPct)
 	event.ErrorMsg(i18n.ErrInsufficientStorage)
 	return true
 }
@@ -174,16 +173,13 @@ func (ind *Index) Start(o IndexOptions) (found fs.Done, updated int) {
 			}()
 
 			if mutex.IndexWorker.Canceled() {
-				return errors.New("canceled")
+				return ErrCanceled
 			}
 
 			// Stop the walk if storage drops below the threshold mid-scan.
-			// The disk-free cache rate-limits this to one actual probe per CacheTTL;
-			// Cancel ensures the warning fires only once instead of once per file.
-			// Returning a distinct error so the top-level walk log names the actual cause.
 			if ind.storageLow() {
 				ind.Cancel()
-				return errors.New("insufficient storage")
+				return ErrInsufficientStorage
 			}
 
 			isDir, _ := info.IsDirOrSymlinkToDir()

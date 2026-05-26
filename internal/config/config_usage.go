@@ -185,16 +185,12 @@ func (c *Config) UsersQuotaReached(role acl.Role) bool {
 	return c.UsersQuotaExceeded(99, role)
 }
 
-// StorageLow reports whether the storage folder has insufficient free space
-// for safe writes during indexing, conversion, or backups.
+// StorageLow reports whether the storage folder is critically low on free disk space for safe indexing writes.
 func (c *Config) StorageLow() (free uint64, low bool, err error) {
 	return disk.StorageLow(c.StoragePath(), StorageLowThresholdPct)
 }
 
-// InsufficientStorage reports whether the configured files quota has been
-// reached or the storage path is critically low on free disk space.
-// Use this to gate paths that accept new file writes (uploads, WebDAV PUT,
-// sync downloads); do not use it to gate indexing of files already on disk.
+// InsufficientStorage reports whether new file writes should be rejected due to quota or low free disk space.
 func (c *Config) InsufficientStorage() bool {
 	if c.FilesQuotaReached() {
 		return true
