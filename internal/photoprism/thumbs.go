@@ -13,6 +13,7 @@ import (
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
+	"github.com/photoprism/photoprism/pkg/log/status"
 )
 
 // Thumbs represents a thumbnail image generator.
@@ -96,7 +97,7 @@ func (w *Thumbs) Dir(dir string, force bool) (fs.Done, error) {
 		}()
 
 		if mutex.IndexWorker.Canceled() {
-			return ErrCanceled
+			return status.ErrCanceled
 		}
 
 		isDir, _ := info.IsDirOrSymlinkToDir()

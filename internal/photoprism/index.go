@@ -20,6 +20,7 @@ import (
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/fs/disk"
 	"github.com/photoprism/photoprism/pkg/i18n"
+	"github.com/photoprism/photoprism/pkg/log/status"
 	"github.com/photoprism/photoprism/pkg/media"
 )
 
@@ -173,13 +174,13 @@ func (ind *Index) Start(o IndexOptions) (found fs.Done, updated int) {
 			}()
 
 			if mutex.IndexWorker.Canceled() {
-				return ErrCanceled
+				return status.ErrCanceled
 			}
 
 			// Stop the walk if storage drops below the threshold mid-scan.
 			if ind.storageLow() {
 				ind.Cancel()
-				return ErrInsufficientStorage
+				return status.ErrInsufficientStorage
 			}
 
 			isDir, _ := info.IsDirOrSymlinkToDir()

@@ -7,23 +7,9 @@ import (
 
 	"github.com/sirupsen/logrus"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/photoprism/photoprism/pkg/log/status"
 )
-
-func TestErrCanceled(t *testing.T) {
-	assert.EqualError(t, ErrCanceled, "canceled")
-
-	wrapped := fmt.Errorf("worker stopped: %w", ErrCanceled)
-	assert.True(t, errors.Is(wrapped, ErrCanceled))
-	assert.False(t, errors.Is(wrapped, ErrInsufficientStorage))
-}
-
-func TestErrInsufficientStorage(t *testing.T) {
-	assert.EqualError(t, ErrInsufficientStorage, "insufficient storage")
-
-	wrapped := fmt.Errorf("walk aborted: %w", ErrInsufficientStorage)
-	assert.True(t, errors.Is(wrapped, ErrInsufficientStorage))
-	assert.False(t, errors.Is(wrapped, ErrCanceled))
-}
 
 func TestWalkResultLog(t *testing.T) {
 	t.Run("NilError", func(t *testing.T) {
@@ -33,23 +19,23 @@ func TestWalkResultLog(t *testing.T) {
 		assert.Empty(t, msg)
 	})
 	t.Run("Canceled", func(t *testing.T) {
-		level, msg, emit := walkResultLog("index", ErrCanceled)
+		level, msg, emit := walkResultLog("index", status.ErrCanceled)
 		assert.True(t, emit)
 		assert.Equal(t, logrus.InfoLevel, level)
 		assert.Equal(t, "index: canceled", msg)
 	})
 	t.Run("WrappedCanceled", func(t *testing.T) {
-		level, _, emit := walkResultLog("index", fmt.Errorf("worker: %w", ErrCanceled))
+		level, _, emit := walkResultLog("index", fmt.Errorf("worker: %w", status.ErrCanceled))
 		assert.True(t, emit)
 		assert.Equal(t, logrus.InfoLevel, level)
 	})
 	t.Run("InsufficientStorage", func(t *testing.T) {
 		// Suppressed because the storage helper already emitted the actionable line.
-		_, _, emit := walkResultLog("import", ErrInsufficientStorage)
+		_, _, emit := walkResultLog("import", status.ErrInsufficientStorage)
 		assert.False(t, emit)
 	})
 	t.Run("WrappedInsufficientStorage", func(t *testing.T) {
-		_, _, emit := walkResultLog("import", fmt.Errorf("walk: %w", ErrInsufficientStorage))
+		_, _, emit := walkResultLog("import", fmt.Errorf("walk: %w", status.ErrInsufficientStorage))
 		assert.False(t, emit)
 	})
 	t.Run("UnknownError", func(t *testing.T) {
