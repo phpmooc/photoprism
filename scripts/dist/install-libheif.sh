@@ -3,6 +3,14 @@
 # Installs the heif-dec, heif-enc, and heif-info binaries on Linux.
 # On libheif 1.21+, heif-convert is a symlink to heif-dec and heif-thumbnailer is no longer shipped.
 # bash <(curl -s https://raw.githubusercontent.com/photoprism/photoprism/develop/scripts/dist/install-libheif.sh)
+#
+# Resolute installs photoprism-libheif via a real .deb that Provides/Replaces/Conflicts
+# apt's libheif1, libheif-dev, libheif-examples, and libheif-plugin-* names. Other Debian
+# distros get a contentless stub with the same metadata after the tarball extract. Either
+# way, the package is apt-mark held so dist-upgrade leaves it alone — but an explicit
+# `apt install libheif1` would still trigger the Conflicts: relation and replace
+# photoprism-libheif, silently breaking the from-source HEIC pipeline. Don't do that;
+# upgrade by bumping LIBHEIF_VERSION and rerunning this script instead.
 
 set -e
 
@@ -87,6 +95,7 @@ if [[ $VERSION_CODENAME == "resolute" ]] && [[ $DESTDIR == "/usr" || $DESTDIR ==
 
   export DEBIAN_FRONTEND=noninteractive
   if apt-get install -y --no-install-recommends "$TMPDEB"; then
+    apt-mark hold photoprism-libheif > /dev/null
     rm -f "$TMPDEB"
     echo "✅ Installed photoprism-libheif from \"$URL\"."
     echo "Done."
