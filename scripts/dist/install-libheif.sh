@@ -66,6 +66,37 @@ esac
 
 echo "Installing libheif..."
 
+# On Ubuntu 26.04 LTS (Resolute) we ship a real .deb (photoprism-libheif) so
+# apt's libheif1 / libheif-dev / libheif-plugin-* don't coexist with the
+# from-source build. The .deb only exists when DESTDIR is left at the default
+# /usr or /usr/local — dpkg paths are absolute and ignore custom prefixes.
+if [[ $VERSION_CODENAME == "resolute" ]] && [[ $DESTDIR == "/usr" || $DESTDIR == "/usr/local" ]] && command -v apt-get > /dev/null; then
+  ARCHIVE="libheif-${VERSION_CODENAME}-${DESTARCH}-${LIBHEIF_VERSION}.deb"
+  URL="https://dl.photoprism.app/dist/libheif/${ARCHIVE}"
+  TMPDEB="/tmp/${ARCHIVE}"
+
+  echo "--------------------------------------------------------------------------------"
+  echo "VERSION: $LIBHEIF_VERSION"
+  echo "PACKAGE: $ARCHIVE (photoprism-libheif Debian package)"
+  echo "--------------------------------------------------------------------------------"
+
+  if ! curl -fsSL "$URL" -o "$TMPDEB"; then
+    echo "❌ Failed to download \"$URL\"."
+    exit 1
+  fi
+
+  export DEBIAN_FRONTEND=noninteractive
+  if apt-get install -y --no-install-recommends "$TMPDEB"; then
+    rm -f "$TMPDEB"
+    echo "✅ Installed photoprism-libheif from \"$URL\"."
+    echo "Done."
+    exit 0
+  fi
+
+  echo "⚠️ apt-get install of \"$TMPDEB\" failed; falling back to tarball path."
+  rm -f "$TMPDEB"
+fi
+
 ARCHIVE="libheif-${VERSION_CODENAME}-${DESTARCH}-${LIBHEIF_VERSION}.tar.gz"
 URL="https://dl.photoprism.app/dist/libheif/${ARCHIVE}"
 
