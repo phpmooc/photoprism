@@ -73,6 +73,10 @@ func GetPhoto(router *gin.RouterGroup) {
 			return
 		}
 
+		// Limit the response to what the session is entitled to see; shared-only sessions get a
+		// reduced view (full-access sessions are unaffected).
+		p.RedactForSession(s)
+
 		c.IndentedJSON(http.StatusOK, p)
 	})
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/ulule/deepcopier"
 
 	"github.com/photoprism/photoprism/internal/ai/classify"
+	"github.com/photoprism/photoprism/internal/auth/acl"
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/form"
 	"github.com/photoprism/photoprism/pkg/clean"
@@ -802,6 +803,58 @@ func (m *Photo) PreloadMany() *Photo {
 	m.PreloadFiles()
 	m.PreloadKeywords()
 	m.PreloadAlbums()
+
+	return m
+}
+
+// RedactForSession trims fields a shared-only session should not see when it accesses a picture
+// through sharing: the album list is limited to the albums shared with the session, and people,
+// labels, and owner/storage metadata are removed. Sessions with full library or admin access (and
+// nil sessions) are returned unchanged.
+func (m *Photo) RedactForSession(sess *Session) *Photo {
+	if m == nil || sess == nil {
+		return m
+	}
+
+	// Only sessions limited to shared content are redacted.
+	if !sess.GetUser().HasSharedAccessOnly(acl.ResourcePhotos) && !sess.NotRegistered() {
+		return m
+	}
+
+	// Limit album membership to the albums shared with the session.
+	if len(m.Albums) > 0 {
+		shared := sess.SharedUIDs()
+
+		if len(shared) == 0 {
+			m.Albums = nil
+		} else {
+			allowed := make(map[string]struct{}, len(shared))
+			for _, uid := range shared {
+				allowed[uid] = struct{}{}
+			}
+
+			kept := m.Albums[:0]
+			for _, a := range m.Albums {
+				if _, ok := allowed[a.AlbumUID]; ok {
+					kept = append(kept, a)
+				}
+			}
+
+			m.Albums = kept
+		}
+	}
+
+	// Remove labels and people (marker identity is omitted defensively in case markers are loaded).
+	m.Labels = nil
+	for i := range m.Files {
+		m.Files[i].OmitMarkers = true
+	}
+
+	// Remove owner and storage metadata.
+	m.CreatedBy = ""
+	m.PhotoPath = ""
+	m.OriginalName = ""
+	m.Details = nil
 
 	return m
 }
