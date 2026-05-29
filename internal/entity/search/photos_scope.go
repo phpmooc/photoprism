@@ -92,6 +92,10 @@ func PhotoVisibleToSession(photoUID string, sess *entity.Session) (bool, error) 
 		return true, nil
 	}
 
+	// UnscopedDb is deliberate: the archived (soft-deleted) decision is deferred to
+	// ScopeVisiblePhotos, which adds "photos.deleted_at IS NULL" for roles without the archive
+	// permission. Full-access roles short-circuited above and may resolve archived pictures by UID,
+	// matching GetPhoto / searchPhotos.
 	stmt := ScopeVisiblePhotos(UnscopedDb().Table("photos").Where("photos.photo_uid = ?", photoUID), sess)
 
 	var count int
@@ -111,8 +115,12 @@ func FileVisibleToSession(fileHash string, sess *entity.Session) (bool, error) {
 		return true, nil
 	}
 
+	// A soft-deleted file is never accessible, so exclude it explicitly (UnscopedDb does not apply
+	// the soft-delete scope). ScopeVisiblePhotos handles the photo's archived/private/scope state.
 	stmt := ScopeVisiblePhotos(
-		UnscopedDb().Table("files").Joins("JOIN photos ON photos.id = files.photo_id").Where("files.file_hash = ?", fileHash),
+		UnscopedDb().Table("files").
+			Joins("JOIN photos ON photos.id = files.photo_id").
+			Where("files.file_hash = ? AND files.deleted_at IS NULL", fileHash),
 		sess,
 	)
 

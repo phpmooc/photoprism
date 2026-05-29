@@ -156,7 +156,11 @@ func searchPhotos(frm form.SearchPhotos, sess *entity.Session, resultCols string
 			frm.Hidden = false
 		}
 
-		// Visitors and other restricted users can only access shared content.
+		// Visitors and other restricted users can only access shared content. A non-empty Scope
+		// bypasses the personal ScopePhotosForSession filter below, so it is gated here instead:
+		// a restricted session may scope only to an album it owns or has shared. "Restricted" means
+		// shared-only or unregistered; this assumes any view-capable role lacking library/all access
+		// also holds access_shared (else HasSharedAccessOnly would not flag it).
 		if frm.Scope != "" && album.CreatedBy != user.UserUID && !sess.HasShare(frm.Scope) && (sess.GetUser().HasSharedAccessOnly(acl.ResourcePhotos) || sess.NotRegistered()) ||
 			frm.Scope == "" && acl.Rules.Deny(acl.ResourcePhotos, aclRole, acl.ActionSearch) {
 			event.AuditErr([]string{sess.IP(), "session %s", "%s %s as %s", status.Denied}, sess.RefID, acl.ActionSearch.String(), string(acl.ResourcePhotos), aclRole)

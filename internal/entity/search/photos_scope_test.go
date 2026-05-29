@@ -6,6 +6,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/photoprism/photoprism/internal/entity"
+	"github.com/photoprism/photoprism/internal/form"
 )
 
 // Fixture identifiers used by the scope tests. In the public repo only the admin,
@@ -96,6 +97,29 @@ func TestPhotoVisibleToSession(t *testing.T) {
 		ok, err := PhotoVisibleToSession(scopeNormalPhotoUID, scopeSession("guest"))
 		assert.NoError(t, err)
 		assert.False(t, ok)
+	})
+}
+
+// A non-empty Scope skips the personal ScopePhotosForSession filter, so it must be authorized by
+// the album ownership/share gate in searchPhotos: a restricted session may scope only to an album
+// it owns or has shared, never to an arbitrary album.
+func TestUserPhotos_ScopeAuthorization(t *testing.T) {
+	const album = "as6sg6bxpogaaba8" // manual album owned by admin, not shared with guests
+
+	t.Run("GuestNonSharedScopeForbidden", func(t *testing.T) {
+		_, _, err := UserPhotos(form.SearchPhotos{Scope: album}, scopeSession("guest"))
+		assert.Equal(t, ErrForbidden, err)
+	})
+	t.Run("VisitorSharedScopeAllowed", func(t *testing.T) {
+		// Unregistered visitor whose session carries a share for the scoped album.
+		visitor := &entity.Session{}
+		visitor.SetData(&entity.SessionData{Shares: entity.UIDs{album}})
+		_, _, err := UserPhotos(form.SearchPhotos{Scope: album}, visitor)
+		assert.NoError(t, err)
+	})
+	t.Run("AdminScopeAllowed", func(t *testing.T) {
+		_, _, err := UserPhotos(form.SearchPhotos{Scope: album}, scopeSession("alice"))
+		assert.NoError(t, err)
 	})
 }
 
