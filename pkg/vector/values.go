@@ -110,6 +110,35 @@ func (v Vector) EuclideanNorm() float64 {
 	return v.Norm(2.0)
 }
 
+// Normalize scales the vector to unit length (L2 norm) in place.
+// A zero vector (including an empty one) is left unchanged to avoid
+// a division by zero.
+func (v Vector) Normalize() {
+	var sum float64
+
+	for _, f := range v {
+		sum += f * f
+	}
+
+	if sum == 0 {
+		return
+	}
+
+	inv := 1 / math.Sqrt(sum)
+
+	for i := range v {
+		v[i] *= inv
+	}
+}
+
+// Normalized returns an L2-normalized copy of the vector,
+// leaving the receiver unchanged.
+func (v Vector) Normalized() Vector {
+	c := v.Copy()
+	c.Normalize()
+	return c
+}
+
 // variance returns the sample variance around the given mean.
 // Empty and single-element vectors have zero variance by convention,
 // which also avoids a division by zero in the n-1 denominator.
@@ -227,6 +256,45 @@ func CosineDists(x, y Vectors) Vectors {
 		for j, b := range y {
 			result[i][j] = CosineDist(a, b)
 		}
+	}
+
+	return result
+}
+
+// Centroid returns the element-wise mean (centroid) of the given vectors as a
+// new, independent vector. Vectors whose length differs from the first vector
+// are ignored, and the mean is taken over the vectors actually included. It
+// returns nil when vs is empty or the first vector has no elements.
+func Centroid(vs Vectors) Vector {
+	if len(vs) == 0 {
+		return nil
+	}
+
+	dim := len(vs[0])
+
+	if dim == 0 {
+		return nil
+	}
+
+	result := make(Vector, dim)
+	n := 0
+
+	for _, v := range vs {
+		if len(v) != dim {
+			continue
+		}
+
+		for j := range dim {
+			result[j] += v[j]
+		}
+
+		n++
+	}
+
+	inv := 1 / float64(n)
+
+	for j := range result {
+		result[j] *= inv
 	}
 
 	return result
