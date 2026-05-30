@@ -14,6 +14,7 @@ import (
 	"github.com/photoprism/photoprism/pkg/authn"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/i18n"
+	"github.com/photoprism/photoprism/pkg/log/status"
 )
 
 // UpdateUser updates profile information for the specified user.
@@ -50,6 +51,7 @@ func UpdateUser(router *gin.RouterGroup) {
 
 		// Non-admin users may only update their own profile.
 		if !isAdmin && s.GetUser().UserUID != uid {
+			event.AuditErr([]string{ClientIP(c), "session %s", "users", clean.Log(uid), "update", status.Denied}, s.RefID)
 			AbortForbidden(c)
 			return
 		}
