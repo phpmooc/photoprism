@@ -1,6 +1,9 @@
 package vector
 
-import "math"
+import (
+	"fmt"
+	"math"
+)
 
 // Mean gets the average of a slice of numbers
 func Mean(v Vector) float64 {
@@ -55,4 +58,48 @@ func HarmonicMean(v Vector) float64 {
 	}
 
 	return float64(l) / p
+}
+
+// Mean returns the vector's mean value.
+func (v Vector) Mean() float64 {
+	return Mean(v)
+}
+
+// GeometricMean returns the vector's geometric mean value.
+func (v Vector) GeometricMean() float64 {
+	return GeometricMean(v)
+}
+
+// HarmonicMean returns the vector's harmonic mean value.
+func (v Vector) HarmonicMean() float64 {
+	return HarmonicMean(v)
+}
+
+// weightedSum returns the weighted sum of the vector.  This is really only useful in
+// calculating the weighted mean.
+func (v Vector) weightedSum(w Vector) (float64, error) {
+	if len(v) != len(w) {
+		return NaN(), fmt.Errorf("length of weights unequal to vector length")
+	}
+
+	ws := 0.0
+
+	for i := range v {
+		ws += v[i] * w[i]
+	}
+
+	return ws, nil
+}
+
+// WeightedMean returns the vector's weighted mean value based of the specified weights.
+func (v Vector) WeightedMean(w Vector) (float64, error) {
+	ws, err := v.weightedSum(w)
+
+	if err != nil {
+		return NaN(), err
+	}
+
+	sw := w.Sum()
+
+	return ws / sw, nil
 }

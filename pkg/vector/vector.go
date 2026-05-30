@@ -72,6 +72,29 @@ func NullVector(dim int) Vector {
 	return make(Vector, dim)
 }
 
+// Copy returns a copy of the vector.
+func (v Vector) Copy() Vector {
+	y := make(Vector, len(v))
+	copy(y, v)
+	return y
+}
+
+// Dim returns the number of values (dimension).
+func (v Vector) Dim() int {
+	return len(v)
+}
+
+// Sum returns the sum of the vector values.
+func (v Vector) Sum() float64 {
+	s := 0.0
+
+	for _, f := range v {
+		s += f
+	}
+
+	return s
+}
+
 // uint8ToVector creates a new vector from a uint8 slice.
 func uint8ToVector(values []uint8) Vector {
 	v := make(Vector, len(values))
