@@ -77,7 +77,7 @@ func TestTranscodeCmd(t *testing.T) {
 		assert.Equal(t, "/usr/bin/ffmpeg -hide_banner -y -strict -2 -init_hw_device vaapi=va -hwaccel vaapi -hwaccel_device va -filter_hw_device va -i SRC -c:a aac -vf scale='if(gte(iw,ih), min(1500, iw), -2):if(gte(iw,ih), -2, min(1500, ih))',format=nv12,hwupload -c:v h264_vaapi -map 0:v:0 -map 0:a:0? -ignore_unknown -qp 25 -f mp4 -movflags use_metadata_tags+faststart -map_metadata 0 DEST", cmdStr)
 
 		// This transcoding test requires a supported hardware device that is properly configured:
-		if os.Getenv("PHOTOPRISM_FFMPEG_ENCODER") == "vaapi" {
+		if os.Getenv("PHOTOPRISM_FFMPEG_TEST_ENCODER") == "vaapi" {
 			RunCommandTest(t, encode.VaapiAvc, srcName, destName, cmd, true)
 		}
 	})
@@ -101,7 +101,7 @@ func TestTranscodeCmd(t *testing.T) {
 		assert.Equal(t, "/usr/bin/ffmpeg -hide_banner -y -strict -2 -hwaccel qsv -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format qsv -i SRC -c:a aac -vf scale_qsv=w='if(gte(iw,ih), min(1500, iw), -1)':h='if(gte(iw,ih), -1, min(1500, ih))':format=nv12 -c:v h264_qsv -map 0:v:0 -map 0:a:0? -ignore_unknown -preset fast -global_quality 25 -f mp4 -movflags use_metadata_tags+faststart -map_metadata 0 DEST", cmdStr)
 
 		// This transcoding test requires a supported hardware device that is properly configured:
-		if os.Getenv("PHOTOPRISM_FFMPEG_ENCODER") == "intel" {
+		if os.Getenv("PHOTOPRISM_FFMPEG_TEST_ENCODER") == "intel" {
 			RunCommandTest(t, encode.IntelAvc, srcName, destName, cmd, true)
 		}
 	})
@@ -124,7 +124,7 @@ func TestTranscodeCmd(t *testing.T) {
 		assert.Equal(t, "/usr/bin/ffmpeg -hide_banner -y -strict -2 -hwaccel qsv -hwaccel_device /dev/dri/renderD128 -hwaccel_output_format qsv -i SRC -c:a aac -vf scale_qsv=w='if(gte(iw,ih), min(1500, iw), -1)':h='if(gte(iw,ih), -1, min(1500, ih))':format=nv12 -c:v h264_qsv -map 0:v:0 -map 0:a:0? -ignore_unknown -preset fast -global_quality 25 -f mp4 -movflags use_metadata_tags+faststart -map_metadata 0 DEST", cmdStr)
 
 		// This transcoding test requires a supported hardware device that is properly configured:
-		if os.Getenv("PHOTOPRISM_FFMPEG_ENCODER") == "intel" {
+		if os.Getenv("PHOTOPRISM_FFMPEG_TEST_ENCODER") == "intel" {
 			RunCommandTest(t, encode.IntelAvc, srcName, destName, cmd, true)
 		}
 	})
@@ -148,7 +148,7 @@ func TestTranscodeCmd(t *testing.T) {
 		assert.Equal(t, "/usr/bin/ffmpeg -hide_banner -y -strict -2 -hwaccel auto -i SRC -pix_fmt yuv420p -c:v h264_nvenc -map 0:v:0 -map 0:a:0? -ignore_unknown -c:a aac -preset fast -pixel_format yuv420p -gpu any -vf scale='if(gte(iw,ih), min(1500, iw), -2):if(gte(iw,ih), -2, min(1500, ih))',format=yuv420p -rc:v constqp -cq 25 -tune 2 -profile:v 1 -level:v auto -coder:v 1 -f mp4 -movflags use_metadata_tags+faststart -map_metadata 0 DEST", cmdStr)
 
 		// This transcoding test requires a supported hardware device that is properly configured:
-		if os.Getenv("PHOTOPRISM_FFMPEG_ENCODER") == "nvidia" {
+		if os.Getenv("PHOTOPRISM_FFMPEG_TEST_ENCODER") == "nvidia" {
 			RunCommandTest(t, encode.NvidiaAvc, srcName, destName, cmd, true)
 		}
 	})
@@ -171,7 +171,7 @@ func TestTranscodeCmd(t *testing.T) {
 		assert.Equal(t, "/usr/bin/ffmpeg -hide_banner -y -strict -2 -hwaccel auto -i SRC -pix_fmt yuv420p -c:v h264_nvenc -map 0:v:0 -map 0:a:0? -ignore_unknown -c:a aac -preset fast -pixel_format yuv420p -gpu any -vf scale='if(gte(iw,ih), min(1500, iw), -2):if(gte(iw,ih), -2, min(1500, ih))',format=yuv420p -rc:v constqp -cq 25 -tune 2 -profile:v 1 -level:v auto -coder:v 1 -f mp4 -movflags use_metadata_tags+faststart -map_metadata 0 DEST", cmdStr)
 
 		// This transcoding test requires a supported hardware device that is properly configured:
-		if os.Getenv("PHOTOPRISM_FFMPEG_ENCODER") == "nvidia" {
+		if os.Getenv("PHOTOPRISM_FFMPEG_TEST_ENCODER") == "nvidia" {
 			RunCommandTest(t, encode.NvidiaAvc, srcName, destName, cmd, true)
 		}
 	})
