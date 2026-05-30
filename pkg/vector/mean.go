@@ -11,7 +11,9 @@ func Mean(v Vector) float64 {
 	return s / n
 }
 
-// GeometricMean gets the geometric mean for a slice of numbers
+// GeometricMean gets the geometric mean for a slice of numbers.
+// It is undefined for negative values (returns NaN) and yields 0 if any
+// value is 0, since the product of all values is then 0.
 func GeometricMean(v Vector) float64 {
 	l := v.Dim()
 
@@ -19,17 +21,16 @@ func GeometricMean(v Vector) float64 {
 		return NaN()
 	}
 
-	// Get the product of all the numbers
-	var p float64
+	// Multiply all values; a zero element correctly drives the product to 0.
+	p := 1.0
 	for _, n := range v {
-		if p == 0 {
-			p = n
-		} else {
-			p *= n
+		if n < 0 {
+			return NaN()
 		}
+		p *= n
 	}
 
-	// Calculate the geometric mean
+	// Calculate the geometric mean.
 	return math.Pow(p, 1/float64(l))
 }
 

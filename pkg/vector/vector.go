@@ -36,7 +36,7 @@ func NewVector(values any) (Vector, error) {
 	case []float64:
 		return float64ToVector(v), nil
 	case Vector:
-		return v, nil
+		return v.Copy(), nil
 	default:
 		return nil, fmt.Errorf("cannot create vector from type %T", values)
 	}
@@ -47,7 +47,7 @@ func NullVector(dim int) Vector {
 	return make(Vector, dim)
 }
 
-// uint8ToVector creates a new vector from a non-empty uint8 slice.
+// uint8ToVector creates a new vector from a uint8 slice.
 func uint8ToVector(values []uint8) Vector {
 	v := make(Vector, len(values))
 
@@ -58,7 +58,7 @@ func uint8ToVector(values []uint8) Vector {
 	return v
 }
 
-// uint16ToVector creates a new vector from a non-empty uint16 slice.
+// uint16ToVector creates a new vector from a uint16 slice.
 func uint16ToVector(values []uint16) Vector {
 	v := make(Vector, len(values))
 
@@ -69,7 +69,7 @@ func uint16ToVector(values []uint16) Vector {
 	return v
 }
 
-// uint32ToVector creates a new vector from a non-empty uint32 slice.
+// uint32ToVector creates a new vector from a uint32 slice.
 func uint32ToVector(values []uint32) Vector {
 	v := make(Vector, len(values))
 
@@ -80,7 +80,7 @@ func uint32ToVector(values []uint32) Vector {
 	return v
 }
 
-// uint64ToVector creates a new vector from a non-empty uint64 slice.
+// uint64ToVector creates a new vector from a uint64 slice.
 func uint64ToVector(values []uint64) Vector {
 	v := make(Vector, len(values))
 
@@ -91,7 +91,7 @@ func uint64ToVector(values []uint64) Vector {
 	return v
 }
 
-// intToVector creates a new vector from a non-empty int slice.
+// intToVector creates a new vector from a int slice.
 func intToVector(values []int) Vector {
 	v := make(Vector, len(values))
 
@@ -102,7 +102,7 @@ func intToVector(values []int) Vector {
 	return v
 }
 
-// int8ToVector creates a new vector from a non-empty int8 slice.
+// int8ToVector creates a new vector from a int8 slice.
 func int8ToVector(values []int8) Vector {
 	v := make(Vector, len(values))
 
@@ -113,7 +113,7 @@ func int8ToVector(values []int8) Vector {
 	return v
 }
 
-// int16ToVector creates a new vector from a non-empty int16 slice.
+// int16ToVector creates a new vector from a int16 slice.
 func int16ToVector(values []int16) Vector {
 	v := make(Vector, len(values))
 
@@ -124,7 +124,7 @@ func int16ToVector(values []int16) Vector {
 	return v
 }
 
-// int32ToVector creates a new vector from a non-empty int32 slice.
+// int32ToVector creates a new vector from a int32 slice.
 func int32ToVector(values []int32) Vector {
 	v := make(Vector, len(values))
 
@@ -135,7 +135,7 @@ func int32ToVector(values []int32) Vector {
 	return v
 }
 
-// int64ToVector creates a new vector from a non-empty int64 slice.
+// int64ToVector creates a new vector from a int64 slice.
 func int64ToVector(values []int64) Vector {
 	v := make(Vector, len(values))
 
@@ -146,7 +146,7 @@ func int64ToVector(values []int64) Vector {
 	return v
 }
 
-// float32ToVector creates a new vector from a non-empty float32 slice.
+// float32ToVector creates a new vector from a float32 slice.
 func float32ToVector(values []float32) Vector {
 	v := make(Vector, len(values))
 
@@ -157,7 +157,11 @@ func float32ToVector(values []float32) Vector {
 	return v
 }
 
-// float64ToVector creates a new vector from a non-empty float64 slice.
+// float64ToVector creates a new vector from a float64 slice.
+// The values are copied so the result is independent of the input slice,
+// consistent with the other type-specific converters.
 func float64ToVector(values []float64) Vector {
-	return Vector(values)
+	v := make(Vector, len(values))
+	copy(v, values)
+	return v
 }

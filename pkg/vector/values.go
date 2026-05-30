@@ -32,7 +32,7 @@ func (v Vector) Sum() float64 {
 // calculating the weighted mean.
 func (v Vector) weightedSum(w Vector) (float64, error) {
 	if len(v) != len(w) {
-		return Epsilon, fmt.Errorf("length of weights unequal to vector length")
+		return NaN(), fmt.Errorf("length of weights unequal to vector length")
 	}
 
 	ws := 0.0
@@ -64,7 +64,7 @@ func (v Vector) WeightedMean(w Vector) (float64, error) {
 	ws, err := v.weightedSum(w)
 
 	if err != nil {
-		return Epsilon, err
+		return NaN(), err
 	}
 
 	sw := w.Sum()
@@ -87,7 +87,13 @@ func (v Vector) EuclideanDist(w Vector) float64 {
 	return EuclideanDist(v, w)
 }
 
-// CosineDist returns the cosine distance between two vectors.
+// CosineSimilarity returns the cosine similarity between two vectors,
+// ranging from -1 (opposite) to 1 (identical).
+func (v Vector) CosineSimilarity(w Vector) float64 {
+	return CosineSimilarity(v, w)
+}
+
+// CosineDist returns the cosine distance between two vectors (1 - cosine similarity).
 func (v Vector) CosineDist(w Vector) float64 {
 	return CosineDist(v, w)
 }
@@ -104,19 +110,21 @@ func (v Vector) EuclideanNorm() float64 {
 	return v.Norm(2.0)
 }
 
+// variance returns the sample variance around the given mean.
+// Empty and single-element vectors have zero variance by convention,
+// which also avoids a division by zero in the n-1 denominator.
 func (v Vector) variance(mean float64) float64 {
 	n := float64(len(v))
 
-	if n == 1 {
+	if n < 2 {
 		return 0
-	} else if n < 2 {
-		n = 2
 	}
 
 	ss := 0.0
 
 	for _, f := range v {
-		ss += math.Pow(f-mean, 2.0)
+		d := f - mean
+		ss += d * d
 	}
 
 	return ss / (n - 1)
@@ -142,19 +150,20 @@ func DotProduct(a, b Vector) (float64, error) {
 	p, err := Product(a, b)
 
 	if err != nil {
-		return Epsilon, err
+		return NaN(), err
 	}
 
 	return p.Sum(), nil
 }
 
 // Norm returns the size of the vector (use pow = 2.0 for the Euclidean distance),
-// see https://builtin.com/data-science/vector-norms.
+// see https://builtin.com/data-science/vector-norms. Absolute values are used so
+// that odd powers (e.g. the L1 norm) stay well-defined for negative components.
 func Norm(v Vector, pow float64) float64 {
 	s := 0.0
 
 	for _, f := range v {
-		s += math.Pow(f, pow)
+		s += math.Pow(math.Abs(f), pow)
 	}
 
 	return math.Pow(s, 1/pow)
@@ -178,8 +187,10 @@ func EuclideanDist(a, b Vector) float64 {
 	return math.Sqrt(s)
 }
 
-// CosineDist returns the CosineDist distance between two vectors.
-func CosineDist(a, b Vector) float64 {
+// CosineSimilarity returns the cosine similarity between two vectors, ranging
+// from -1 (opposite) to 1 (identical). It returns NaN when the dimensions
+// differ and 0 when either operand is a zero vector.
+func CosineSimilarity(a, b Vector) float64 {
 	if a.Dim() != b.Dim() {
 		return NaN()
 	}
@@ -197,6 +208,13 @@ func CosineDist(a, b Vector) float64 {
 	}
 
 	return sum / (math.Sqrt(s1) * math.Sqrt(s2))
+}
+
+// CosineDist returns the cosine distance between two vectors, defined as
+// 1 - CosineSimilarity. Identical vectors yield 0; it returns NaN when the
+// dimensions differ.
+func CosineDist(a, b Vector) float64 {
+	return 1.0 - CosineSimilarity(a, b)
 }
 
 // CosineDists returns the cosine distances between two sets of vectors.
@@ -220,7 +238,7 @@ func Cor(a, b Vector) (float64, error) {
 	xy, err := Product(a, b)
 
 	if err != nil {
-		return Epsilon, err
+		return NaN(), err
 	}
 
 	sx := a.Sd()
