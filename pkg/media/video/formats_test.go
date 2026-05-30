@@ -120,6 +120,27 @@ func TestFormats_Allow(t *testing.T) {
 	assert.True(t, list.Allow(""))
 }
 
+func TestFormats_Match(t *testing.T) {
+	list := NewFormats("magy, mov")
+
+	t.Run("ReturnsCanonicalEntry", func(t *testing.T) {
+		// The matched entry is reported, not the first argument.
+		assert.Equal(t, "mov", list.Match("avc1", "mov"))
+		assert.Equal(t, "magy", list.Match("m8ra", "avi"))
+	})
+	t.Run("SkipsEmptyArgs", func(t *testing.T) {
+		assert.Equal(t, "magy", list.Match("", "magicyuv"))
+	})
+	t.Run("NoMatch", func(t *testing.T) {
+		assert.Equal(t, "", list.Match("avc1", "mp4"))
+		assert.Equal(t, "", list.Match())
+		assert.Equal(t, "", list.Match(""))
+	})
+	t.Run("EmptyList", func(t *testing.T) {
+		assert.Equal(t, "", NewFormats("").Match("magy"))
+	})
+}
+
 func TestFormats_Set(t *testing.T) {
 	t.Run("Empty", func(t *testing.T) {
 		list := make(Formats)

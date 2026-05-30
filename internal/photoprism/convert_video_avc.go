@@ -37,10 +37,7 @@ func (w *Convert) ToAvc(f *MediaFile, encoder encode.Encoder, noMutex, force boo
 
 	// Skip files whose codec or container is on the FFmpeg exclude list.
 	if !w.FFmpegAllowed(f) {
-		format := clean.Log(f.MetaData().Codec)
-		if format == "" {
-			format = clean.Log(f.FileType().String())
-		}
+		format := clean.Log(w.ffmpegExclude.Match(f.MetaData().Codec, f.VideoInfo().VideoCodec, f.FileType().String()))
 		log.Warnf("convert: skipping %s because format %s is on the FFmpeg exclude list", logFileName, format)
 		return nil, fmt.Errorf("convert: format %s is excluded from FFmpeg processing", format)
 	}
