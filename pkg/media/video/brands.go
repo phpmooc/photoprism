@@ -57,6 +57,13 @@ var (
 	ChunkM8G0 = Chunk{'M', '8', 'G', '0'} // MagicYUV Grayscale
 )
 
+// HevcChunks lists the ISO BMFF sample entry codes that identify an HEVC
+// (H.265) video stream, including Dolby Vision wrappers built on top of HEVC.
+var HevcChunks = Chunks{
+	ChunkHVC1, ChunkHVC2, ChunkHVC3, ChunkDVH1,
+	ChunkHEV1, ChunkHEV2, ChunkHEV3, ChunkDVHE,
+}
+
 // MagicYuvChunks lists the ISO BMFF sample entry codes that identify a MagicYUV
 // video stream, one per supported pixel format.
 var MagicYuvChunks = Chunks{
