@@ -34,8 +34,8 @@ We encourage all community members to resolve problems on their own whenever pos
 
 ## Enforcement
 
-Our community standards will be enforced as necessary to protect everyone's well-being and ensure our discussion forums, chat rooms, and other infrastructure, such as GitHub Issues, can be used as intended.
+Our community standards will be enforced as necessary to protect everyone's well-being and ensure our discussion forums, chat rooms, and other infrastructure, such as GitHub, can be used as intended.
 
 In cases where violations may be unintentional and improvement seems possible, we aim to issue warnings before taking further action.
 
-In serious cases, we may use technical measures to restrict your access to our infrastructure, including GitHub Issues, forums, and chats, either temporarily or permanently. We also reserve the right to delete rants, personal attacks, spam, and unsolicited advertisements. If you believe we made a mistake, you may [email us](https://www.photoprism.app/contact) to request an appeal.
+In serious cases, we may use technical measures to restrict your access to our infrastructure, including GitHub, forums, and chats, either temporarily or permanently. We also reserve the right to delete rants, personal attacks, spam, and unsolicited advertisements. If you believe we made a mistake, you may [email us](https://www.photoprism.app/contact) to request an appeal.
