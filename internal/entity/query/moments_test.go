@@ -369,4 +369,37 @@ func TestRemoveDuplicateMoments(t *testing.T) {
 		assert.NotNil(t, entity.FindFolderAlbum(pathA), "albumA should survive RemoveDuplicateMoments")
 		assert.NotNil(t, entity.FindFolderAlbum(pathB), "albumB should survive RemoveDuplicateMoments")
 	})
+	t.Run("KeepsSlugCollidingSiblings", func(t *testing.T) {
+		// Two legacy emoji sibling folders collapse to the same slug because slug.Make
+		// drops the emoji ("base/🪞" and "base/🎃" both slug to "base"). album_slug is
+		// VARBINARY, so the slugs match byte-exact and the pair looks like a duplicate.
+		// The HEX(album_path) guard keeps the byte-distinct paths from being deleted.
+		base := "emoji-moments-" + txt.Slug(time.Now().UTC().Format(time.RFC3339Nano))
+		pathMirror := base + "/🪞"
+		pathPumpkin := base + "/🎃"
+		sharedSlug := txt.Clip(base, txt.ClipSlug)
+
+		albumMirror := &entity.Album{AlbumType: entity.AlbumFolder, AlbumSlug: sharedSlug, AlbumPath: pathMirror, AlbumFilter: `path:"` + pathMirror + `" public:true`}
+		albumMirror.SetTitle("🪞")
+		if err := albumMirror.Create(); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = albumMirror.DeletePermanently() })
+
+		albumPumpkin := &entity.Album{AlbumType: entity.AlbumFolder, AlbumSlug: sharedSlug, AlbumPath: pathPumpkin, AlbumFilter: `path:"` + pathPumpkin + `" public:true`}
+		albumPumpkin.SetTitle("🎃")
+		if err := albumPumpkin.Create(); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = albumPumpkin.DeletePermanently() })
+
+		assert.Equal(t, albumMirror.AlbumSlug, albumPumpkin.AlbumSlug)
+
+		if _, err := RemoveDuplicateMoments(); err != nil {
+			t.Fatal(err)
+		}
+
+		assert.NotNil(t, entity.FindFolderAlbum(pathMirror), "mirror album should survive RemoveDuplicateMoments")
+		assert.NotNil(t, entity.FindFolderAlbum(pathPumpkin), "pumpkin album should survive RemoveDuplicateMoments")
+	})
 }
