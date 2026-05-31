@@ -66,7 +66,7 @@ require github.com/go-ldap/ldap/v3 v3.4.13
 
 require (
 	github.com/prometheus/client_golang v1.23.2
-	github.com/prometheus/common v0.67.5
+	github.com/prometheus/common v0.68.0
 )
 
 require github.com/dustinkirkland/golang-petname v0.0.0-20260215035315-f0c533e9ce9b
@@ -171,7 +171,6 @@ require (
 	go.opentelemetry.io/otel v1.43.0 // indirect
 	go.opentelemetry.io/otel/metric v1.43.0 // indirect
 	go.opentelemetry.io/otel/trace v1.43.0 // indirect
-	go.yaml.in/yaml/v2 v2.4.4 // indirect
 	go.yaml.in/yaml/v3 v3.0.4 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/tools v0.45.0 // indirect
