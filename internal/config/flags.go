@@ -16,7 +16,6 @@ import (
 	"github.com/photoprism/photoprism/internal/thumb"
 	"github.com/photoprism/photoprism/pkg/authn"
 	"github.com/photoprism/photoprism/pkg/fs"
-	"github.com/photoprism/photoprism/pkg/fs/disk"
 	"github.com/photoprism/photoprism/pkg/http/header"
 	"github.com/photoprism/photoprism/pkg/http/scheme"
 	"github.com/photoprism/photoprism/pkg/i18n"
@@ -226,8 +225,8 @@ var Flags = CliFlags{
 		}}, {
 		Flag: &cli.Float64Flag{
 			Name:    "storage-free",
-			Usage:   "`PERCENT` of free storage required for indexing, importing, and uploads (-1 disables check)",
-			Value:   disk.StorageLowPct,
+			Usage:   "minimum `PERCENT` (1-99) of free storage required for indexing, importing, and uploads, -1 disables the check",
+			Value:   DefaultStorageFree,
 			EnvVars: EnvVars("STORAGE_FREE"),
 		}}, {
 		Flag: &cli.PathFlag{
