@@ -77,14 +77,36 @@ const readConfigValue = (config, key) => {
   return "";
 };
 
+// instanceLabel derives a short, distinctive display name from a SiteUrl — the
+// last base-path segment (e.g. "pro-1" for ".../i/pro-1/"). The switcher can
+// only surface same-origin instances, which always differ by path, so the path
+// segment is more distinctive than the frequently-generic site caption/title
+// (multiple instances commonly share the default "PhotoPrism" caption). Returns
+// "" for a root-path or unparseable URL so the caller falls back to the caption.
+const instanceLabel = (siteUrl) => {
+  if (!siteUrl || typeof siteUrl !== "string") {
+    return "";
+  }
+  try {
+    const segments = new URL(siteUrl).pathname.split("/").filter(Boolean);
+    return segments.length ? segments[segments.length - 1] : "";
+  } catch {
+    return "";
+  }
+};
+
 // instanceIdentity extracts {namespace, siteUrl, name} from a Config-like
-// object. The name falls back through the site caption/title/app name to the
-// SiteUrl so an entry is always labelable.
+// object. The name prefers the distinctive base-path segment, then the site
+// caption/title/app name, then the SiteUrl so an entry is always labelable.
 export const instanceIdentity = (config) => {
   const namespace = readConfigValue(config, "storageNamespace");
   const siteUrl = readConfigValue(config, "siteUrl");
   const name =
-    readConfigValue(config, "siteCaption") || readConfigValue(config, "siteTitle") || readConfigValue(config, "name") || siteUrl;
+    instanceLabel(siteUrl) ||
+    readConfigValue(config, "siteCaption") ||
+    readConfigValue(config, "siteTitle") ||
+    readConfigValue(config, "name") ||
+    siteUrl;
   return { namespace, siteUrl, name };
 };
 

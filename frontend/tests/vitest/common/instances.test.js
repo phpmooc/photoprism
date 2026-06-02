@@ -41,12 +41,16 @@ const seedDirectory = (store) =>
   );
 
 describe("common/instances instanceIdentity", () => {
-  it("reads namespace/siteUrl/name from a config values object", () => {
+  it("derives the name from the distinctive base-path segment", () => {
+    const config = { values: { storageNamespace: NS_P1, siteUrl: "https://app.example.com/i/pro-1/", siteCaption: "AI-Powered DAM" } };
+    expect(instanceIdentity(config)).toEqual({ namespace: NS_P1, siteUrl: "https://app.example.com/i/pro-1/", name: "pro-1" });
+  });
+  it("falls back to the site caption when the URL has no base path", () => {
     const config = { values: { storageNamespace: NS_PORTAL, siteUrl: "https://x/", siteCaption: "Portal" } };
     expect(instanceIdentity(config)).toEqual({ namespace: NS_PORTAL, siteUrl: "https://x/", name: "Portal" });
   });
-  it("falls back through caption/title/name to the siteUrl for the label", () => {
-    expect(instanceIdentity({ values: { storageNamespace: NS_P1, siteUrl: "https://x/i/pro-1" } }).name).toBe("https://x/i/pro-1");
+  it("falls back to the siteUrl when nothing else is available", () => {
+    expect(instanceIdentity({ values: { storageNamespace: NS_P1, siteUrl: "https://x/" } }).name).toBe("https://x/");
   });
   it("tolerates a missing config", () => {
     expect(instanceIdentity(undefined)).toEqual({ namespace: "", siteUrl: "", name: "" });
@@ -97,7 +101,7 @@ describe("common/instances recordInstanceFromConfig", () => {
   it("records the identity derived from a config", () => {
     const store = new FakeStorage();
     recordInstanceFromConfig({ values: { storageNamespace: NS_P2, siteUrl: "https://x/i/pro-2", siteCaption: "Pro Two" } }, store);
-    expect(readDirectory(store)[NS_P2]).toEqual({ siteUrl: "https://x/i/pro-2", name: "Pro Two" });
+    expect(readDirectory(store)[NS_P2]).toEqual({ siteUrl: "https://x/i/pro-2", name: "pro-2" });
   });
 });
 
