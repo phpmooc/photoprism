@@ -7,7 +7,8 @@ import (
 )
 
 const (
-	ClipStringType = 64
+	// TypeBytes is the byte budget for sanitized type and identifier strings.
+	TypeBytes = 64
 
 	// PathBytes is the byte budget shared by the album_path, photo_path, and
 	// folders.path columns (all VARBINARY(1024)). Path values are clipped to it
@@ -42,21 +43,12 @@ func ClipPath(p string) string {
 	return clip.Bytes(p, PathBytes)
 }
 
-// SanitizeStringType normalizes identifier-like strings by stripping non-ASCII runes and clipping to 32 characters.
-func SanitizeStringType(s string) string {
-	return Clip(ToASCII(s), ClipStringType)
+// ClipType normalizes identifier-like strings by stripping non-ASCII runes and clipping to 32 characters.
+func ClipType(s string) string {
+	return Clip(ToASCII(s), TypeBytes)
 }
 
-// SanitizeStringTypeLower lowercases the string before applying SanitizeStringType.
-func SanitizeStringTypeLower(s string) string {
-	return SanitizeStringType(strings.ToLower(s))
-}
-
-// TypeString returns an entity type string for logging, defaulting to "unknown".
-func TypeString(entityType string) string {
-	if entityType == "" {
-		return "unknown"
-	}
-
-	return entityType
+// ClipTypeLower lowercases the string before applying ClipType.
+func ClipTypeLower(s string) string {
+	return ClipType(strings.ToLower(s))
 }
