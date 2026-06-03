@@ -7,7 +7,7 @@ import (
 	"github.com/sirupsen/logrus"
 
 	"github.com/photoprism/photoprism/internal/event"
-	"github.com/photoprism/photoprism/pkg/txt"
+	"github.com/photoprism/photoprism/pkg/txt/clip"
 )
 
 // ErrorMessageBytes is the storage limit of the error_message column in bytes,
@@ -71,7 +71,7 @@ func (Error) LogEvents(minLevel logrus.Level) {
 		errLog := Error{ErrorLevel: level.String()}
 
 		if val, ok := msg.Fields["message"]; ok {
-			errLog.ErrorMessage = txt.ClipBytes(val.(string), ErrorMessageBytes)
+			errLog.ErrorMessage = clip.Bytes(val.(string), ErrorMessageBytes)
 		}
 
 		if val, ok := msg.Fields["time"]; ok {
