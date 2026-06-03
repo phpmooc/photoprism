@@ -154,11 +154,7 @@ func CreateSession(router *gin.RouterGroup) {
 		// /api/v1/oauth/authorize endpoint can authenticate top-level browser
 		// navigations, which carry no Authorization header. See SetOIDCSessionCookie.
 		if conf.Portal() {
-			maxAge := int(sess.ExpiresIn())
-			if maxAge <= 0 {
-				maxAge = int(conf.SessionMaxAge())
-			}
-			SetOIDCSessionCookie(c, sess.AuthToken(), oidcSessionCookiePath(conf), maxAge, conf.SiteHttps())
+			SetOIDCSessionCookie(c, sess, OIDCSessionCookiePath(conf), conf.SiteHttps())
 		}
 
 		// Return JSON response.

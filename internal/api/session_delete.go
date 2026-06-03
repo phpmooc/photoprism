@@ -84,7 +84,7 @@ func DeleteSession(router *gin.RouterGroup) {
 
 		// On the Portal (OIDC OP), clear the narrowly-scoped session cookie on logout.
 		if conf := get.Config(); conf.Portal() {
-			ClearOIDCSessionCookie(c, oidcSessionCookiePath(conf), conf.SiteHttps())
+			ClearOIDCSessionCookie(c, OIDCSessionCookiePath(conf), conf.SiteHttps())
 		}
 
 		// Return JSON response for confirmation.
