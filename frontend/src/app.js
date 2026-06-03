@@ -34,7 +34,6 @@ import $event from "common/event";
 import $log from "common/log";
 import { registerServiceWorker } from "common/pwa";
 import $util from "common/util";
-import { recordInstanceFromConfig } from "common/instances";
 import * as components from "component/components";
 import icons from "component/icons";
 import defaults from "component/defaults";
@@ -76,10 +75,6 @@ $config.update().finally(() => {
 
   // Check if running in public mode.
   const $isPublic = $config.isPublic();
-
-  // Record this instance in the shared browser-storage directory so same-origin
-  // siblings can offer it as an instance-switcher target (see common/instances).
-  recordInstanceFromConfig($config);
 
   let app = createApp(PhotoPrism);
 

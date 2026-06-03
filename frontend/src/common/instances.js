@@ -23,67 +23,29 @@ Additional information can be found in our Developer Guide:
 
 */
 
-// Shared, cross-namespace browser-storage directory that lets same-origin
-// PhotoPrism instances discover one another for the account-menu instance
-// switcher. Each instance records its own {siteUrl, name} under its storage
-// namespace (the SHA-256 of its SiteUrl, see config StorageNamespace and
-// assets/templates/auth.gohtml). The switcher then renders the directory
-// entries that currently hold a live session token (common/storage.js
-// listAuthSessions) so a user can jump between instances they are signed in to,
-// without relying on any cluster API. On standalone or separate-origin
-// instances the directory only ever contains the current instance, so the
-// switcher stays hidden.
+import { listAuthSessions, buildNamespace } from "common/storage";
 
-import { listAuthSessions } from "common/storage";
+// Storage suffixes under which each instance records its public identity, so
+// peers on the same shared-domain origin can render a navigation switcher entry.
+// The namespace is a SHA-256 hash of the SiteUrl and is not reversible, so the
+// URL and title must be persisted explicitly under the instance's namespace.
+const InstanceUrlKey = "instance.url";
+const InstanceTitleKey = "instance.title";
 
-// DirectoryKey is the raw localStorage key holding the instance directory. It
-// is intentionally NOT namespaced (no "pp:<ns>:" prefix) so every same-origin
-// instance reads and writes the same map; parseNamespace() ignores it because
-// it has no second separator.
-export const DirectoryKey = "pp:instances";
+// InstanceIdentityKeys lists the suffix keys written by persistInstanceIdentity,
+// so callers (e.g. session logout) can clear them across storage backends.
+export const InstanceIdentityKeys = [InstanceUrlKey, InstanceTitleKey];
 
-// getWindow safely accesses the browser window if it exists.
-const getWindow = () => (typeof window === "undefined" ? null : window);
-
-// getLocalStorage returns the explicit storage or the raw window localStorage.
-// The directory deliberately uses raw (un-namespaced) storage so it is shared
-// across instance namespaces on the same origin.
-const getLocalStorage = (storage) => {
-  if (storage) {
-    return storage;
-  }
-  const w = getWindow();
-  return w ? w.localStorage : null;
-};
-
-// readConfigValue reads a string field from a Config-like object, tolerating
-// both the live $config (with .values / .get()) and a plain values object.
-const readConfigValue = (config, key) => {
-  if (!config) {
-    return "";
-  }
-  if (config.values && typeof config.values[key] === "string") {
-    return config.values[key];
-  }
-  if (typeof config.get === "function") {
-    const v = config.get(key);
-    if (typeof v === "string") {
-      return v;
-    }
-  }
-  if (typeof config[key] === "string") {
-    return config[key];
-  }
-  return "";
-};
+// safeWindow returns the browser window if available, else null.
+const safeWindow = () => (typeof window === "undefined" ? null : window);
 
 // instanceLabel derives a short, distinctive display name from a SiteUrl — the
 // last base-path segment (e.g. "pro-1" for ".../i/pro-1/"). The switcher can
 // only surface same-origin instances, which always differ by path, so the path
 // segment is more distinctive than the frequently-generic site caption/title
 // (multiple instances commonly share the default "PhotoPrism" caption). Returns
-// "" for a root-path or unparseable URL so the caller falls back to the caption.
-const instanceLabel = (siteUrl) => {
+// "" for a root-path or unparseable URL so the caller falls back to the title.
+export function instanceLabel(siteUrl) {
   if (!siteUrl || typeof siteUrl !== "string") {
     return "";
   }
@@ -93,95 +55,78 @@ const instanceLabel = (siteUrl) => {
   } catch {
     return "";
   }
-};
+}
 
-// instanceIdentity extracts {namespace, siteUrl, name} from a Config-like
-// object. The name prefers the distinctive base-path segment, then the site
-// caption/title/app name, then the SiteUrl so an entry is always labelable.
-export const instanceIdentity = (config) => {
-  const namespace = readConfigValue(config, "storageNamespace");
-  const siteUrl = readConfigValue(config, "siteUrl");
-  const name =
-    instanceLabel(siteUrl) ||
-    readConfigValue(config, "siteCaption") ||
-    readConfigValue(config, "siteTitle") ||
-    readConfigValue(config, "name") ||
-    siteUrl;
-  return { namespace, siteUrl, name };
-};
-
-// readDirectory parses the instance directory map; returns {} on any error.
-export const readDirectory = (storage) => {
-  const store = getLocalStorage(storage);
-  if (!store || typeof store.getItem !== "function") {
-    return {};
-  }
-  try {
-    const raw = store.getItem(DirectoryKey);
-    if (!raw) {
-      return {};
-    }
-    const dir = JSON.parse(raw);
-    return dir && typeof dir === "object" ? dir : {};
-  } catch {
-    return {};
-  }
-};
-
-// recordInstance upserts an instance identity into the shared directory. A
-// missing namespace or siteUrl is a no-op, so it is safe to call during early
-// bootstrap before the client config is fully resolved.
-export const recordInstance = (identity, storage) => {
-  const { namespace, siteUrl, name } = identity || {};
-  if (!namespace || !siteUrl) {
+// persistInstanceIdentity records this instance's SiteUrl and display title in
+// the given (namespaced) store, so other instances on the same origin can list
+// it in the navigation instance switcher. No-op without a URL or usable store.
+export function persistInstanceIdentity(store, identity) {
+  if (!store || typeof store.setItem !== "function" || !identity || !identity.url) {
     return;
   }
-  const store = getLocalStorage(storage);
-  if (!store || typeof store.setItem !== "function") {
-    return;
+
+  store.setItem(InstanceUrlKey, identity.url);
+
+  if (identity.title) {
+    store.setItem(InstanceTitleKey, identity.title);
+  } else {
+    store.removeItem(InstanceTitleKey);
   }
-  try {
-    const dir = readDirectory(store);
-    const next = name || siteUrl;
-    const existing = dir[namespace];
-    if (existing && existing.siteUrl === siteUrl && existing.name === next) {
+}
+
+// listReachableInstances returns the instances (other than currentNamespace) that
+// have a live session token and a recorded identity in shared browser storage,
+// for the navigation instance switcher. Both localStorage (persistent sessions)
+// and sessionStorage (ephemeral sessions, shared across same-tab navigations) are
+// scanned, since recordInstanceIdentity writes to whichever the instance uses.
+// Returns an empty array on standalone or subdomain-isolated deployments where no
+// peer sessions are discoverable.
+export function listReachableInstances(options) {
+  const opts = options || {};
+
+  let stores;
+  if (opts.storage) {
+    stores = [opts.storage];
+  } else if (Array.isArray(opts.stores)) {
+    stores = opts.stores;
+  } else {
+    const w = safeWindow();
+    stores = [w?.localStorage, w?.sessionStorage];
+  }
+
+  const currentPrefix = buildNamespace(opts.currentNamespace);
+  const seen = new Set();
+  const instances = [];
+
+  stores.forEach((store) => {
+    if (!store || typeof store.getItem !== "function") {
       return;
     }
-    dir[namespace] = { siteUrl, name: next };
-    store.setItem(DirectoryKey, JSON.stringify(dir));
-  } catch {
-    /* ignore quota / serialization errors — the directory is best-effort */
-  }
-};
 
-// recordInstanceFromConfig records the current instance using its client config.
-export const recordInstanceFromConfig = (config, storage) => {
-  recordInstance(instanceIdentity(config), storage);
-};
+    listAuthSessions(store).forEach((session) => {
+      const namespace = session && session.namespace;
+      if (!namespace) {
+        return;
+      }
 
-// signedInInstances returns the directory entries — excluding the current
-// instance — that currently hold a live session token, as the switch-instance
-// target list. Each target is {namespace, siteUrl, name}, sorted by name for a
-// deterministic menu order.
-export const signedInInstances = (config, storage) => {
-  const store = getLocalStorage(storage);
-  if (!store) {
-    return [];
-  }
-  const dir = readDirectory(store);
-  const current = readConfigValue(config, "storageNamespace");
-  const live = new Set(listAuthSessions(store).map((s) => s.namespace));
-  const out = [];
-  for (const namespace of Object.keys(dir)) {
-    if (namespace === current || !live.has(namespace)) {
-      continue;
-    }
-    const entry = dir[namespace];
-    if (!entry || !entry.siteUrl) {
-      continue;
-    }
-    out.push({ namespace, siteUrl: entry.siteUrl, name: entry.name || entry.siteUrl });
-  }
-  out.sort((a, b) => a.name.localeCompare(b.name));
-  return out;
-};
+      const prefix = buildNamespace(namespace);
+      if (prefix === currentPrefix || seen.has(prefix)) {
+        return;
+      }
+
+      const url = store.getItem(prefix + InstanceUrlKey);
+      if (!url) {
+        return;
+      }
+
+      seen.add(prefix);
+      instances.push({
+        namespace,
+        url,
+        title: store.getItem(prefix + InstanceTitleKey) || url,
+      });
+    });
+  });
+
+  return instances;
+}

@@ -1,132 +1,128 @@
-import { describe, expect, it } from "vitest";
-import { DirectoryKey, instanceIdentity, readDirectory, recordInstance, recordInstanceFromConfig, signedInInstances } from "common/instances";
+import { describe, it, expect } from "vitest";
+import StorageShim from "node-storage-shim";
+import { buildNamespace, createNamespacedStorage } from "common/storage";
+import { persistInstanceIdentity, listReachableInstances, InstanceIdentityKeys, instanceLabel } from "common/instances";
 
-// FakeStorage mirrors the subset of the Web Storage API that common/storage and
-// common/instances rely on (length/key/getItem/setItem/removeItem), with
-// insertion-ordered keys so listAuthSessions can enumerate namespaces.
-class FakeStorage {
-  constructor() {
-    this.map = new Map();
+// seedInstance writes a peer instance's session token and identity into a shared store.
+const seedInstance = (store, namespace, { token = "tok", url, title } = {}) => {
+  const prefix = buildNamespace(namespace);
+  if (token) {
+    store.setItem(prefix + "session.token", token);
   }
-  get length() {
-    return this.map.size;
+  if (url) {
+    store.setItem(prefix + "instance.url", url);
   }
-  key(i) {
-    const keys = Array.from(this.map.keys());
-    return i >= 0 && i < keys.length ? keys[i] : null;
+  if (title) {
+    store.setItem(prefix + "instance.title", title);
   }
-  getItem(k) {
-    return this.map.has(k) ? this.map.get(k) : null;
-  }
-  setItem(k, v) {
-    this.map.set(k, String(v));
-  }
-  removeItem(k) {
-    this.map.delete(k);
-  }
-}
+};
 
-const NS_PORTAL = "aaaaaaaaaaaa";
-const NS_P1 = "bbbbbbbbbbbb";
-const NS_P2 = "cccccccccccc";
+describe("common/instances", () => {
+  describe("instanceLabel", () => {
+    it("derives the last base-path segment as a distinctive label", () => {
+      expect(instanceLabel("https://app.example.com/i/pro-1/")).toBe("pro-1");
+      expect(instanceLabel("https://app.example.com/i/pro-2")).toBe("pro-2");
+    });
+    it("returns an empty string for a root-path or unparseable url", () => {
+      expect(instanceLabel("https://app.example.com/")).toBe("");
+      expect(instanceLabel("not a url")).toBe("");
+      expect(instanceLabel("")).toBe("");
+      expect(instanceLabel(null)).toBe("");
+    });
+  });
 
-const seedDirectory = (store) =>
-  store.setItem(
-    DirectoryKey,
-    JSON.stringify({
-      [NS_PORTAL]: { siteUrl: "https://x/", name: "Portal" },
-      [NS_P1]: { siteUrl: "https://x/i/pro-1", name: "Pro One" },
-      [NS_P2]: { siteUrl: "https://x/i/pro-2", name: "Pro Two" },
-    })
-  );
+  describe("persistInstanceIdentity", () => {
+    it("writes url and title under the namespace", () => {
+      const store = new StorageShim();
+      const ns = createNamespacedStorage(store, "ns-pro-1");
+      persistInstanceIdentity(ns, { url: "https://pro-1.example.com/", title: "Pro One" });
+      const prefix = buildNamespace("ns-pro-1");
+      expect(store.getItem(prefix + "instance.url")).toBe("https://pro-1.example.com/");
+      expect(store.getItem(prefix + "instance.title")).toBe("Pro One");
+    });
+    it("clears a stale title when none is provided", () => {
+      const store = new StorageShim();
+      const ns = createNamespacedStorage(store, "ns-pro-1");
+      persistInstanceIdentity(ns, { url: "https://pro-1.example.com/", title: "Pro One" });
+      persistInstanceIdentity(ns, { url: "https://pro-1.example.com/" });
+      const prefix = buildNamespace("ns-pro-1");
+      expect(store.getItem(prefix + "instance.title")).toBeNull();
+    });
+    it("is a no-op without a url", () => {
+      const store = new StorageShim();
+      const ns = createNamespacedStorage(store, "ns-pro-1");
+      persistInstanceIdentity(ns, { title: "Pro One" });
+      expect(store.length).toBe(0);
+    });
+    it("is a no-op without a usable store", () => {
+      expect(() => persistInstanceIdentity(null, { url: "https://pro-1.example.com/" })).not.toThrow();
+    });
+    it("exposes the identity suffix keys for cleanup", () => {
+      expect(InstanceIdentityKeys).toContain("instance.url");
+      expect(InstanceIdentityKeys).toContain("instance.title");
+    });
+  });
 
-describe("common/instances instanceIdentity", () => {
-  it("derives the name from the distinctive base-path segment", () => {
-    const config = { values: { storageNamespace: NS_P1, siteUrl: "https://app.example.com/i/pro-1/", siteCaption: "AI-Powered DAM" } };
-    expect(instanceIdentity(config)).toEqual({ namespace: NS_P1, siteUrl: "https://app.example.com/i/pro-1/", name: "pro-1" });
-  });
-  it("falls back to the site caption when the URL has no base path", () => {
-    const config = { values: { storageNamespace: NS_PORTAL, siteUrl: "https://x/", siteCaption: "Portal" } };
-    expect(instanceIdentity(config)).toEqual({ namespace: NS_PORTAL, siteUrl: "https://x/", name: "Portal" });
-  });
-  it("falls back to the siteUrl when nothing else is available", () => {
-    expect(instanceIdentity({ values: { storageNamespace: NS_P1, siteUrl: "https://x/" } }).name).toBe("https://x/");
-  });
-  it("tolerates a missing config", () => {
-    expect(instanceIdentity(undefined)).toEqual({ namespace: "", siteUrl: "", name: "" });
-  });
-});
-
-describe("common/instances readDirectory", () => {
-  it("returns an empty map when nothing is stored", () => {
-    expect(readDirectory(new FakeStorage())).toEqual({});
-  });
-  it("returns an empty map for malformed JSON", () => {
-    const store = new FakeStorage();
-    store.setItem(DirectoryKey, "{not json");
-    expect(readDirectory(store)).toEqual({});
-  });
-});
-
-describe("common/instances recordInstance", () => {
-  it("upserts an instance under its namespace", () => {
-    const store = new FakeStorage();
-    recordInstance({ namespace: NS_P1, siteUrl: "https://x/i/pro-1", name: "Pro One" }, store);
-    expect(readDirectory(store)[NS_P1]).toEqual({ siteUrl: "https://x/i/pro-1", name: "Pro One" });
-  });
-  it("labels with the siteUrl when no name is supplied", () => {
-    const store = new FakeStorage();
-    recordInstance({ namespace: NS_P1, siteUrl: "https://x/i/pro-1" }, store);
-    expect(readDirectory(store)[NS_P1].name).toBe("https://x/i/pro-1");
-  });
-  it("is a no-op without a namespace or siteUrl", () => {
-    const store = new FakeStorage();
-    recordInstance({ namespace: "", siteUrl: "https://x/" }, store);
-    recordInstance({ namespace: NS_P1, siteUrl: "" }, store);
-    expect(readDirectory(store)).toEqual({});
-  });
-  it("does not rewrite an unchanged entry", () => {
-    const store = new FakeStorage();
-    recordInstance({ namespace: NS_P1, siteUrl: "https://x/i/pro-1", name: "Pro One" }, store);
-    const before = store.getItem(DirectoryKey);
-    store.setItem = () => {
-      throw new Error("must not write");
-    };
-    expect(() => recordInstance({ namespace: NS_P1, siteUrl: "https://x/i/pro-1", name: "Pro One" }, store)).not.toThrow();
-    expect(store.getItem(DirectoryKey)).toBe(before);
-  });
-});
-
-describe("common/instances recordInstanceFromConfig", () => {
-  it("records the identity derived from a config", () => {
-    const store = new FakeStorage();
-    recordInstanceFromConfig({ values: { storageNamespace: NS_P2, siteUrl: "https://x/i/pro-2", siteCaption: "Pro Two" } }, store);
-    expect(readDirectory(store)[NS_P2]).toEqual({ siteUrl: "https://x/i/pro-2", name: "pro-2" });
-  });
-});
-
-describe("common/instances signedInInstances", () => {
-  it("returns other instances that currently hold a live session, excluding the current one", () => {
-    const store = new FakeStorage();
-    seedDirectory(store);
-    store.setItem(`pp:${NS_PORTAL}:session.token`, "tok-portal");
-    store.setItem(`pp:${NS_P1}:session.token`, "tok-p1");
-    // pro-2 is in the directory but has no live session token.
-    const config = { values: { storageNamespace: NS_PORTAL } };
-    expect(signedInInstances(config, store)).toEqual([{ namespace: NS_P1, siteUrl: "https://x/i/pro-1", name: "Pro One" }]);
-  });
-  it("returns an empty list when no sibling has a live session", () => {
-    const store = new FakeStorage();
-    seedDirectory(store);
-    store.setItem(`pp:${NS_PORTAL}:session.token`, "tok-portal");
-    expect(signedInInstances({ values: { storageNamespace: NS_PORTAL } }, store)).toEqual([]);
-  });
-  it("sorts targets by name", () => {
-    const store = new FakeStorage();
-    seedDirectory(store);
-    store.setItem(`pp:${NS_P1}:session.token`, "tok-p1");
-    store.setItem(`pp:${NS_P2}:session.token`, "tok-p2");
-    const names = signedInInstances({ values: { storageNamespace: NS_PORTAL } }, store).map((t) => t.name);
-    expect(names).toEqual(["Pro One", "Pro Two"]);
+  describe("listReachableInstances", () => {
+    it("returns peer instances excluding the current namespace", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { url: "https://pro-1.example.com/", title: "Pro One" });
+      seedInstance(store, "ns-pro-2", { url: "https://pro-2.example.com/", title: "Pro Two" });
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", storage: store });
+      expect(result).toHaveLength(1);
+      expect(result[0]).toMatchObject({ namespace: "ns-pro-2", url: "https://pro-2.example.com/", title: "Pro Two" });
+    });
+    it("falls back to the url when no title is recorded", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { url: "https://pro-1.example.com/" });
+      seedInstance(store, "ns-pro-2", { url: "https://pro-2.example.com/" });
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", storage: store });
+      expect(result[0].title).toBe("https://pro-2.example.com/");
+    });
+    it("ignores namespaces that have a session but no recorded identity", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { url: "https://pro-1.example.com/" });
+      seedInstance(store, "ns-pro-2", { token: "tok2" }); // session only, no identity
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", storage: store });
+      expect(result).toHaveLength(0);
+    });
+    it("ignores namespaces that have an identity but no live session", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { url: "https://pro-1.example.com/" });
+      seedInstance(store, "ns-pro-2", { token: "", url: "https://pro-2.example.com/" }); // identity only
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", storage: store });
+      expect(result).toHaveLength(0);
+    });
+    it("returns an empty array for a standalone deployment", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { url: "https://pro-1.example.com/" });
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", storage: store });
+      expect(result).toEqual([]);
+    });
+    it("de-duplicates a namespace seen more than once", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { url: "https://pro-1.example.com/" });
+      seedInstance(store, "ns-pro-2", { url: "https://pro-2.example.com/", title: "Pro Two" });
+      store.setItem(buildNamespace("ns-pro-2") + "session.token", "tok-dup");
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", storage: store });
+      expect(result).toHaveLength(1);
+    });
+    it("discovers ephemeral peers from sessionStorage as well as localStorage", () => {
+      const local = new StorageShim();
+      const session = new StorageShim();
+      seedInstance(local, "ns-pro-1", { url: "https://pro-1.example.com/", title: "Pro One" });
+      seedInstance(session, "ns-pro-2", { url: "https://pro-2.example.com/", title: "Pro Two" });
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", stores: [local, session] });
+      expect(result.map((i) => i.namespace)).toEqual(["ns-pro-2"]);
+    });
+    it("de-duplicates a namespace present in both storage backends", () => {
+      const local = new StorageShim();
+      const session = new StorageShim();
+      seedInstance(local, "ns-pro-1", { url: "https://pro-1.example.com/" });
+      seedInstance(local, "ns-pro-2", { url: "https://pro-2.example.com/", title: "Pro Two" });
+      seedInstance(session, "ns-pro-2", { url: "https://pro-2.example.com/", title: "Pro Two" });
+      const result = listReachableInstances({ currentNamespace: "ns-pro-1", stores: [local, session] });
+      expect(result).toHaveLength(1);
+    });
   });
 });
