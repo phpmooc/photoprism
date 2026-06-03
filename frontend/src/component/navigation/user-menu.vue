@@ -1,7 +1,7 @@
 <template>
   <v-menu
     v-model="open"
-    location="end"
+    location="top"
     offset="6"
     :min-width="240"
     :z-index="2500"
