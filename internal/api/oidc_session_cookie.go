@@ -5,33 +5,46 @@ import (
 
 	"github.com/gin-gonic/gin"
 
+	"github.com/photoprism/photoprism/internal/config"
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/rnd"
 )
 
 // OIDCSessionCookie is the name of the narrowly-scoped cookie that lets the
 // Portal OIDC OP authenticate a browser on a top-level navigation to
-// /oauth/authorize, which carries no Authorization or X-Auth-Token header.
+// /api/v1/oauth/authorize, which carries no Authorization or X-Auth-Token header.
 const OIDCSessionCookie = "oidc_session"
 
-// oidcSessionCookiePath scopes the OP session cookie to the OAuth endpoints so
-// it is never transmitted to the general API surface.
-const oidcSessionCookiePath = "/oauth"
+// oidcSessionCookiePath returns the URL path the OP session cookie is scoped to,
+// derived from where the OAuth endpoints are mounted (the APIv1 base path plus
+// "/oauth"). Scoping to the OAuth subtree keeps the cookie off the general API
+// surface, so it adds no CSRF vector to state-changing endpoints, while still
+// covering the /oauth/authorize endpoint a top-level browser navigation hits.
+func oidcSessionCookiePath(conf *config.Config) string {
+	if conf == nil {
+		return config.ApiUri + "/oauth"
+	}
+	return conf.BaseUri(config.ApiUri) + "/oauth"
+}
 
 // SetOIDCSessionCookie stores the Portal session token in a narrowly-scoped,
-// HttpOnly cookie so the OIDC OP /oauth/authorize endpoint can authenticate the
-// browser on a top-level navigation. The cookie is honored ONLY by the OP
+// HttpOnly cookie so the OIDC OP /api/v1/oauth/authorize endpoint can authenticate
+// the browser on a top-level navigation. The cookie is honored ONLY by the OP
 // authorize handler (see OIDCSessionCookieToken), never as a general API
 // authenticator, so it adds no CSRF surface to state-changing endpoints.
-func SetOIDCSessionCookie(c *gin.Context, authToken string, maxAge int, secure bool) {
+func SetOIDCSessionCookie(c *gin.Context, authToken, cookiePath string, maxAge int, secure bool) {
 	if c == nil || !rnd.IsAuthToken(authToken) {
 		return
+	}
+
+	if cookiePath == "" {
+		cookiePath = config.ApiUri + "/oauth"
 	}
 
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     OIDCSessionCookie,
 		Value:    authToken,
-		Path:     oidcSessionCookiePath,
+		Path:     cookiePath,
 		MaxAge:   maxAge,
 		Secure:   secure,
 		HttpOnly: true,
@@ -39,16 +52,22 @@ func SetOIDCSessionCookie(c *gin.Context, authToken string, maxAge int, secure b
 	})
 }
 
-// ClearOIDCSessionCookie removes the OP session cookie, e.g. on logout.
-func ClearOIDCSessionCookie(c *gin.Context, secure bool) {
+// ClearOIDCSessionCookie removes the OP session cookie, e.g. on logout. The
+// cookiePath must match the value used by SetOIDCSessionCookie so the browser
+// overwrites the same cookie.
+func ClearOIDCSessionCookie(c *gin.Context, cookiePath string, secure bool) {
 	if c == nil {
 		return
+	}
+
+	if cookiePath == "" {
+		cookiePath = config.ApiUri + "/oauth"
 	}
 
 	http.SetCookie(c.Writer, &http.Cookie{
 		Name:     OIDCSessionCookie,
 		Value:    "",
-		Path:     oidcSessionCookiePath,
+		Path:     cookiePath,
 		MaxAge:   -1,
 		Secure:   secure,
 		HttpOnly: true,

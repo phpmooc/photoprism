@@ -53,6 +53,30 @@ func OAuthToken(router *gin.RouterGroup) {
 		// Disable caching of responses.
 		c.Header(header.CacheControl, header.CacheControlNoStore)
 
+		// The OIDC authorization_code grant is handled by the Portal OIDC OP, which
+		// parses and validates the request itself. Delegating here keeps a single
+		// OIDC-compliant token_endpoint while the client_credentials, password, and
+		// session grants below stay unchanged and DB-backed. The check runs before
+		// the form binding because form.OAuthCreateToken.Validate rejects this grant
+		// and a client_secret_basic request would otherwise be read as
+		// client_credentials. It is gated on a form content type so that peeking at
+		// the body here does not consume it in a way that masks the missing-body
+		// error the binding below relies on, and because per RFC 6749 the token
+		// endpoint is always form-encoded. Builds without the OP report the grant as
+		// unsupported.
+		if c.ContentType() == header.ContentTypeForm && authn.Grant(c.PostForm("grant_type")) == authn.GrantAuthorizationCode {
+			if OAuthAuthorizationCodeHandler != nil {
+				OAuthAuthorizationCodeHandler(c)
+				return
+			}
+			event.AuditWarn([]string{clientIp, "oauth2", actor, action, authn.ErrInvalidGrantType.Error()})
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"error":             "unsupported_grant_type",
+				"error_description": "grant_type is not supported",
+			})
+			return
+		}
+
 		// Token create request form.
 		var frm form.OAuthCreateToken
 		var sess *entity.Session

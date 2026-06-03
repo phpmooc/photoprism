@@ -45,7 +45,7 @@ const OidcAttemptKey = "login.oidc.attempt";
 // Loop guard for the post-login redirect (login.next): the timestamp of the last
 // follow, and the window within which a re-entry counts as a bounce-back loop.
 // Lets /login fall back to the default route instead of looping when the redirect
-// target (e.g. the OIDC OP /oauth/authorize) can't authenticate the navigation.
+// target (e.g. the OIDC OP /api/v1/oauth/authorize) can't authenticate the navigation.
 const LoginRedirectAttemptKey = "login.next.at";
 const LoginRedirectLoopWindow = 6000;
 

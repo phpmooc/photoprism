@@ -151,14 +151,14 @@ func CreateSession(router *gin.RouterGroup) {
 		response := CreateSessionResponse(sess.AuthToken(), sess, conf.ClientSession(sess))
 
 		// On the Portal (OIDC OP), set a narrowly-scoped session cookie so the
-		// /oauth/authorize endpoint can authenticate top-level browser navigations,
-		// which carry no Authorization header. See SetOIDCSessionCookie.
+		// /api/v1/oauth/authorize endpoint can authenticate top-level browser
+		// navigations, which carry no Authorization header. See SetOIDCSessionCookie.
 		if conf.Portal() {
 			maxAge := int(sess.ExpiresIn())
 			if maxAge <= 0 {
 				maxAge = int(conf.SessionMaxAge())
 			}
-			SetOIDCSessionCookie(c, sess.AuthToken(), maxAge, conf.SiteHttps())
+			SetOIDCSessionCookie(c, sess.AuthToken(), oidcSessionCookiePath(conf), maxAge, conf.SiteHttps())
 		}
 
 		// Return JSON response.
