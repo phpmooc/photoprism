@@ -304,7 +304,9 @@ func (ind *Index) UserMediaFile(m *MediaFile, o IndexOptions, originalName, phot
 
 	// Update photo path and name based on the main filename.
 	if !fileStacked && (file.FilePrimary || photo.PhotoName == "") {
-		photo.PhotoPath = filePath
+		// Clip to the shared path byte budget so photo_path stays byte-exact
+		// with album_path for folder-album matching.
+		photo.PhotoPath = entity.ClipPath(filePath)
 
 		if !o.Stack || !stripSequence || photo.PhotoStack == entity.IsUnstacked {
 			photo.PhotoName = fullBase

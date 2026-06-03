@@ -3,6 +3,7 @@ package entity
 import (
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -37,6 +38,25 @@ func TestClip(t *testing.T) {
 		result := Clip("", 999)
 		assert.Equal(t, "", result)
 		assert.Equal(t, 0, len(result))
+	})
+}
+
+// TestClipPath verifies that paths are limited to the PathBytes byte budget
+// without splitting a multi-byte rune.
+func TestClipPath(t *testing.T) {
+	t.Run("ShortPath", func(t *testing.T) {
+		assert.Equal(t, "2024/Vacation", ClipPath("2024/Vacation"))
+	})
+	t.Run("Empty", func(t *testing.T) {
+		assert.Equal(t, "", ClipPath(""))
+	})
+	t.Run("MultiByteOverflow", func(t *testing.T) {
+		// 400 four-byte emoji = 1600 bytes, over the 1024-byte budget.
+		path := strings.Repeat("😀", 400)
+		result := ClipPath(path)
+		assert.LessOrEqual(t, len(result), PathBytes)
+		assert.True(t, utf8.ValidString(result))
+		assert.Equal(t, 256, utf8.RuneCountInString(result))
 	})
 }
 

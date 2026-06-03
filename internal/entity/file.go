@@ -548,7 +548,7 @@ func (m *File) Rename(fileName, rootName, filePath, fileBase string) error {
 	// Update photo path and name if possible.
 	if p := m.RelatedPhoto(); p != nil {
 		return p.Updates(Values{
-			"PhotoPath": filePath,
+			"PhotoPath": ClipPath(filePath),
 			"PhotoName": fileBase,
 		})
 	}

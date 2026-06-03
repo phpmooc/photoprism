@@ -2,10 +2,17 @@ package entity
 
 import (
 	"strings"
+
+	"github.com/photoprism/photoprism/pkg/txt/clip"
 )
 
 const (
 	ClipStringType = 64
+
+	// PathBytes is the byte budget shared by the album_path, photo_path, and
+	// folders.path columns (all VARBINARY(1024)). Path values are clipped to it
+	// on write so the byte-exact comparisons between these columns hold.
+	PathBytes = 1024
 )
 
 // ToASCII removes all non-ASCII runes from the string.
@@ -21,16 +28,18 @@ func ToASCII(s string) string {
 	return string(result)
 }
 
-// Clip trims leading/trailing whitespace and shortens the string to maxLen characters.
+// Clip trims leading/trailing whitespace and limits the string to maxLen bytes
+// without splitting a multi-byte UTF-8 rune.
 func Clip(s string, maxLen int) string {
-	s = strings.TrimSpace(s)
-	l := len(s)
+	return clip.Bytes(s, maxLen)
+}
 
-	if l <= maxLen {
-		return s
-	} else {
-		return s[:maxLen]
-	}
+// ClipPath limits a filesystem path to the PathBytes byte budget on a UTF-8
+// rune boundary, so a multi-byte path cannot overflow the album_path,
+// photo_path, or folders.path columns or break the byte-exact comparisons
+// between them.
+func ClipPath(p string) string {
+	return clip.Bytes(p, PathBytes)
 }
 
 // SanitizeStringType normalizes identifier-like strings by stripping non-ASCII runes and clipping to 32 characters.
