@@ -151,8 +151,18 @@ export default [
       // hard-navigate to the deep link the router guard recorded so the
       // stored absolute path (incl. frontend base) is honored verbatim.
       if ($session.hasLoginRedirectUrl()) {
-        $session.followLoginRedirectUrl();
-        next(false);
+        if ($session.loginRedirectLooping()) {
+          // We followed this redirect moments ago and bounced straight back — the
+          // target couldn't authenticate the navigation. Drop it and fall through
+          // to the default route instead of looping.
+          $session.clearLoginRedirectAttempt();
+          $session.clearLoginRedirectUrl();
+          next({ name: $session.getDefaultRoute() });
+        } else {
+          $session.markLoginRedirectAttempt();
+          $session.followLoginRedirectUrl();
+          next(false);
+        }
       } else {
         next({ name: $session.getDefaultRoute() });
       }

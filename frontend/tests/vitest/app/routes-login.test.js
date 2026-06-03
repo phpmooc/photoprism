@@ -214,6 +214,29 @@ describe("app/routes /login guard", () => {
     expect(next).toHaveBeenCalledWith({ name: "browse" });
   });
 
+  // Defense in depth: if the recorded deep link keeps bouncing the authenticated
+  // user straight back to /login (e.g. the OIDC OP can't authenticate the
+  // navigation), the guard must drop the target and fall through to the default
+  // route instead of looping forever.
+  it("breaks the redirect loop when the recorded deep link keeps bouncing back", () => {
+    $session.user = { hasId: () => true };
+    $session.authToken = "999900000000000000000000000000000000000000000000";
+    $session.id = "a9b8ff820bf40ab451910f8bbfe401b2432446693aa539538fbd2399560a722f";
+    $session.auth = true;
+    $session.setLoginRedirectUrl("/oauth/authorize?client_id=abc&state=x");
+    $session.markLoginRedirectAttempt(); // simulate having just followed it
+    const followLogin = vi.spyOn($session, "followLoginRedirectUrl").mockImplementation(() => {});
+    const getDefault = vi.spyOn($session, "getDefaultRoute").mockReturnValue("browse");
+    const next = vi.fn();
+
+    loginGuard({}, {}, next);
+
+    expect(followLogin).not.toHaveBeenCalled();
+    expect(getDefault).toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith({ name: "browse" });
+    expect($session.hasLoginRedirectUrl()).toBe(false);
+  });
+
   // The Portal OIDC OP redirects unauthenticated users to
   // /portal/admin/login?return_to=<authorize URL> via a top-level browser
   // navigation, so the global router guard never gets to record the deep
