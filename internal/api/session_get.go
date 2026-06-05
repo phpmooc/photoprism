@@ -31,6 +31,10 @@ func GetSession(router *gin.RouterGroup) {
 			return
 		}
 
+		// Disable caching: the response carries the auth token and, on the Portal,
+		// refreshes the OP session cookie.
+		c.Header(header.CacheControl, header.CacheControlNoStore)
+
 		id := clean.ID(c.Param("id"))
 
 		if id != "" && !rnd.IsSessionID(id) {
