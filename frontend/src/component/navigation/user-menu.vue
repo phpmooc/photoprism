@@ -30,7 +30,7 @@
         ></v-list-item>
       </template>
       <v-divider class="my-1"></v-divider>
-      <v-list-item prepend-icon="mdi-power" :title="$gettext('Log Out')" base-color="danger" class="action-logout" @click="$emit('logout')"></v-list-item>
+      <v-list-item prepend-icon="mdi-power" :title="$gettext('Sign Out')" base-color="danger" class="action-logout" @click="$emit('logout')"></v-list-item>
     </v-list>
   </v-menu>
 </template>
@@ -38,7 +38,7 @@
 <script>
 import { listReachableInstances } from "common/instances";
 
-// PUserMenu is the navigation avatar overlay menu: Settings, Log Out, and — when
+// PUserMenu is the navigation avatar overlay menu: Settings, Sign Out, and — when
 // more than one instance is reachable on a shared domain — a Switch Instance list.
 export default {
   name: "PUserMenu",
