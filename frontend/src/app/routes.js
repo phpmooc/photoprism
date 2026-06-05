@@ -35,6 +35,7 @@ import Library from "page/library.vue";
 import Settings from "page/settings.vue";
 import Admin from "page/admin.vue";
 import Cluster from "page/cluster.vue";
+import Instances from "page/instances.vue";
 import Login from "page/auth/login.vue";
 import Discover from "page/discover.vue";
 import About from "page/about/about.vue";
@@ -219,6 +220,28 @@ export default [
         // gate on `cluster.access_all` and `cluster.audit`; the My
         // Instances chooser is visible to everyone). When no tabs remain,
         // cluster.vue redirects to the user's default route in `created()`.
+        next();
+      }
+    },
+  },
+  {
+    name: "instances",
+    path: "/instances",
+    component: Instances,
+    meta: {
+      title: $gettext("Instances"),
+      requiresAuth: true,
+      hideNav: true,
+      settings: false,
+      background: "background",
+    },
+    beforeEnter: (to, from, next) => {
+      // The instance selector is the durable landing page for non-operators;
+      // any signed-in user may enter, and unauthenticated requests fall through
+      // to login (the global guard records the return_to deep link).
+      if ($session.loginRequired()) {
+        next({ name: loginRoute });
+      } else {
         next();
       }
     },
