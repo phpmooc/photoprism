@@ -1341,7 +1341,11 @@ func (m *User) PrivilegeLevelChange(frm form.User) bool {
 }
 
 // SaveForm updates the entity using form data and stores it in the database.
-func (m *User) SaveForm(frm form.User, u *User) error {
+// Privilege-level fields (role, login, WebDAV, paths) are applied only when
+// byAdmin is true. The caller decides this: a regular admin actor, or a trusted
+// cluster service principal that has no end-user identity of its own and so
+// cannot satisfy u.IsAdmin() despite being authorized for user management.
+func (m *User) SaveForm(frm form.User, u *User, byAdmin bool) error {
 	if m.UserName == "" || m.ID <= 0 {
 		return fmt.Errorf("system users cannot be modified")
 	} else if (m.ID == 1 || frm.SuperAdmin) && !acl.IsAdminRole(acl.Role(frm.Role())) {
@@ -1381,10 +1385,11 @@ func (m *User) SaveForm(frm form.User, u *User) error {
 		m.VerifyToken = GenerateToken()
 	}
 
-	// Change user privileges only if allowed.
-	if u == nil {
-		// Do nothing.
-	} else if u.IsAdmin() {
+	// Apply privilege-level changes only when the caller is authorized as an
+	// admin. A trusted cluster service principal has no end-user identity, so
+	// the handler passes byAdmin explicitly instead of relying on u.IsAdmin(),
+	// which a user-less token can never satisfy.
+	if u != nil && byAdmin {
 		// Restore account.
 		if frm.DeletedAt == nil {
 			m.DeletedAt = nil

@@ -121,8 +121,11 @@ func UpdateUser(router *gin.RouterGroup) {
 			return
 		}
 
-		// Persist form values.
-		if err = m.SaveForm(f, u); err != nil {
+		// Persist form values. SaveForm gates privilege-level fields on admin
+		// authorization; the cluster JWT is a user-less service principal that
+		// u.IsAdmin() rejects, so pass that decision explicitly or its login and
+		// role sync would be silently dropped.
+		if err = m.SaveForm(f, u, u.IsAdmin() || isClusterJWT); err != nil {
 			event.AuditErr([]string{ClientIP(c), "session %s", "users", m.UserName, "update", err.Error()}, s.RefID)
 			AbortSaveFailed(c)
 			return
