@@ -54,7 +54,7 @@ export default {
     },
     buttonIcon: {
       type: String,
-      default: "mdi-dots-vertical",
+      default: "mdi-dots-horizontal",
     },
   },
   emits: ["show", "hide"],
