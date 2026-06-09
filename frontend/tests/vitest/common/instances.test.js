@@ -1,7 +1,17 @@
 import { describe, it, expect } from "vitest";
 import StorageShim from "node-storage-shim";
 import { buildNamespace, createNamespacedStorage } from "common/storage";
-import { persistInstanceIdentity, listReachableInstances, InstanceIdentityKeys, instanceLabel, instancePath } from "common/instances";
+import {
+  persistInstanceIdentity,
+  listReachableInstances,
+  InstanceIdentityKeys,
+  instanceLabel,
+  instancePath,
+  instanceSessionUrl,
+  listLogoutTargets,
+  signOutInstances,
+  clearInstanceStorage,
+} from "common/instances";
 
 // seedInstance writes a peer instance's session token and identity into a shared store.
 const seedInstance = (store, namespace, { token = "tok", url, title, icon, route } = {}) => {
@@ -186,6 +196,142 @@ describe("common/instances", () => {
       seedInstance(session, "ns-pro-2", { url: "https://pro-2.example.com/", title: "Pro Two" });
       const result = listReachableInstances({ currentNamespace: "ns-pro-1", stores: [local, session] });
       expect(result).toHaveLength(1);
+    });
+  });
+
+  describe("instanceSessionUrl", () => {
+    it("derives the DELETE-session endpoint from a SiteUrl with a trailing slash", () => {
+      expect(instanceSessionUrl("https://app.example.com/i/pro-1/")).toBe("https://app.example.com/i/pro-1/api/v1/session");
+    });
+    it("adds the missing trailing slash before resolving so the base path is kept", () => {
+      expect(instanceSessionUrl("https://app.example.com/i/pro-1")).toBe("https://app.example.com/i/pro-1/api/v1/session");
+    });
+    it("derives the root endpoint for a Portal at the origin root", () => {
+      expect(instanceSessionUrl("https://app.example.com/")).toBe("https://app.example.com/api/v1/session");
+    });
+    it("returns an empty string for a non-http(s) or unparseable url", () => {
+      expect(instanceSessionUrl("javascript:alert(1)")).toBe("");
+      expect(instanceSessionUrl("not a url")).toBe("");
+      expect(instanceSessionUrl("")).toBe("");
+      expect(instanceSessionUrl(null)).toBe("");
+    });
+  });
+
+  describe("listLogoutTargets", () => {
+    it("returns peer sessions with token and endpoint, excluding the current namespace", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { token: "tok1", url: "https://app.example.com/i/pro-1/" });
+      seedInstance(store, "ns-pro-2", { token: "tok2", url: "https://app.example.com/i/pro-2/" });
+      seedInstance(store, "ns-portal", { token: "tokp", url: "https://app.example.com/" });
+      const targets = listLogoutTargets({ currentNamespace: "ns-pro-1", storage: store });
+      expect(targets).toHaveLength(2);
+      expect(targets).toEqual(
+        expect.arrayContaining([
+          { namespace: "ns-pro-2", authToken: "tok2", url: "https://app.example.com/i/pro-2/api/v1/session" },
+          { namespace: "ns-portal", authToken: "tokp", url: "https://app.example.com/api/v1/session" },
+        ])
+      );
+    });
+    it("returns a peer with an empty url when its SiteUrl is unknown so its storage can still be cleared", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { token: "tok1", url: "https://app.example.com/i/pro-1/" });
+      seedInstance(store, "ns-pro-2", { token: "tok2" }); // session only, no recorded url
+      const targets = listLogoutTargets({ currentNamespace: "ns-pro-1", storage: store });
+      expect(targets).toEqual([{ namespace: "ns-pro-2", authToken: "tok2", url: "" }]);
+    });
+    it("skips namespaces without a token", () => {
+      const store = new StorageShim();
+      seedInstance(store, "ns-pro-1", { token: "tok1", url: "https://app.example.com/i/pro-1/" });
+      seedInstance(store, "ns-pro-2", { token: "", url: "https://app.example.com/i/pro-2/" });
+      const targets = listLogoutTargets({ currentNamespace: "ns-pro-1", storage: store });
+      expect(targets).toEqual([]);
+    });
+    it("scans both storage backends and de-duplicates", () => {
+      const local = new StorageShim();
+      const session = new StorageShim();
+      seedInstance(local, "ns-pro-1", { token: "tok1", url: "https://app.example.com/i/pro-1/" });
+      seedInstance(local, "ns-pro-2", { token: "tok2", url: "https://app.example.com/i/pro-2/" });
+      seedInstance(session, "ns-pro-2", { token: "tok2", url: "https://app.example.com/i/pro-2/" });
+      const targets = listLogoutTargets({ currentNamespace: "ns-pro-1", stores: [local, session] });
+      expect(targets).toHaveLength(1);
+      expect(targets[0].namespace).toBe("ns-pro-2");
+    });
+  });
+
+  describe("signOutInstances", () => {
+    it("fires a best-effort authenticated DELETE per reachable target", async () => {
+      const calls = [];
+      const fetchImpl = (url, opts) => {
+        calls.push({ url, opts });
+        return Promise.resolve({ ok: true });
+      };
+      await signOutInstances(
+        [
+          { namespace: "ns-pro-2", authToken: "tok2", url: "https://app.example.com/i/pro-2/api/v1/session" },
+          { namespace: "ns-portal", authToken: "tokp", url: "https://app.example.com/api/v1/session" },
+        ],
+        fetchImpl
+      );
+      expect(calls).toHaveLength(2);
+      expect(calls[0].opts.method).toBe("DELETE");
+      expect(calls[0].opts.headers["X-Auth-Token"]).toBe("tok2");
+      expect(calls[1].opts.headers["X-Auth-Token"]).toBe("tokp");
+    });
+    it("skips targets without a resolvable url", async () => {
+      const calls = [];
+      const fetchImpl = (url) => {
+        calls.push(url);
+        return Promise.resolve({ ok: true });
+      };
+      await signOutInstances([{ namespace: "ns-x", authToken: "tok", url: "" }], fetchImpl);
+      expect(calls).toHaveLength(0);
+    });
+    it("swallows per-request failures so one bad peer can't block sign-out", async () => {
+      const fetchImpl = (url) =>
+        url.includes("pro-2") ? Promise.reject(new Error("offline")) : Promise.resolve({ ok: true });
+      await expect(
+        signOutInstances(
+          [
+            { namespace: "ns-pro-2", authToken: "t2", url: "https://app.example.com/i/pro-2/api/v1/session" },
+            { namespace: "ns-portal", authToken: "tp", url: "https://app.example.com/api/v1/session" },
+          ],
+          fetchImpl
+        )
+      ).resolves.toBeDefined();
+    });
+    it("resolves with an empty array when there are no targets", async () => {
+      await expect(signOutInstances([], () => Promise.resolve())).resolves.toEqual([]);
+      await expect(signOutInstances(null, () => Promise.resolve())).resolves.toEqual([]);
+    });
+  });
+
+  describe("clearInstanceStorage", () => {
+    it("removes every namespaced key for the given peers from all backends", () => {
+      const local = new StorageShim();
+      const session = new StorageShim();
+      seedInstance(local, "ns-pro-1", { token: "tok1", url: "https://app.example.com/i/pro-1/" });
+      seedInstance(local, "ns-pro-2", { token: "tok2", url: "https://app.example.com/i/pro-2/", title: "Pro Two" });
+      seedInstance(session, "ns-pro-2", { token: "tok2", url: "https://app.example.com/i/pro-2/" });
+      clearInstanceStorage(["ns-pro-2"], [local, session]);
+      const p2 = buildNamespace("ns-pro-2");
+      expect(local.getItem(p2 + "session.token")).toBeNull();
+      expect(local.getItem(p2 + "instance.url")).toBeNull();
+      expect(local.getItem(p2 + "instance.title")).toBeNull();
+      expect(session.getItem(p2 + "session.token")).toBeNull();
+      // The untouched namespace survives.
+      expect(local.getItem(buildNamespace("ns-pro-1") + "session.token")).toBe("tok1");
+    });
+    it("is a no-op with no namespaces", () => {
+      const local = new StorageShim();
+      seedInstance(local, "ns-pro-1", { token: "tok1", url: "https://app.example.com/i/pro-1/" });
+      expect(() => clearInstanceStorage([], [local])).not.toThrow();
+      expect(local.getItem(buildNamespace("ns-pro-1") + "session.token")).toBe("tok1");
+    });
+    it("ignores null backends", () => {
+      const local = new StorageShim();
+      seedInstance(local, "ns-pro-2", { token: "tok2", url: "https://app.example.com/i/pro-2/" });
+      expect(() => clearInstanceStorage(["ns-pro-2"], [local, null, undefined])).not.toThrow();
+      expect(local.getItem(buildNamespace("ns-pro-2") + "session.token")).toBeNull();
     });
   });
 });

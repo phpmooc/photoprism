@@ -82,11 +82,16 @@ func DeleteSession(router *gin.RouterGroup) {
 			event.AuditDebug([]string{clientIp, "session %s", "deleted"}, s.RefID)
 		}
 
-		// On the Portal (OIDC OP), clear the narrowly-scoped session cookie on the
-		// caller's own logout only. A session manager deleting another session by
-		// ref id must not wipe the OP cookie bound to its own browser.
-		if conf := get.Config(); conf.Portal() && !rnd.IsRefID(id) {
-			ClearOIDCSessionCookie(c, OIDCSessionCookiePath(conf), conf.SiteHttps())
+		// Clear the narrowly-scoped OP session cookie on the caller's own logout, so
+		// a cluster-wide Sign-Out stops silent re-SSO regardless of which node is hit:
+		// the Portal clears it at its local OP path, and an instance whose OIDC OP is
+		// the Portal clears it at the Portal's shared-domain OP path (derived from the
+		// issuer), since that is where the cookie was set. A session manager deleting
+		// another session by ref id must not wipe the cookie bound to its own browser.
+		if conf := get.Config(); !rnd.IsRefID(id) {
+			if clearPath := OIDCSessionCookieClearPath(conf); clearPath != "" {
+				ClearOIDCSessionCookie(c, clearPath, conf.SiteHttps())
+			}
 		}
 
 		// Return JSON response for confirmation.

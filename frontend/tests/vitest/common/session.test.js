@@ -850,4 +850,54 @@ describe("common/session", () => {
       session.deleteData();
     });
   });
+
+  describe("logoutEverywhere", () => {
+    it("revokes each peer session server-side, clears their storage, then signs out locally", async () => {
+      const storage = new StorageShim();
+      const session = new Session(storage, createConfig("/", "ns-current"));
+
+      // Seed two peer sessions in the same backend the session reads/clears.
+      const pro2 = buildNamespace("ns-pro-2");
+      const portal = buildNamespace("ns-portal");
+      storage.setItem(pro2 + "session.token", "tok2");
+      storage.setItem(pro2 + "instance.url", "https://app.example.com/i/pro-2/");
+      storage.setItem(portal + "session.token", "tokp");
+      storage.setItem(portal + "instance.url", "https://app.example.com/");
+
+      const fetchCalls = [];
+      const originalFetch = window.fetch;
+      window.fetch = (url, opts) => {
+        fetchCalls.push({ url, token: opts?.headers?.["X-Auth-Token"], method: opts?.method });
+        return Promise.resolve({ ok: true });
+      };
+      const logoutSpy = vi.spyOn(session, "logout").mockResolvedValue(undefined);
+
+      try {
+        await session.logoutEverywhere(true);
+      } finally {
+        window.fetch = originalFetch;
+      }
+
+      // Both peers were revoked with their own token via DELETE.
+      expect(fetchCalls).toHaveLength(2);
+      expect(fetchCalls.every((c) => c.method === "DELETE")).toBe(true);
+      expect(fetchCalls.map((c) => c.url).sort()).toEqual([
+        "https://app.example.com/api/v1/session",
+        "https://app.example.com/i/pro-2/api/v1/session",
+      ]);
+      expect(fetchCalls.find((c) => c.url.includes("pro-2")).token).toBe("tok2");
+      // Peer storage was cleared and the local sign-out ran.
+      expect(storage.getItem(pro2 + "session.token")).toBeNull();
+      expect(storage.getItem(portal + "session.token")).toBeNull();
+      expect(logoutSpy).toHaveBeenCalledWith(true);
+    });
+
+    it("still signs out locally on a standalone deployment with no peers", async () => {
+      const storage = new StorageShim();
+      const session = new Session(storage, createConfig("/", "ns-current"));
+      const logoutSpy = vi.spyOn(session, "logout").mockResolvedValue(undefined);
+      await session.logoutEverywhere();
+      expect(logoutSpy).toHaveBeenCalledTimes(1);
+    });
+  });
 });

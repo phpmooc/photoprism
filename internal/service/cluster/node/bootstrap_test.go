@@ -139,6 +139,67 @@ func TestRegister_PersistSecretAndDB(t *testing.T) {
 	}
 }
 
+func TestResolveNodeOIDCClient(t *testing.T) {
+	// portalInstance returns a config with cluster OIDC enabled, a shared-domain
+	// SiteUrl, and the node registered (client credentials persisted).
+	portalInstance := func(t *testing.T, name string) *config.Config {
+		c := newBootstrapTestConfig(t, name)
+		c.Options().NodeRole = cluster.RoleInstance
+		c.Options().ClusterOIDC = true
+		c.Options().SiteUrl = "https://app.localssl.dev/i/pro-1/"
+		c.Options().NodeClientID = cluster.ExampleClientID
+		c.Options().NodeClientSecret = cluster.ExampleClientSecret
+		return c
+	}
+
+	t.Run("DerivesFromNodeCredentialsAndDefaultsIssuer", func(t *testing.T) {
+		c := portalInstance(t, "oidc-node-derive")
+		resolveNodeOIDCClient(c)
+		assert.Equal(t, cluster.ExampleClientID, c.OIDCClient())
+		assert.Equal(t, cluster.ExampleClientSecret, c.OIDCSecret())
+		// The issuer defaults to the instance's own origin root (the shared-domain
+		// Portal OP), so a single flag suffices.
+		assert.Equal(t, "https://app.localssl.dev/", c.OIDCUri().String())
+	})
+	t.Run("HonorsExplicitIssuer", func(t *testing.T) {
+		c := portalInstance(t, "oidc-node-issuer")
+		c.Options().OIDCUri = "https://portal.example.com/"
+		resolveNodeOIDCClient(c)
+		assert.Equal(t, cluster.ExampleClientID, c.OIDCClient())
+		assert.Equal(t, "https://portal.example.com/", c.OIDCUri().String(), "an explicit issuer must be respected")
+	})
+	t.Run("DisabledIsNoOp", func(t *testing.T) {
+		c := portalInstance(t, "oidc-node-disabled")
+		c.Options().ClusterOIDC = false
+		resolveNodeOIDCClient(c)
+		assert.Equal(t, "", c.OIDCClient())
+		assert.Equal(t, "", c.OIDCSecret())
+	})
+	t.Run("ExplicitClientWins", func(t *testing.T) {
+		c := portalInstance(t, "oidc-node-explicit")
+		c.Options().OIDCClient = "cs5cpu17n6gj2qo5"
+		c.Options().OIDCSecret = "explicit-secret"
+		c.Options().OIDCUri = "https://keycloak.example.com/realms/main"
+		resolveNodeOIDCClient(c)
+		assert.Equal(t, "cs5cpu17n6gj2qo5", c.OIDCClient(), "an explicit client id must not be overwritten")
+		assert.Equal(t, "explicit-secret", c.OIDCSecret())
+	})
+	t.Run("NotRegisteredLeavesClientEmpty", func(t *testing.T) {
+		c := portalInstance(t, "oidc-node-unregistered")
+		c.Options().NodeClientID = ""
+		c.Options().NodeClientSecret = ""
+		resolveNodeOIDCClient(c)
+		assert.Equal(t, "", c.OIDCClient(), "without node credentials nothing is derived")
+		assert.Equal(t, "", c.OIDCSecret())
+	})
+	t.Run("ServiceRoleNotDerived", func(t *testing.T) {
+		c := portalInstance(t, "oidc-node-service")
+		c.Options().NodeRole = cluster.RoleService
+		resolveNodeOIDCClient(c)
+		assert.Equal(t, "", c.OIDCClient())
+	})
+}
+
 func TestRegisterAuthToken_UsesJoinTokenWithoutNodeCredentials(t *testing.T) {
 	c := newBootstrapTestConfig(t, "bootstrap-auth-join")
 	portal, err := url.Parse("https://portal.example.test")

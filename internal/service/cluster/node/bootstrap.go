@@ -23,6 +23,7 @@ import (
 	"github.com/photoprism/photoprism/pkg/clean"
 	"github.com/photoprism/photoprism/pkg/fs"
 	"github.com/photoprism/photoprism/pkg/http/dns"
+	"github.com/photoprism/photoprism/pkg/http/scheme"
 	"github.com/photoprism/photoprism/pkg/rnd"
 )
 
@@ -85,12 +86,66 @@ func InitConfig(c *config.Config) error {
 		activateNodeThemeIfPresent(c)
 	}
 
+	// Wire the OIDC RP to the Portal OP from the node credentials when opted in via
+	// PHOTOPRISM_CLUSTER_OIDC, so a fresh instance reaches a working browser OIDC
+	// login without a second pass to inject PHOTOPRISM_OIDC_CLIENT / _SECRET.
+	resolveNodeOIDCClient(c)
+
 	// Log cluster UUID.
 	if uuid := c.ClusterUUID(); uuid != "" {
 		log.Infof("cluster: UUID %s", clean.Log(uuid))
 	}
 
 	return nil
+}
+
+// resolveNodeOIDCClient derives the instance's OIDC RP credentials from its
+// persisted node client credentials when PHOTOPRISM_CLUSTER_OIDC is enabled, so a
+// Portal-fronted instance reaches a working browser OIDC login on first boot
+// without a second pass to inject PHOTOPRISM_OIDC_CLIENT / _SECRET. An explicit
+// OIDC client id is left untouched, so external IdPs and hand-issued clients still
+// win. The OIDC issuer defaults to the Portal URL when unset, so a single flag
+// suffices. It runs after registration has persisted the node credentials and
+// before the OIDC RP is initialized (the RP is lazy, so the early bootstrap stage
+// satisfies this), and reads the secret with the file-first precedence the node
+// bootstrap mandates, so a rotated client_secret propagates on the next start.
+func resolveNodeOIDCClient(c *config.Config) {
+	if c == nil || !c.ClusterOIDC() {
+		return
+	}
+
+	// Explicit OIDC client credentials (a different IdP, or a hand-issued client)
+	// win unchanged.
+	if strings.TrimSpace(c.OIDCClient()) != "" {
+		return
+	}
+
+	if c.NodeRole() != cluster.RoleInstance {
+		log.Warnf("cluster: ignoring cluster OIDC because this node is not an instance")
+		return
+	}
+
+	id := strings.TrimSpace(c.NodeClientID())
+	secret := strings.TrimSpace(c.NodeClientSecret())
+
+	if id == "" || secret == "" {
+		log.Warnf("cluster: cannot derive the OIDC client from node credentials yet (node not registered)")
+		return
+	}
+
+	// Default the OIDC issuer to the instance's own origin root (the shared-domain
+	// Portal OP) when unset, so enabling cluster OIDC is the only configuration an
+	// instance needs. An explicit PHOTOPRISM_OIDC_URI (e.g. a subdomain-isolated
+	// Portal) is respected.
+	if c.OIDCUri().Host == "" {
+		if issuer := scheme.OriginURL(c.SiteUrl()); issuer != "" {
+			c.SetOIDCUri(issuer)
+		}
+	}
+
+	c.SetOIDCClient(id)
+	c.SetOIDCSecret(secret)
+	log.Infof("cluster: OIDC login configured via the Portal using node client %s", clean.Log(id))
 }
 
 // newHTTPClient returns a short-lived HTTP client configured with the provided

@@ -368,14 +368,14 @@ describe("component/navigation", () => {
   });
 
   describe("logout", () => {
-    it("onLogout calls session.logout", () => {
-      const logout = vi.fn();
+    it("onLogout calls session.logoutEverywhere", () => {
+      const logoutEverywhere = vi.fn();
       const { wrapper, session } = mountNavigation({
-        sessionOverrides: { logout },
+        sessionOverrides: { logoutEverywhere },
       });
 
       wrapper.vm.onLogout();
-      expect(session.logout).toHaveBeenCalled();
+      expect(session.logoutEverywhere).toHaveBeenCalled();
     });
   });
 });

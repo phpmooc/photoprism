@@ -55,6 +55,29 @@ func OIDCSessionCookiePath(conf *config.Config) string {
 	return conf.BaseUri(config.ApiUri) + "/oauth"
 }
 
+// OIDCSessionCookieClearPath returns the path at which the OP session cookie
+// should be cleared on logout, or "" when this node has no OP cookie to clear.
+//
+// On the Portal (the OP) it is the local OP path. On an instance whose OIDC OP
+// is the Portal, the cookie was set by the Portal at the Portal's base path on
+// the shared domain — not the instance's /i/<tenant> base — so the clear path is
+// derived from the configured OIDC issuer instead of the instance's BaseUri.
+// Clearing it on any node's logout keeps a cluster-wide Sign-Out from depending
+// on the Portal endpoint being the one hit, which would otherwise leave silent
+// re-SSO possible.
+func OIDCSessionCookieClearPath(conf *config.Config) string {
+	if conf == nil {
+		return ""
+	}
+	if conf.Portal() {
+		return OIDCSessionCookiePath(conf)
+	}
+	if conf.OIDCIssuerOnSiteDomain() {
+		return strings.TrimRight(conf.OIDCUri().Path, "/") + config.ApiUri + "/oauth"
+	}
+	return ""
+}
+
 // oidcSessionSignalKey loads (or generates and persists) the HMAC key used to
 // sign the OP session-signal cookie, kept under the Portal config keys
 // directory. It falls back to a process-local random key when persistence is

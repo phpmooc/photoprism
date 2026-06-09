@@ -41,6 +41,44 @@ func TestOIDCSessionCookiePath(t *testing.T) {
 	})
 }
 
+func TestOIDCSessionCookieClearPath(t *testing.T) {
+	// mk builds an isolated instance config (NodeRole defaults to instance) with
+	// the given OIDC issuer and SiteUrl so the derivation can be exercised.
+	mk := func(issuer, siteURL string) *config.Config {
+		c := config.NewConfig(config.CliTestContext())
+		c.Options().OIDCUri = issuer
+		c.Options().SiteUrl = siteURL
+		return c
+	}
+	t.Run("NilConfig", func(t *testing.T) {
+		assert.Equal(t, "", OIDCSessionCookieClearPath(nil))
+	})
+	t.Run("SharedDomainIssuerAtRoot", func(t *testing.T) {
+		// Shared-domain Portal at the origin root: the cookie lives at /api/v1/oauth,
+		// not under the instance's /i/<tenant> base.
+		c := mk("https://app.localssl.dev/", "https://app.localssl.dev/i/pro-1/")
+		assert.Equal(t, config.ApiUri+"/oauth", OIDCSessionCookieClearPath(c))
+	})
+	t.Run("SharedDomainIssuerWithBasePath", func(t *testing.T) {
+		c := mk("https://app.localssl.dev/portal/", "https://app.localssl.dev/i/pro-1/")
+		assert.Equal(t, "/portal"+config.ApiUri+"/oauth", OIDCSessionCookieClearPath(c))
+	})
+	t.Run("SubdomainIsolatedReturnsEmpty", func(t *testing.T) {
+		// Issuer on a different host than the instance: the host-only OP cookie is
+		// unreachable, so the instance must not attempt to clear it.
+		c := mk("https://portal.example.com/", "https://node1.example.com/")
+		assert.Equal(t, "", OIDCSessionCookieClearPath(c))
+	})
+	t.Run("ExternalIdPReturnsEmpty", func(t *testing.T) {
+		c := mk("https://keycloak.example.com/realms/main", "https://app.localssl.dev/i/pro-1/")
+		assert.Equal(t, "", OIDCSessionCookieClearPath(c))
+	})
+	t.Run("NoOIDCReturnsEmpty", func(t *testing.T) {
+		c := mk("", "https://app.localssl.dev/i/pro-1/")
+		assert.Equal(t, "", OIDCSessionCookieClearPath(c))
+	})
+}
+
 func TestSignParseOIDCSession(t *testing.T) {
 	id := rnd.SessionID(rnd.AuthToken())
 	t.Run("RoundTrip", func(t *testing.T) {

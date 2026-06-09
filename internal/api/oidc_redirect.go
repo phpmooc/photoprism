@@ -25,6 +25,19 @@ import (
 	"github.com/photoprism/photoprism/pkg/txt"
 )
 
+// oidcRedirectErrorMessage maps a standard OAuth/OIDC error code received on the
+// RP callback to a branded, translatable message shown to the user.
+func oidcRedirectErrorMessage(code string) i18n.Message {
+	switch code {
+	case "access_denied":
+		return i18n.ErrForbidden
+	case "login_required":
+		return i18n.ErrUnauthorized
+	default:
+		return i18n.ErrInvalidCredentials
+	}
+}
+
 // OIDCRedirect completes the OIDC flow, creates a session, and renders a page that stores the token client-side.
 //
 //	@Summary	complete OIDC login (callback)
@@ -72,6 +85,16 @@ func OIDCRedirect(router *gin.RouterGroup) {
 		// Abort if failure rate limit is exceeded.
 		if r.Reject() || limiter.Auth.Reject(clientIp) {
 			c.HTML(http.StatusTooManyRequests, "auth.gohtml", CreateSessionError(http.StatusTooManyRequests, i18n.Error(i18n.ErrTooManyRequests)))
+			return
+		}
+
+		// The provider may redirect back with a standard OAuth error instead of a
+		// code (e.g. a Portal OP returning access_denied when the user has no access
+		// to this instance). Surface it in the instance's own branded UI rather than
+		// silently bouncing to the login page with no explanation.
+		if oauthErr := c.Query("error"); oauthErr != "" {
+			event.AuditWarn([]string{clientIp, "create session", "oidc", "provider returned error", clean.Log(oauthErr), clean.Log(c.Query("error_description"))})
+			c.HTML(http.StatusUnauthorized, "auth.gohtml", CreateSessionError(http.StatusUnauthorized, i18n.Error(oidcRedirectErrorMessage(oauthErr))))
 			return
 		}
 

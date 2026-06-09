@@ -23,7 +23,7 @@ Additional information can be found in our Developer Guide:
 
 */
 
-import { listAuthSessions, buildNamespace } from "common/storage";
+import { listAuthSessions, buildNamespace, createNamespacedStorage } from "common/storage";
 
 // Storage suffixes under which each instance records its public identity, so
 // peers on the same shared-domain origin can render a navigation switcher entry.
@@ -195,4 +195,123 @@ export function listReachableInstances(options) {
   });
 
   return instances;
+}
+
+// instanceSessionUrl returns the absolute DELETE-session endpoint for a peer,
+// derived from its recorded SiteUrl (<SiteUrl>/api/v1/session). Returns "" when
+// the SiteUrl is missing or not an http(s) URL. Same-origin only by design: the
+// shared-domain proxy serves every peer under one origin, so the resulting URL
+// stays same-origin and needs no CORS.
+export function instanceSessionUrl(siteUrl) {
+  if (!isHttpUrl(siteUrl)) {
+    return "";
+  }
+  try {
+    const base = siteUrl.endsWith("/") ? siteUrl : siteUrl + "/";
+    const resolved = new URL("api/v1/session", base).href;
+    return isHttpUrl(resolved) ? resolved : "";
+  } catch {
+    return "";
+  }
+}
+
+// listLogoutTargets returns the peer sessions a cluster-wide Sign-Out should
+// revoke server-side: each with its storage namespace, auth token, and the
+// absolute DELETE-session endpoint derived from the recorded SiteUrl. The
+// current instance (currentNamespace) is excluded — it is signed out via the
+// normal logout path. Scans both localStorage and sessionStorage so ephemeral
+// sessions are covered. A peer without a resolvable URL is still returned (with
+// url === "") so its local storage is cleared even when it can't be reached.
+export function listLogoutTargets(options) {
+  const opts = options || {};
+
+  let stores;
+  if (opts.storage) {
+    stores = [opts.storage];
+  } else if (Array.isArray(opts.stores)) {
+    stores = opts.stores;
+  } else {
+    const w = safeWindow();
+    stores = [w?.localStorage, w?.sessionStorage];
+  }
+
+  const currentPrefix = buildNamespace(opts.currentNamespace);
+  const seen = new Set();
+  const targets = [];
+
+  stores.forEach((store) => {
+    if (!store || typeof store.getItem !== "function") {
+      return;
+    }
+
+    listAuthSessions(store).forEach((session) => {
+      const namespace = session && session.namespace;
+      const authToken = session && session.authToken;
+      if (!namespace || !authToken) {
+        return;
+      }
+
+      const prefix = buildNamespace(namespace);
+      if (prefix === currentPrefix || seen.has(prefix)) {
+        return;
+      }
+
+      seen.add(prefix);
+      targets.push({
+        namespace,
+        authToken,
+        url: instanceSessionUrl(store.getItem(prefix + InstanceUrlKey)),
+      });
+    });
+  });
+
+  return targets;
+}
+
+// signOutInstances best-effort revokes each target's session server-side via a
+// DELETE to its recorded session endpoint, authenticated with the target's own
+// token. Same-origin only (shared-domain proxy clusters): a target without a
+// resolvable URL is skipped. Failures (unreachable peer, 401, network error)
+// are swallowed so one bad peer can't block the overall Sign-Out. Resolves once
+// all requests settle; never rejects.
+export function signOutInstances(targets, fetchImpl) {
+  const doFetch = fetchImpl || (typeof fetch === "function" ? fetch.bind(safeWindow() || undefined) : null);
+
+  if (!doFetch || !Array.isArray(targets) || targets.length === 0) {
+    return Promise.resolve([]);
+  }
+
+  return Promise.allSettled(
+    targets
+      .filter((t) => t && t.url && t.authToken)
+      .map((t) =>
+        doFetch(t.url, {
+          method: "DELETE",
+          // Authenticate with the peer's own token; same-origin so the response
+          // Set-Cookie (clearing the Portal OP cookie) is honored.
+          headers: { "X-Auth-Token": t.authToken },
+          credentials: "same-origin",
+          cache: "no-store",
+        }).catch(() => {})
+      )
+  );
+}
+
+// clearInstanceStorage removes every namespaced key for each of namespaces from
+// the given raw storage backends, so a cluster-wide Sign-Out leaves no usable
+// peer tokens behind and no stale switcher entries. Each namespace is cleared
+// through a NamespacedStorage wrapper so only that peer's keys are touched.
+export function clearInstanceStorage(namespaces, stores) {
+  if (!Array.isArray(namespaces) || namespaces.length === 0) {
+    return;
+  }
+
+  const backends = (Array.isArray(stores) ? stores : [stores]).filter((s) => s && typeof s.removeItem === "function");
+
+  namespaces.forEach((namespace) => {
+    if (!namespace) {
+      return;
+    }
+    backends.forEach((store) => createNamespacedStorage(store, namespace).clear());
+  });
 }

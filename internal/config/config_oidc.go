@@ -27,6 +27,14 @@ const (
 	OidcRedirectUri = ApiUri + "/oidc/redirect"
 )
 
+// ClusterOIDC reports whether a cluster instance should use the Portal as its
+// OIDC login provider, deriving the OIDC RP credentials from the node client
+// credentials registered with the Portal (PHOTOPRISM_CLUSTER_OIDC). Explicit
+// PHOTOPRISM_OIDC_CLIENT / _SECRET still take precedence.
+func (c *Config) ClusterOIDC() bool {
+	return c.options.ClusterOIDC
+}
+
 // OIDCEnabled checks if sign-on via OpenID Connect (OIDC) is fully configured and enabled.
 func (c *Config) OIDCEnabled() bool {
 	switch {
@@ -77,6 +85,48 @@ func (c *Config) OIDCSecret() string {
 	} else {
 		return clean.Password(string(b))
 	}
+}
+
+// SetOIDCUri sets the OIDC provider URI in memory, e.g. when a cluster instance
+// defaults it to the Portal issuer during bootstrap.
+func (c *Config) SetOIDCUri(value string) {
+	if c == nil || c.options == nil {
+		return
+	}
+	c.options.OIDCUri = strings.TrimSpace(value)
+}
+
+// SetOIDCClient sets the OIDC RP Client ID in memory, e.g. when a cluster
+// instance derives it from the node client credentials during bootstrap.
+func (c *Config) SetOIDCClient(value string) {
+	if c == nil || c.options == nil {
+		return
+	}
+	c.options.OIDCClient = strings.TrimSpace(value)
+}
+
+// SetOIDCSecret sets the OIDC RP Client Secret in memory, e.g. when a cluster
+// instance derives it from the node client credentials during bootstrap.
+func (c *Config) SetOIDCSecret(value string) {
+	if c == nil || c.options == nil {
+		return
+	}
+	c.options.OIDCSecret = value
+}
+
+// OIDCIssuerOnSiteDomain reports whether the configured OIDC issuer is served
+// from this node's own site host, i.e. a shared-domain Portal OP. The Portal OP
+// session cookie is host-only to that domain, so this is the condition under
+// which an instance can clear it on logout. It deliberately compares the site
+// host (not PortalUrl, which may be an intra-cluster loopback address that
+// differs from the browser-facing OIDC issuer).
+func (c *Config) OIDCIssuerOnSiteDomain() bool {
+	issuer := c.OIDCUri()
+	if issuer == nil || issuer.Hostname() == "" {
+		return false
+	}
+
+	return strings.EqualFold(issuer.Hostname(), c.SiteDomain())
 }
 
 // OIDCScopes returns the user information scopes for single sign-on via OIDC.

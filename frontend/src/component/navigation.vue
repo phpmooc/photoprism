@@ -955,7 +955,7 @@ export default {
       this.$router.push({ name: this.$config.feature("account") ? "settings_account" : "settings" });
     },
     onLogout() {
-      this.$session.logout();
+      this.$session.logoutEverywhere();
     },
     onIndex(ev) {
       if (!ev) {

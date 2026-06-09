@@ -26,7 +26,14 @@ Additional information can be found in our Developer Guide:
 import $api from "common/api";
 import $event from "common/event";
 import { createNamespacedStorage } from "common/storage";
-import { persistInstanceIdentity, InstanceIdentityKeys, instanceLabel } from "common/instances";
+import {
+  persistInstanceIdentity,
+  InstanceIdentityKeys,
+  instanceLabel,
+  listLogoutTargets,
+  signOutInstances,
+  clearInstanceStorage,
+} from "common/instances";
 import { $view } from "common/view";
 import User from "model/user";
 import Socket from "websocket.js";
@@ -877,6 +884,38 @@ export default class Session {
     } else {
       return this.onLogout(noRedirect);
     }
+  }
+
+  // logoutEverywhere performs a cluster-wide Sign-Out (Tier 2): it best-effort
+  // revokes every reachable peer instance's session server-side using the tokens
+  // in shared same-origin storage, drops those peers' keys from local storage,
+  // then signs out of the current instance — which clears its server session and,
+  // on any OIDC-against-Portal node, the Portal OP cookie that would otherwise
+  // allow silent re-SSO — and redirects. Same-origin (shared-domain proxy)
+  // clusters only; subdomain-isolated peers are left to expire. Always resolves.
+  logoutEverywhere(noRedirect) {
+    // Enumerate and clear from the same backends so a peer found is a peer
+    // cleared. In the app these are the real window storages; tests inject a shim.
+    const rawSession = typeof window === "undefined" ? null : window.sessionStorage;
+    const stores = [this.localStorage, rawSession];
+
+    let targets = [];
+    try {
+      targets = listLogoutTargets({ currentNamespace: this.storageNamespace, stores });
+    } catch {
+      targets = [];
+    }
+
+    return signOutInstances(targets)
+      .catch(() => {})
+      .then(() => {
+        clearInstanceStorage(
+          targets.map((t) => t.namespace),
+          stores
+        );
+      })
+      .catch(() => {})
+      .then(() => this.logout(noRedirect));
   }
 
   // Synchronous logout for SPA route guards (/logout): fires server DELETE
