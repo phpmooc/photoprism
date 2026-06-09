@@ -26,9 +26,9 @@ import (
 //	@Tags		Authentication
 //	@Accept		json
 //	@Produce	json
-//	@Param		request		body		form.OAuthCreateToken	true	"token request (supports client_credentials, password, or session grant)"
-//	@Success	200			{object}	gin.H
-//	@Failure	400,401,429	{object}	i18n.Response
+//	@Param		request			body		form.OAuthCreateToken	true	"token request (supports client_credentials, password, or session grant)"
+//	@Success	200				{object}	gin.H
+//	@Failure	400,401,403,429	{object}	i18n.Response
 //	@Router		/api/v1/oauth/token [post]
 func OAuthToken(router *gin.RouterGroup) {
 	router.POST("/oauth/token", func(c *gin.Context) {
@@ -153,6 +153,13 @@ func OAuthToken(router *gin.RouterGroup) {
 			// Create new client session.
 			sess = client.NewSession(c, authn.GrantClientCredentials)
 		case authn.GrantPassword, authn.GrantSession:
+			// Reject minting app passwords when the feature is disabled.
+			if get.Config().DisableAppPasswords() {
+				event.AuditWarn([]string{clientIp, "oauth2", actor, action, "app passwords disabled", status.Denied})
+				AbortFeatureDisabled(c)
+				return
+			}
+
 			// Generate an app password for a user account and check the password for confirmation.
 			s := Session(clientIp, AuthToken(c))
 

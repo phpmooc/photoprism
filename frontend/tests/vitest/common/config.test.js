@@ -190,6 +190,17 @@ describe("common/config", () => {
     expect(defaultConfig.feature("download")).toBe(true);
   });
 
+  it("featAppPasswords mirrors the appPasswords feature flag", () => {
+    const cfg = createTestConfig();
+    const settings = JSON.parse(JSON.stringify(cfg.getSettings()));
+    settings.features = { ...settings.features, appPasswords: true };
+    cfg.set("settings", settings);
+    expect(cfg.featAppPasswords()).toBe(true);
+    settings.features = { ...settings.features, appPasswords: false };
+    cfg.set("settings", settings);
+    expect(cfg.featAppPasswords()).toBe(false);
+  });
+
   it("returns albums when library access is restricted", () => {
     const cfg = createTestConfig();
     const settings = JSON.parse(JSON.stringify(cfg.getSettings()));

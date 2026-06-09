@@ -355,6 +355,36 @@ func TestOAuthToken(t *testing.T) {
 		t.Logf("BODY: %s", w.Body.String())
 		assert.Equal(t, http.StatusOK, w.Code)
 	})
+	t.Run("AppPasswordsDisabled", func(t *testing.T) {
+		app, router, conf := NewApiTest()
+		conf.SetAuthMode(config.AuthModePasswd)
+		defer conf.SetAuthMode(config.AuthModePublic)
+
+		sessId := AuthenticateUser(app, router, "alice", "Alice123!")
+
+		conf.Settings().Features.AppPasswords = false
+		defer func() { conf.Settings().Features.AppPasswords = true }()
+
+		OAuthToken(router)
+
+		data := url.Values{
+			"grant_type":  {authn.GrantPassword.String()},
+			"client_name": {"AppPasswordAlice"},
+			"username":    {"alice"},
+			"password":    {"Alice123!"},
+			"scope":       {"*"},
+		}
+
+		req, _ := http.NewRequest("POST", "/api/v1/oauth/token", strings.NewReader(data.Encode()))
+		req.Header.Add(header.ContentType, header.ContentTypeForm)
+		req.Header.Add(header.XAuthToken, sessId)
+
+		w := httptest.NewRecorder()
+		app.ServeHTTP(w, req)
+
+		t.Logf("BODY: %s", w.Body.String())
+		assert.Equal(t, http.StatusForbidden, w.Code)
+	})
 	t.Run("UnregisteredUser", func(t *testing.T) {
 		app, router, conf := NewApiTest()
 		conf.SetAuthMode(config.AuthModePasswd)

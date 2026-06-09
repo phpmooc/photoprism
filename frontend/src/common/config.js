@@ -796,6 +796,11 @@ export default class Config {
     return this.values.settings.features[name] === true;
   }
 
+  // featAppPasswords checks if app passwords (app-specific passwords) are enabled.
+  featAppPasswords() {
+    return this.feature("appPasswords");
+  }
+
   // filesQuotaReached returns true if the filesystem quota is reached or exceeded.
   filesQuotaReached() {
     return Boolean(this.values?.usage?.filesUsedPct >= 100);

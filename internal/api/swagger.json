@@ -883,6 +883,9 @@
                 "albums": {
                     "type": "boolean"
                 },
+                "appPasswords": {
+                    "type": "boolean"
+                },
                 "archive": {
                     "type": "boolean"
                 },
@@ -8935,6 +8938,12 @@
                     },
                     "401": {
                         "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/i18n.Response"
+                        }
+                    },
+                    "403": {
+                        "description": "Forbidden",
                         "schema": {
                             "$ref": "#/definitions/i18n.Response"
                         }

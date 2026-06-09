@@ -14,7 +14,6 @@ Maps:
   Animate: 0
   Style: default
 Features:
-  Account: true
   Albums: true
   Archive: true
   Delete: true
@@ -39,6 +38,8 @@ Features:
   Review: true
   Search: true
   Services: true
+  Account: true
+  AppPasswords: true
   Settings: true
   Share: true
   Upload: true
