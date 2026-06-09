@@ -119,7 +119,12 @@ func OIDCRedirect(router *gin.RouterGroup) {
 		userInfo, tokens, claimErr := provider.CodeExchangeUserInfo(c)
 
 		if claimErr != nil {
+			// The code exchange failed (e.g. a missing/expired state cookie). Render a
+			// branded page that returns the user to login instead of leaving them on a
+			// raw, dead-end error with no way forward.
 			event.AuditErr([]string{clientIp, "create session", "oidc", claimErr.Error()})
+			event.LoginError(clientIp, "oidc", userName, userAgent, claimErr.Error())
+			c.HTML(http.StatusUnauthorized, "auth.gohtml", CreateSessionError(http.StatusUnauthorized, i18n.Error(i18n.ErrUnexpected)))
 			return
 		}
 

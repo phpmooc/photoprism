@@ -146,6 +146,24 @@ func (c *Client) AuthURLHandler(ctx *gin.Context) {
 	handle(ctx.Writer, ctx.Request)
 }
 
+// codeExchangeRecorder captures the OIDC code-exchange handler's status and
+// headers while discarding its body, so a failure (e.g. a missing state cookie)
+// is reported to the caller instead of being written as a raw error to the real
+// response. The caller renders a branded page in its place.
+type codeExchangeRecorder struct {
+	header http.Header
+	status int
+}
+
+func (w *codeExchangeRecorder) Header() http.Header { return w.header }
+func (w *codeExchangeRecorder) Write(b []byte) (int, error) {
+	if w.status == 0 {
+		w.status = http.StatusOK
+	}
+	return len(b), nil
+}
+func (w *codeExchangeRecorder) WriteHeader(status int) { w.status = status }
+
 // CodeExchangeUserInfo verifies a redirect auth request and returns the user information and tokens if successful.
 func (c *Client) CodeExchangeUserInfo(ctx *gin.Context) (userInfo *oidc.UserInfo, tokens *oidc.Tokens[*oidc.IDTokenClaims], err error) {
 	getInfo := func(w http.ResponseWriter, r *http.Request, t *oidc.Tokens[*oidc.IDTokenClaims], state string, rp rp.RelyingParty, i *oidc.UserInfo) {
@@ -157,10 +175,13 @@ func (c *Client) CodeExchangeUserInfo(ctx *gin.Context) (userInfo *oidc.UserInfo
 	// without performing a request to the userinfo endpoint of the OIDC identity provider.
 	handle := rp.CodeExchangeHandler(rp.UserinfoCallback(getInfo), c)
 
-	handle(ctx.Writer, ctx.Request)
+	// Run the exchange against a recorder so a failure isn't written as a raw,
+	// unbranded error to the browser; the caller renders a branded page instead.
+	rec := &codeExchangeRecorder{header: make(http.Header)}
+	handle(rec, ctx.Request)
 
-	if sc := ctx.Writer.Status(); sc != 0 && sc != http.StatusOK {
-		if oidcErr := ctx.Writer.Header().Get("oidc_error"); oidcErr == "" {
+	if sc := rec.status; sc != 0 && sc != http.StatusOK {
+		if oidcErr := rec.header.Get("oidc_error"); oidcErr == "" {
 			err = errors.New("failed to exchange token for user info")
 		} else {
 			err = errors.New(oidcErr)
@@ -169,6 +190,12 @@ func (c *Client) CodeExchangeUserInfo(ctx *gin.Context) (userInfo *oidc.UserInfo
 		event.SystemError([]string{"oidc", "code exchange", "status %d", "%s"}, sc, err.Error())
 
 		return userInfo, tokens, err
+	}
+
+	// Propagate any cookies the handler set on success (e.g. clearing the
+	// single-use state cookie) to the real response.
+	for _, ck := range rec.header.Values("Set-Cookie") {
+		ctx.Writer.Header().Add("Set-Cookie", ck)
 	}
 
 	return userInfo, tokens, nil
