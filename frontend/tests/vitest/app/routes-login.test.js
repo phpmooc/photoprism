@@ -262,6 +262,67 @@ describe("app/routes /login guard", () => {
   });
 });
 
+describe("app/routes /logout guard", () => {
+  const logoutGuard = routes.find((r) => r.name === "logout").beforeEnter;
+  let restore;
+
+  beforeEach(() => {
+    const configValues = $config.values;
+    const provider = $session.provider;
+    restore = () => {
+      $config.values = configValues;
+      $session.provider = provider;
+    };
+  });
+
+  afterEach(() => {
+    restore?.();
+    vi.restoreAllMocks();
+  });
+
+  // A cluster-OIDC user who hits /logout directly is bounced to the OIDC login
+  // (which lands on the Portal login) so they re-auth with their cluster account.
+  // The redirect must wait for the cluster-wide sign-out (which clears the Portal OP
+  // cookie) so the Portal shows its login form instead of silently re-issuing a session.
+  it("bounces a cluster-OIDC sign-out to the OIDC login after clearing the OP cookie", async () => {
+    $config.values = {
+      ...$config.values,
+      ext: { oidc: { enabled: true, redirect: true, cluster: true, loginUri: "/api/v1/oidc/login" } },
+    };
+    $session.provider = "oidc";
+    const logoutEverywhere = vi.spyOn($session, "logoutEverywhere").mockResolvedValue($session);
+    const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
+    const next = vi.fn();
+
+    logoutGuard({}, {}, next);
+
+    // The SPA navigation is cancelled immediately, but the redirect is deferred
+    // until the cluster-wide sign-out resolves.
+    expect(next).toHaveBeenCalledWith(false);
+    expect(logoutEverywhere).toHaveBeenCalledWith(true);
+    expect(followRedirect).not.toHaveBeenCalled();
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(followRedirect).toHaveBeenCalledWith("/api/v1/oidc/login");
+  });
+
+  it("sends a local sign-out to the login route", () => {
+    $config.values = {
+      ...$config.values,
+      ext: { oidc: { enabled: false, redirect: false, cluster: false, loginUri: "" } },
+    };
+    $session.provider = "local";
+    vi.spyOn($session, "signOut").mockReturnValue($session);
+    const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
+    const next = vi.fn();
+
+    logoutGuard({}, {}, next);
+
+    expect(followRedirect).not.toHaveBeenCalled();
+    expect(next).toHaveBeenCalledWith({ name: "login" });
+  });
+});
+
 describe("app/routes safeReturnTo", () => {
   it("accepts root-relative paths", () => {
     expect(safeReturnTo("/library/photos")).toBe("/library/photos");

@@ -640,6 +640,76 @@ describe("common/session", () => {
     });
   });
 
+  describe("logout redirect target", () => {
+    // A cluster-OIDC sign-out lands on the OIDC login (which bounces to the Portal
+    // login) so the user re-auths with their cluster account; everyone else stays
+    // on the local form.
+    const oidcLoginUri = "/library/api/v1/oidc/login";
+
+    // clusterOidcConfig builds a config whose ext.oidc advertises cluster OIDC.
+    const clusterOidcConfig = (namespaceKey, { cluster = true, loginUri = oidcLoginUri } = {}) => {
+      const config = createConfig("/library", namespaceKey);
+      config.loginUri = "/library/login";
+      config.values.ext = { ...(config.values.ext || {}), oidc: { enabled: true, redirect: true, cluster, loginUri } };
+      return config;
+    };
+
+    it("redirects a cluster-OIDC session to the OIDC login", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-logout-cluster-oidc";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, clusterOidcConfig(namespaceKey));
+      session.provider = "oidc";
+      const spy = vi.spyOn(session, "followRedirect").mockImplementation(() => {});
+
+      session.onLogout();
+
+      expect(spy).toHaveBeenCalledWith(oidcLoginUri);
+    });
+
+    it("captures the provider before reset() clears it", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-logout-provider-captured";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, clusterOidcConfig(namespaceKey));
+      session.provider = "oidc";
+      const spy = vi.spyOn(session, "followRedirect").mockImplementation(() => {});
+
+      session.onLogout();
+
+      // reset() runs inside onLogout and clears the provider, yet the redirect
+      // still targets the OIDC login because the target was resolved first.
+      expect(session.provider).toBe("");
+      expect(spy).toHaveBeenCalledWith(oidcLoginUri);
+    });
+
+    it("redirects a local session to the local login page", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-logout-local";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, clusterOidcConfig(namespaceKey));
+      session.provider = "local";
+      const spy = vi.spyOn(session, "followRedirect").mockImplementation(() => {});
+
+      session.onLogout();
+
+      expect(spy).toHaveBeenCalledWith("/library/login");
+    });
+
+    it("redirects an external-IdP OIDC session to the local login page", () => {
+      const rawStorage = new StorageShim();
+      const namespaceKey = "ns-logout-external-oidc";
+      const storage = createNamespacedStorage(rawStorage, namespaceKey);
+      const session = new Session(storage, clusterOidcConfig(namespaceKey, { cluster: false }));
+      session.provider = "oidc";
+      const spy = vi.spyOn(session, "followRedirect").mockImplementation(() => {});
+
+      session.onLogout();
+
+      expect(spy).toHaveBeenCalledWith("/library/login");
+    });
+  });
+
   describe("signOut", () => {
     // /logout is a SPA route that runs in vue-router's beforeEnter, so it must
     // reset client-side session state synchronously — otherwise the login

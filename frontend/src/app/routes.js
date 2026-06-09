@@ -174,12 +174,22 @@ export default [
     path: "/logout",
     meta: { title: siteTitle, requiresAuth: false, hideNav: true },
     beforeEnter: (to, from, next) => {
-      // signOut() resets client state synchronously so /login sees an
-      // unauthenticated user; the one-shot logout flag suppresses the next
-      // auto-OIDC bounce. The cluster-wide DELETE fan-out (current + peers)
-      // runs best-effort in the background.
-      $session.signOut();
-      next({ name: loginRoute });
+      // Resolve the landing before sign-out clears the provider: a cluster-OIDC user
+      // returns to the Portal login (re-auth via OIDC), everyone else to the local form.
+      const redirectUri = $session.logoutRedirectUri();
+      if (redirectUri && redirectUri !== $config.loginUri) {
+        // Cluster-OIDC: await the cluster-wide sign-out (which clears the Portal OP
+        // cookie) BEFORE bouncing to the OIDC login, so the Portal shows its login form
+        // instead of silently re-issuing a session from a still-valid OP cookie.
+        next(false);
+        $session.logoutEverywhere(true).finally(() => $session.followRedirect(redirectUri));
+      } else {
+        // Local: signOut() resets client state synchronously so /login sees an
+        // unauthenticated user; the one-shot logout flag suppresses the next auto-OIDC
+        // bounce, and the DELETE fan-out (current + peers) runs best-effort.
+        $session.signOut();
+        next({ name: loginRoute });
+      }
     },
   },
   {

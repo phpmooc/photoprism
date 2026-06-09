@@ -864,6 +864,16 @@ export default class Config {
     return !!this.values?.portal;
   }
 
+  // isClusterOidc returns true when the OIDC provider is the cluster Portal (not an external IdP).
+  isClusterOidc() {
+    return !!this.values?.ext?.oidc?.cluster;
+  }
+
+  // oidcLoginUri returns the OIDC login endpoint that starts the provider roundtrip, or "" when off.
+  oidcLoginUri() {
+    return this.values?.ext?.oidc?.loginUri || "";
+  }
+
   // isPro returns true if this is team version.
   isPro() {
     return !!this.values?.ext["pro"];

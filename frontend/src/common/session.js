@@ -803,7 +803,24 @@ export default class Session {
     $view.redirect(url, delay, true);
   }
 
+  // logoutRedirectUri returns the post-sign-out landing URL: a cluster-OIDC session
+  // goes to the OIDC login (which bounces to the Portal login) to re-auth with the
+  // cluster account, everyone else to the local login. Read provider before reset().
+  logoutRedirectUri() {
+    if (this.getProvider() === "oidc" && this.config?.isClusterOidc?.()) {
+      const oidcLoginUri = this.config.oidcLoginUri();
+      if (oidcLoginUri) {
+        return oidcLoginUri;
+      }
+    }
+
+    return this.config.loginUri;
+  }
+
   onLogout(noRedirect) {
+    // Capture the redirect target before reset() clears the auth provider.
+    const redirectUri = this.logoutRedirectUri();
+
     this.reset();
 
     // Drop stale deep-link redirects; raise one-shot flag so /login skips
@@ -812,7 +829,7 @@ export default class Session {
     this.localStorage?.setItem(LogoutSignalKey, "1");
 
     if (noRedirect !== true && !this.isLogin()) {
-      this.followRedirect(this.config.loginUri);
+      this.followRedirect(redirectUri);
     }
 
     return Promise.resolve();
