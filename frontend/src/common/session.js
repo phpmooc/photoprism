@@ -894,10 +894,13 @@ export default class Session {
   // allow silent re-SSO — and redirects. Same-origin (shared-domain proxy)
   // clusters only; subdomain-isolated peers are left to expire. Always resolves.
   logoutEverywhere(noRedirect) {
-    // Enumerate and clear from the same backends so a peer found is a peer
-    // cleared. In the app these are the real window storages; tests inject a shim.
-    const rawSession = typeof window === "undefined" ? null : window.sessionStorage;
-    const stores = [this.localStorage, rawSession];
+    // Enumerate and clear from the same backends so a peer found is a peer cleared.
+    // this.localStorage / this.sessionStorage may be NamespacedStorage wrappers
+    // (getAppStorage), so unwrap to the raw underlying store — enumerating or
+    // clearing through a wrapper would double-prefix the peer keys (pp:a:pp:b:…)
+    // and miss the real ones.
+    const rawStore = (s) => (s && s.storage ? s.storage : s);
+    const stores = [rawStore(this.localStorage), rawStore(this.sessionStorage)];
 
     let targets = [];
     try {

@@ -853,16 +853,19 @@ describe("common/session", () => {
 
   describe("logoutEverywhere", () => {
     it("revokes each peer session server-side, clears their storage, then signs out locally", async () => {
-      const storage = new StorageShim();
-      const session = new Session(storage, createConfig("/", "ns-current"));
+      // Mirror the app: Session is constructed with a NamespacedStorage wrapper
+      // (getAppStorage), so logoutEverywhere must unwrap to the raw backend.
+      const raw = new StorageShim();
+      const appStorage = createNamespacedStorage(raw, "ns-current");
+      const session = new Session(appStorage, createConfig("/", "ns-current"));
 
-      // Seed two peer sessions in the same backend the session reads/clears.
+      // Seed two peer sessions directly in the raw backend, as the app stores them.
       const pro2 = buildNamespace("ns-pro-2");
       const portal = buildNamespace("ns-portal");
-      storage.setItem(pro2 + "session.token", "tok2");
-      storage.setItem(pro2 + "instance.url", "https://app.example.com/i/pro-2/");
-      storage.setItem(portal + "session.token", "tokp");
-      storage.setItem(portal + "instance.url", "https://app.example.com/");
+      raw.setItem(pro2 + "session.token", "tok2");
+      raw.setItem(pro2 + "instance.url", "https://app.example.com/i/pro-2/");
+      raw.setItem(portal + "session.token", "tokp");
+      raw.setItem(portal + "instance.url", "https://app.example.com/");
 
       const fetchCalls = [];
       const originalFetch = window.fetch;
@@ -886,9 +889,10 @@ describe("common/session", () => {
         "https://app.example.com/i/pro-2/api/v1/session",
       ]);
       expect(fetchCalls.find((c) => c.url.includes("pro-2")).token).toBe("tok2");
-      // Peer storage was cleared and the local sign-out ran.
-      expect(storage.getItem(pro2 + "session.token")).toBeNull();
-      expect(storage.getItem(portal + "session.token")).toBeNull();
+      // Peer storage was cleared from the raw backend (no double-prefixed leftovers).
+      expect(raw.getItem(pro2 + "session.token")).toBeNull();
+      expect(raw.getItem(portal + "session.token")).toBeNull();
+      expect(raw.getItem(pro2 + "instance.url")).toBeNull();
       expect(logoutSpy).toHaveBeenCalledWith(true);
     });
 
