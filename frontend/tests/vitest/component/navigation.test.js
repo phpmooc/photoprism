@@ -263,6 +263,20 @@ describe("component/navigation", () => {
     });
   });
 
+  describe("account navigation", () => {
+    it("onAccount routes to account settings when the account feature is enabled", () => {
+      const { wrapper, push } = mountNavigation({ featureOverrides: { account: true } });
+      wrapper.vm.onAccount();
+      expect(push).toHaveBeenCalledWith({ name: "settings_account" });
+    });
+
+    it("onAccount falls back to general settings when the account feature is disabled", () => {
+      const { wrapper, push } = mountNavigation({ featureOverrides: { account: false } });
+      wrapper.vm.onAccount();
+      expect(push).toHaveBeenCalledWith({ name: "settings" });
+    });
+  });
+
   describe("home and upload actions", () => {
     it("onHome toggles drawer on small screens and does not navigate", () => {
       const { wrapper, push } = mountNavigation({

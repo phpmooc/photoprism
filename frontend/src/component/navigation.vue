@@ -641,7 +641,7 @@
 
           <div v-show="auth && !isPublic && !disconnected" class="nav-info user-info">
             <div class="nav-info__underlay"></div>
-            <p-auth-menu @logout="onLogout">
+            <p-auth-menu @account="onAccount" @logout="onLogout">
               <div class="nav-user-avatar text-center my-1 mx-2">
                 <img :src="userAvatarURL" :alt="accountInfo" :title="accountInfo" class="rounded-circle" />
               </div>
@@ -666,7 +666,7 @@
     <div id="mobile-menu" :class="{ active: speedDial }" @click.stop="speedDial = false">
       <div class="menu-content grow-top-end">
         <div class="menu-icons">
-          <a v-if="auth && !isPublic" href="#" :title="$gettext('Logout')" class="menu-action navigation-logout" @click.prevent="onLogout">
+          <a v-if="auth && !isPublic" href="#" :title="$gettext('Sign Out')" class="menu-action navigation-logout" @click.prevent="onLogout">
             <v-icon>mdi-power</v-icon>
           </a>
           <a href="#" :title="$gettext('Reload')" class="menu-action nav-reload" @click.prevent="reloadApp">
@@ -948,6 +948,11 @@ export default {
       } else {
         this.$router.push({ name: "about" });
       }
+    },
+    // onAccount opens the account settings tab, falling back to general settings
+    // when the account feature is unavailable.
+    onAccount() {
+      this.$router.push({ name: this.$config.feature("account") ? "settings_account" : "settings" });
     },
     onLogout() {
       this.$session.logout();

@@ -256,6 +256,12 @@ table td > .action-buttons {
     padding: 8px;
 }
 
+.nav-user-menu__icon {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
 .v-menu.action-menu .action-menu__list .action-menu__shortcut {
     margin-inline-start: 0.75rem;
     opacity: 0.5;

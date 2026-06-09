@@ -456,11 +456,13 @@ export default class Session {
     }
   }
 
-  // recordInstanceIdentity stores this instance's SiteUrl and display title under
-  // the active namespace so other instances on the same origin can offer a switch
-  // entry. The title prefers the distinctive base-path segment (instanceLabel) so
-  // co-located instances that share a generic caption stay distinguishable. No-op
-  // when the site URL is unknown or storage is unavailable.
+  // recordInstanceIdentity stores this instance's SiteUrl, display title, and app
+  // icon under the active namespace so other instances on the same origin can offer
+  // a switch entry. The title prefers the distinctive base-path segment
+  // (instanceLabel) so co-located instances that share a generic caption stay
+  // distinguishable; the icon is the root-relative app icon, which resolves on the
+  // shared origin from any peer. No-op when the site URL is unknown or storage is
+  // unavailable.
   recordInstanceIdentity() {
     const values = this.config?.values;
 
@@ -471,6 +473,7 @@ export default class Session {
     persistInstanceIdentity(this.storage, {
       url: values.siteUrl,
       title: instanceLabel(values.siteUrl) || values.siteTitle || values.name || values.siteUrl,
+      icon: this.config.getIcon(),
     });
   }
 

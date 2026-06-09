@@ -1,8 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // PAuthMenu derives its Switch Instance entries from listReachableInstances; mock
-// it so the menu logic can be exercised without seeding browser storage.
-vi.mock("common/instances", () => ({
+// it so the menu logic can be exercised without seeding browser storage, while
+// keeping the real instancePath used to build the subtitle.
+vi.mock("common/instances", async (importActual) => ({
+  ...(await importActual()),
   listReachableInstances: vi.fn(),
 }));
 
@@ -15,13 +17,20 @@ describe("component/auth/menu", () => {
   });
 
   describe("refresh", () => {
-    it("loads reachable peers using the current namespace", () => {
-      const peers = [{ namespace: "ns-pro-2", url: "https://pro-2.example.com/", title: "Pro Two" }];
+    it("loads reachable peers and adds the base-path subtitle", () => {
+      const peers = [{ namespace: "ns-pro-2", url: "https://app.example.com/i/pro-2", title: "pro-2", icon: "/i/pro-2/static/icons/logo.svg" }];
       listReachableInstances.mockReturnValue(peers);
       const ctx = { $config: { values: { storageNamespace: "ns-pro-1" } }, instances: [] };
       AuthMenu.methods.refresh.call(ctx);
       expect(listReachableInstances).toHaveBeenCalledWith({ currentNamespace: "ns-pro-1" });
-      expect(ctx.instances).toEqual(peers);
+      expect(ctx.instances).toEqual([{ ...peers[0], path: "/i/pro-2" }]);
+    });
+    it("defaults a missing instance icon to the logo", () => {
+      const peers = [{ namespace: "ns-pro-3", url: "https://app.example.com/i/pro-3", title: "pro-3", icon: "" }];
+      listReachableInstances.mockReturnValue(peers);
+      const ctx = { $config: { values: { storageNamespace: "ns-pro-1" } }, instances: [] };
+      AuthMenu.methods.refresh.call(ctx);
+      expect(ctx.instances[0].icon).toBe("/static/icons/logo.svg");
     });
     it("yields an empty list when no peers are reachable, hiding the switcher", () => {
       listReachableInstances.mockReturnValue([]);
@@ -54,6 +63,19 @@ describe("component/auth/menu", () => {
       const navigate = vi.fn();
       AuthMenu.methods.onSwitch.call({ navigate }, {});
       expect(navigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("onIconError", () => {
+    it("falls back to the default logo when a recorded icon fails to load", () => {
+      const instance = { namespace: "ns-pro-2", icon: "/i/pro-2/static/icons/logo.svg" };
+      AuthMenu.methods.onIconError.call({}, instance);
+      expect(instance.icon).toBe("/static/icons/logo.svg");
+    });
+    it("does not reassign when the default logo itself fails", () => {
+      const instance = { icon: "/static/icons/logo.svg" };
+      AuthMenu.methods.onIconError.call({}, instance);
+      expect(instance.icon).toBe("/static/icons/logo.svg");
     });
   });
 });

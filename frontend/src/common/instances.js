@@ -31,10 +31,11 @@ import { listAuthSessions, buildNamespace } from "common/storage";
 // URL and title must be persisted explicitly under the instance's namespace.
 const InstanceUrlKey = "instance.url";
 const InstanceTitleKey = "instance.title";
+const InstanceIconKey = "instance.icon";
 
 // InstanceIdentityKeys lists the suffix keys written by persistInstanceIdentity,
 // so callers (e.g. session logout) can clear them across storage backends.
-export const InstanceIdentityKeys = [InstanceUrlKey, InstanceTitleKey];
+export const InstanceIdentityKeys = [InstanceUrlKey, InstanceTitleKey, InstanceIconKey];
 
 // safeWindow returns the browser window if available, else null.
 const safeWindow = () => (typeof window === "undefined" ? null : window);
@@ -73,9 +74,24 @@ export function instanceLabel(siteUrl) {
   }
 }
 
-// persistInstanceIdentity records this instance's SiteUrl and display title in
-// the given (namespaced) store, so other instances on the same origin can list
-// it in the navigation instance switcher. No-op without a URL or usable store.
+// instancePath returns the base path of a SiteUrl (e.g. "/i/pro-1") so the
+// switcher can show how same-origin peers differ without repeating the shared
+// origin. Returns "/" for a root install and "" for an unparseable URL.
+export function instancePath(siteUrl) {
+  if (!siteUrl || typeof siteUrl !== "string") {
+    return "";
+  }
+  try {
+    const path = new URL(siteUrl).pathname.replace(/\/+$/, "");
+    return path || "/";
+  } catch {
+    return "";
+  }
+}
+
+// persistInstanceIdentity records this instance's SiteUrl, display title, and app
+// icon in the given (namespaced) store, so other instances on the same origin can
+// list it in the navigation instance switcher. No-op without a URL or usable store.
 export function persistInstanceIdentity(store, identity) {
   if (!store || typeof store.setItem !== "function" || !identity || !identity.url) {
     return;
@@ -87,6 +103,12 @@ export function persistInstanceIdentity(store, identity) {
     store.setItem(InstanceTitleKey, identity.title);
   } else {
     store.removeItem(InstanceTitleKey);
+  }
+
+  if (identity.icon) {
+    store.setItem(InstanceIconKey, identity.icon);
+  } else {
+    store.removeItem(InstanceIconKey);
   }
 }
 
@@ -140,6 +162,7 @@ export function listReachableInstances(options) {
         namespace,
         url,
         title: store.getItem(prefix + InstanceTitleKey) || url,
+        icon: store.getItem(prefix + InstanceIconKey) || "",
       });
     });
   });
