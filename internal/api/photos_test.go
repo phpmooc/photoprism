@@ -160,6 +160,18 @@ func TestLikePhoto(t *testing.T) {
 		r := PerformRequest(app, "POST", "/api/v1/photos/xxx/like")
 		assert.Equal(t, http.StatusNotFound, r.Code)
 	})
+	t.Run("GuestDeniedOutOfScope", func(t *testing.T) {
+		app, router, conf := NewApiTest()
+		conf.SetAuthMode(config.AuthModePasswd)
+		defer conf.SetAuthMode(config.AuthModePublic)
+
+		LikePhoto(router)
+		// A guest holds ActionReact and so passes the route ACL, but a picture outside its shared
+		// scope must be reported as not found rather than returning the (unredacted) photo record.
+		sessId := AuthenticateUser(app, router, "gandalf", "Gandalf123!")
+		r := AuthenticatedRequest(app, "POST", "/api/v1/photos/ps6sg6be2lvl0y13/like", sessId)
+		assert.Equal(t, http.StatusNotFound, r.Code)
+	})
 }
 
 func TestDislikePhoto(t *testing.T) {
@@ -177,6 +189,16 @@ func TestDislikePhoto(t *testing.T) {
 		app, router, _ := NewApiTest()
 		DislikePhoto(router)
 		r := PerformRequest(app, "DELETE", "/api/v1/photos/xxx/like")
+		assert.Equal(t, http.StatusNotFound, r.Code)
+	})
+	t.Run("GuestDeniedOutOfScope", func(t *testing.T) {
+		app, router, conf := NewApiTest()
+		conf.SetAuthMode(config.AuthModePasswd)
+		defer conf.SetAuthMode(config.AuthModePublic)
+
+		DislikePhoto(router)
+		sessId := AuthenticateUser(app, router, "gandalf", "Gandalf123!")
+		r := AuthenticatedRequest(app, "DELETE", "/api/v1/photos/ps6sg6be2lvl0y13/like", sessId)
 		assert.Equal(t, http.StatusNotFound, r.Code)
 	})
 }
