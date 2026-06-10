@@ -22,6 +22,7 @@ function mountLogin({ oidcEnabled = false, oidcRedirect = false, sessionOverride
     getDefaultRoute: vi.fn(() => "browse"),
     isAuthenticated: vi.fn(() => false),
     consumeLogoutSignal: vi.fn(() => false),
+    markLoginRedirectAttempt: vi.fn(),
     ...baseSession,
     ...sessionOverrides,
   };
@@ -137,6 +138,40 @@ describe("page/auth/login", () => {
     expect(session.useSessionStorage).toHaveBeenCalledTimes(1);
     expect(session.useLocalStorage).not.toHaveBeenCalled();
     expect(session.followRedirect).toHaveBeenCalledWith("/api/v1/oidc/login");
+    // The manual OIDC button must arm the redirect-loop guard, like the
+    // auto-redirect in the /login route guard does.
+    expect(session.markLoginRedirectAttempt).toHaveBeenCalledTimes(1);
+  });
+
+  it("reset clears the inputs and code-entry state", () => {
+    const { wrapper } = mountLogin();
+
+    Object.assign(wrapper.vm, {
+      username: "x",
+      password: "y",
+      showPassword: true,
+      useRecoveryCode: true,
+      code: "123456",
+      enterCode: true,
+    });
+    wrapper.vm.reset();
+
+    expect(wrapper.vm.username).toBe("");
+    expect(wrapper.vm.password).toBe("");
+    expect(wrapper.vm.showPassword).toBe(false);
+    expect(wrapper.vm.useRecoveryCode).toBe(false);
+    expect(wrapper.vm.code).toBe("");
+    expect(wrapper.vm.enterCode).toBe(false);
+  });
+
+  it("surfaces a stored OIDC sign-in error as a persistent login error and consumes it", () => {
+    window.localStorage.setItem(`${storagePrefix}session.error`, "You do not have access to this instance.");
+
+    const { wrapper } = mountLogin({ oidcEnabled: true });
+
+    expect(wrapper.vm.loginError).toBe("You do not have access to this instance.");
+    // Consumed so it does not reappear on the next reload.
+    expect(window.localStorage.getItem(`${storagePrefix}session.error`)).toBeNull();
   });
 
   // Auto-OIDC redirect for unauthenticated visitors now lives in the
