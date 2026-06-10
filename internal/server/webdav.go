@@ -11,6 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"golang.org/x/net/webdav"
 
+	"github.com/photoprism/photoprism/internal/api"
 	"github.com/photoprism/photoprism/internal/config"
 	"github.com/photoprism/photoprism/internal/mutex"
 	"github.com/photoprism/photoprism/internal/workers/auto"
@@ -115,6 +116,15 @@ func WebDAV(dir string, router *gin.RouterGroup, conf *config.Config) {
 			if conf.InsufficientStorage() {
 				c.AbortWithStatus(http.StatusInsufficientStorage)
 				return
+			}
+		}
+
+		// Bound an uploaded file to the configured originals size limit (when set) so a single
+		// PUT cannot stream an unbounded body to disk; the free-storage check above only catches
+		// the next request. No-op when no originals limit is configured.
+		if c.Request.Method == header.MethodPut {
+			if limit := conf.OriginalsLimitBytes(); limit > 0 {
+				api.LimitRequestBodyBytes(c, limit)
 			}
 		}
 
