@@ -178,11 +178,20 @@ func (c *Config) SiteName() string {
 
 // SiteTitle returns the main site title (default is application name).
 func (c *Config) SiteTitle() string {
-	if c.options.SiteTitle == "" {
-		return c.Name()
+	if c.options.SiteTitle != "" {
+		return c.options.SiteTitle
 	}
 
-	return c.options.SiteTitle
+	// With no SiteTitle and no AppName configured, fall back to the distinctive
+	// SiteName (SITE_NAME) before the product Name so an instance branded only via
+	// SITE_NAME shows that name as its title.
+	if c.options.AppName == "" {
+		if name := clean.TypeUnicode(c.options.SiteName); name != "" {
+			return name
+		}
+	}
+
+	return c.Name()
 }
 
 // SiteCaption returns a short site caption.
