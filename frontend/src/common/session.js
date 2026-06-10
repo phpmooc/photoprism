@@ -465,7 +465,7 @@ export default class Session {
 
   // recordInstanceIdentity stores this instance's SiteUrl, display title, and app
   // icon under the active namespace so other instances on the same origin can offer
-  // a switch entry. The title prefers the configured app name (see instanceTitle)
+  // a switch entry. The title prefers the configured site name (see instanceTitle)
   // and falls back to the distinctive base-path segment for unbranded instances;
   // the icon is the root-relative app icon, which resolves on the shared origin from
   // any peer. No-op when the site URL is unknown or storage is unavailable.

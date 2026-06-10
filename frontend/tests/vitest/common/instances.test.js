@@ -49,14 +49,14 @@ describe("common/instances", () => {
   });
 
   describe("instanceTitle", () => {
-    it("prefers the configured app name over the base-path slug", () => {
+    it("prefers the configured site name over the base-path slug", () => {
       expect(
-        instanceTitle({ appName: "SEWA", name: "PhotoPrism Pro", siteTitle: "SEWA", siteUrl: "https://app.example.com/i/sewa/" })
+        instanceTitle({ siteName: "SEWA", name: "PhotoPrism Pro", siteTitle: "SEWA", siteUrl: "https://app.example.com/i/sewa/" })
       ).toBe("SEWA");
     });
-    it("falls back to the base-path slug when the app name is the unbranded edition default", () => {
+    it("falls back to the base-path slug when no site name is configured", () => {
       expect(
-        instanceTitle({ appName: "PhotoPrism Pro", name: "PhotoPrism Pro", siteTitle: "PhotoPrism Pro", siteUrl: "https://app.example.com/i/pro-1/" })
+        instanceTitle({ siteName: "", name: "PhotoPrism Pro", siteTitle: "PhotoPrism Pro", siteUrl: "https://app.example.com/i/pro-1/" })
       ).toBe("pro-1");
     });
     it("falls back through site title, name, then url when no slug is available", () => {

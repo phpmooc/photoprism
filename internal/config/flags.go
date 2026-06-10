@@ -646,6 +646,12 @@ var Flags = CliFlags{
 			EnvVars: EnvVars("SITE_AUTHOR"),
 		}}, {
 		Flag: &cli.StringFlag{
+			Name:    "site-name",
+			Usage:   "short, distinctive instance `NAME` for switchers and selectors *optional*",
+			Value:   "",
+			EnvVars: EnvVars("SITE_NAME"),
+		}}, {
+		Flag: &cli.StringFlag{
 			Name:    "site-title",
 			Usage:   "site `TITLE`",
 			Value:   "",
