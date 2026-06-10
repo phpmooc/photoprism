@@ -22,6 +22,26 @@ describe("options/auth RoleOptions", () => {
     const [opt] = RoleOptions(["viewer"], "title");
     expect(opt).toEqual({ value: "viewer", title: Roles()["viewer"] });
   });
+  it("leaves the list unchanged when the current role is already selectable", () => {
+    expect(RoleOptions(["admin", "user"], "text", "admin")).toEqual([
+      { value: "admin", text: Roles()["admin"] },
+      { value: "user", text: Roles()["user"] },
+    ]);
+  });
+  it("appends an out-of-list current role as a labeled, disabled option", () => {
+    const options = RoleOptions(["admin", "user"], "text", "cluster_admin");
+    expect(options).toHaveLength(3);
+    expect(options[2]).toEqual({ value: "cluster_admin", text: Roles()["cluster_admin"], disabled: true });
+  });
+  it("appends the empty Unauthorized role as a labeled, disabled option", () => {
+    const options = RoleOptions(["admin"], "text", "");
+    expect(options).toHaveLength(2);
+    expect(options[1]).toEqual({ value: "", text: Roles()[""], disabled: true });
+  });
+  it("appends nothing when there is no current role (null or omitted)", () => {
+    expect(RoleOptions(["admin"])).toEqual([{ value: "admin", text: Roles()["admin"] }]);
+    expect(RoleOptions(["admin"], "text", null)).toEqual([{ value: "admin", text: Roles()["admin"] }]);
+  });
 });
 
 describe("options/auth ProviderLabel", () => {

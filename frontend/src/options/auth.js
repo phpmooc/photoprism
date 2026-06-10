@@ -23,9 +23,16 @@ export const RoleLabel = (role) => {
 };
 
 // RoleOptions builds {value, [labelKey]} options for the given role keys, with
-// labels from the shared Roles() map. Editions pass their own keys (the sets
-// differ); only the labels are shared. labelKey is "text" or "title".
-export const RoleOptions = (roles, labelKey = "text") => roles.map((role) => ({ value: role, [labelKey]: RoleLabel(role) }));
+// labels from the shared Roles() map; editions pass their own keys (labelKey is
+// "text" or "title"). A non-null `current` outside the list (a downgrade leftover
+// or the empty "" Unauthorized role) is appended labeled + disabled; null = none.
+export const RoleOptions = (roles, labelKey = "text", current = null) => {
+  const options = roles.map((role) => ({ value: role, [labelKey]: RoleLabel(role) }));
+  if (current !== null && !roles.includes(current)) {
+    options.push({ value: current, [labelKey]: RoleLabel(current), disabled: true });
+  }
+  return options;
+};
 
 // Providers maps authentication providers to their display name.
 export const Providers = () => {
