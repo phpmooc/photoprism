@@ -8,6 +8,7 @@ import (
 	"github.com/tidwall/gjson"
 
 	"github.com/photoprism/photoprism/internal/config"
+	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/pkg/i18n"
 )
 
@@ -171,6 +172,27 @@ func TestLikePhoto(t *testing.T) {
 		sessId := AuthenticateUser(app, router, "gandalf", "Gandalf123!")
 		r := AuthenticatedRequest(app, "POST", "/api/v1/photos/ps6sg6be2lvl0y13/like", sessId)
 		assert.Equal(t, http.StatusNotFound, r.Code)
+	})
+	t.Run("GuestInScopeRedacted", func(t *testing.T) {
+		app, router, conf := NewApiTest()
+		conf.SetAuthMode(config.AuthModePasswd)
+		defer conf.SetAuthMode(config.AuthModePublic)
+
+		// A guest session that has redeemed a share to an album containing a non-private picture
+		// reaches the redaction branch: the picture is returned, but identifying metadata is stripped.
+		sess := entity.NewSession(conf.SessionMaxAge(), 0)
+		sess.SetUser(entity.FindUserByName("guest"))
+		sess.RedeemToken("1jxf3jfn2k")
+		if err := sess.Save(); err != nil {
+			t.Fatal(err)
+		}
+
+		LikePhoto(router)
+		r := AuthenticatedRequest(app, "POST", "/api/v1/photos/ps6sg6be2lvl0yh7/like", sess.AuthToken())
+		assert.Equal(t, http.StatusOK, r.Code)
+		assert.Equal(t, "ps6sg6be2lvl0yh7", gjson.Get(r.Body.String(), "photo.UID").String())
+		assert.Empty(t, gjson.Get(r.Body.String(), "photo.Path").String())
+		assert.Empty(t, gjson.Get(r.Body.String(), "photo.OriginalName").String())
 	})
 }
 
