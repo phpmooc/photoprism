@@ -60,7 +60,7 @@ export default {
   data() {
     return {
       open: false,
-      openOnHover: !this.$util.hasTouch(),
+      openOnHover: this.$util.shouldOpenOnHover(),
       instances: [],
     };
   },

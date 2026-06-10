@@ -1,6 +1,7 @@
 UI:
   Scrollbar: true
   Zoom: false
+  OpenOnHover: true
   Theme: onyx
   Language: de
   TimeZone: Local
