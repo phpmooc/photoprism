@@ -6,6 +6,7 @@ import {
   listReachableInstances,
   InstanceIdentityKeys,
   instanceLabel,
+  instanceTitle,
   instancePath,
   instanceSessionUrl,
   listLogoutTargets,
@@ -44,6 +45,28 @@ describe("common/instances", () => {
       expect(instanceLabel("not a url")).toBe("");
       expect(instanceLabel("")).toBe("");
       expect(instanceLabel(null)).toBe("");
+    });
+  });
+
+  describe("instanceTitle", () => {
+    it("prefers the configured app name over the base-path slug", () => {
+      expect(
+        instanceTitle({ appName: "SEWA", name: "PhotoPrism Pro", siteTitle: "SEWA", siteUrl: "https://app.example.com/i/sewa/" })
+      ).toBe("SEWA");
+    });
+    it("falls back to the base-path slug when the app name is the unbranded edition default", () => {
+      expect(
+        instanceTitle({ appName: "PhotoPrism Pro", name: "PhotoPrism Pro", siteTitle: "PhotoPrism Pro", siteUrl: "https://app.example.com/i/pro-1/" })
+      ).toBe("pro-1");
+    });
+    it("falls back through site title, name, then url when no slug is available", () => {
+      expect(instanceTitle({ name: "PhotoPrism", siteTitle: "My Photos", siteUrl: "https://app.example.com/" })).toBe("My Photos");
+      expect(instanceTitle({ name: "My Node", siteUrl: "https://app.example.com/" })).toBe("My Node");
+      expect(instanceTitle({ siteUrl: "https://app.example.com/" })).toBe("https://app.example.com/");
+    });
+    it("returns an empty string for missing or invalid values", () => {
+      expect(instanceTitle(null)).toBe("");
+      expect(instanceTitle({})).toBe("");
     });
   });
 

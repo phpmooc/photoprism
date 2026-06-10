@@ -75,6 +75,22 @@ export function instanceLabel(siteUrl) {
   }
 }
 
+// instanceTitle derives the switcher label from an instance's client config values,
+// preferring the operator-configured app name so a distinctively branded instance
+// shows its real name (e.g. "SEWA") instead of the lowercase base-path slug. The
+// config appName collapses to the edition Name (e.g. "PhotoPrism Pro") when neither
+// an app name nor a site title is configured, so an appName equal to the edition
+// Name is treated as an unbranded default and falls back to the base-path segment
+// (instanceLabel) — which the menu still shows as a subtitle to keep peers that
+// share a generic name distinguishable. Returns "" only when no field is usable.
+export function instanceTitle(values) {
+  if (!values || typeof values !== "object") {
+    return "";
+  }
+  const appName = values.appName && values.appName !== values.name ? values.appName : "";
+  return appName || instanceLabel(values.siteUrl) || values.siteTitle || values.name || values.siteUrl || "";
+}
+
 // instancePath returns the base path of a SiteUrl (e.g. "/i/pro-1") so the
 // switcher can show how same-origin peers differ without repeating the shared
 // origin. Returns "/" for a root install and "" for an unparseable URL.
