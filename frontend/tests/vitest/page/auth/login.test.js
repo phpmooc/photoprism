@@ -23,6 +23,7 @@ function mountLogin({ oidcEnabled = false, oidcRedirect = false, sessionOverride
     isAuthenticated: vi.fn(() => false),
     consumeLogoutSignal: vi.fn(() => false),
     markLoginRedirectAttempt: vi.fn(),
+    markOidcAttempt: vi.fn(),
     ...baseSession,
     ...sessionOverrides,
   };
@@ -138,9 +139,12 @@ describe("page/auth/login", () => {
     expect(session.useSessionStorage).toHaveBeenCalledTimes(1);
     expect(session.useLocalStorage).not.toHaveBeenCalled();
     expect(session.followRedirect).toHaveBeenCalledWith("/api/v1/oidc/login");
-    // The manual OIDC button must arm the redirect-loop guard, like the
-    // auto-redirect in the /login route guard does.
-    expect(session.markLoginRedirectAttempt).toHaveBeenCalledTimes(1);
+    // The manual OIDC button arms the per-tab OIDC attempt guard, like the
+    // auto-redirect in the /login route guard does. It must NOT arm the
+    // post-login redirect-loop guard, or an authenticated return within the
+    // loop window would discard the stored deep link / Portal return_to.
+    expect(session.markOidcAttempt).toHaveBeenCalledTimes(1);
+    expect(session.markLoginRedirectAttempt).not.toHaveBeenCalled();
   });
 
   it("reset clears the inputs and code-entry state", () => {

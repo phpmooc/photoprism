@@ -391,10 +391,11 @@ export default {
       if (this.config.ext?.oidc?.loginUri) {
         this.applySessionPersistence();
         this.loading = true;
-        // Mark the redirect follow so a bounce-back is recognized as a loop by
-        // the /login route guard (common/session.js loginRedirectLooping) — the
-        // manual OIDC button must participate in the guard like the auto-redirect.
-        this.$session.markLoginRedirectAttempt();
+        // Arm the per-tab OIDC attempt guard (not the post-login redirect loop
+        // guard): a failed or abandoned roundtrip then falls back to the form via
+        // consumeOidcAttempt instead of auto-redirecting again, while a stored deep
+        // link or Portal return_to survives for the authenticated return trip.
+        this.$session.markOidcAttempt();
         this.$session.followRedirect(this.config.ext.oidc.loginUri);
       } else {
         this.$notify.warn(this.$gettext("Missing or invalid configuration"));
