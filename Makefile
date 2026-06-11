@@ -468,9 +468,9 @@ build-libheif-armv7-latest:
 	docker run --rm -u $(UID) --platform=arm --pull=always -v ".:/go/src/github.com/photoprism/photoprism" -e BUILD_ARCH=arm -e SYSTEM_ARCH=arm photoprism/develop:armv7 ./scripts/dist/build-libheif.sh
 build-libheif-deb: build-libheif-deb-amd64 build-libheif-deb-arm64
 build-libheif-deb-amd64:
-	docker run --rm -u $(UID) --platform=amd64 --pull=always -v ".:/go/src/github.com/photoprism/photoprism" -e BUILD_ARCH=amd64 -e SYSTEM_ARCH=amd64 photoprism/develop:resolute ./scripts/dist/build-libheif-deb.sh v1.22.2
+	docker run --rm -u $(UID) --platform=amd64 --pull=always -v ".:/go/src/github.com/photoprism/photoprism" -e BUILD_ARCH=amd64 -e SYSTEM_ARCH=amd64 photoprism/develop:resolute ./scripts/dist/build-libheif-deb.sh v1.23.0
 build-libheif-deb-arm64:
-	docker run --rm -u $(UID) --platform=arm64 --pull=always -v ".:/go/src/github.com/photoprism/photoprism" -e BUILD_ARCH=arm64 -e SYSTEM_ARCH=arm64 photoprism/develop:resolute ./scripts/dist/build-libheif-deb.sh v1.22.2
+	docker run --rm -u $(UID) --platform=arm64 --pull=always -v ".:/go/src/github.com/photoprism/photoprism" -e BUILD_ARCH=arm64 -e SYSTEM_ARCH=arm64 photoprism/develop:resolute ./scripts/dist/build-libheif-deb.sh v1.23.0
 build-tensorflow: docker-tensorflow-amd64
 docker-tensorflow: docker-tensorflow-amd64
 docker-tensorflow-amd64:
