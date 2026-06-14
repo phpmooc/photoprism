@@ -880,6 +880,16 @@ export default class Config {
     return !!this.values?.ext?.oidc?.cluster;
   }
 
+  // oidcEnabled returns true when OIDC single sign-on is configured.
+  oidcEnabled() {
+    return !!this.values?.ext?.oidc?.enabled;
+  }
+
+  // ldapEnabled returns true when LDAP/AD directory authentication is configured.
+  ldapEnabled() {
+    return !!this.values?.ext?.ldap?.enabled;
+  }
+
   // oidcLoginUri returns the OIDC login endpoint that starts the provider roundtrip, or "" when off.
   oidcLoginUri() {
     return this.values?.ext?.oidc?.loginUri || "";
