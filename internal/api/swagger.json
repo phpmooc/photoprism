@@ -358,7 +358,7 @@
                     "type": "object"
                 },
                 "AllowGroups": {
-                    "description": "Group-based admission config (redacted for non-admin sessions):\nAllowGroups admits matching login-time groups, AllowGroupRoles\noptionally overrides the default role per group, and GroupsFullView\nopts the node into receiving the user's full group set.",
+                    "description": "Group-based admission config (redacted for non-admin sessions):\nAllowGroups admits matching login-time groups, AllowGroupRoles\noptionally overrides the default role per group, GroupsFullView opts the\nnode into receiving the user's full group set, and GroupsSrc is the\nAllowGroups provenance (\"node\" = instance-declared via env, \"manual\" =\nadmin-pinned; empty = unmanaged).",
                     "items": {
                         "type": "string"
                     },
@@ -384,6 +384,9 @@
                 },
                 "GroupsFullView": {
                     "type": "boolean"
+                },
+                "GroupsSrc": {
+                    "type": "string"
                 },
                 "Labels": {
                     "additionalProperties": {
