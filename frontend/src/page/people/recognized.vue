@@ -267,34 +267,42 @@ export default {
       this.dialog.edit = true;
     },
     onSave(m) {
-      if (!this.canManage || !m.Name || m.Name.trim() === "") {
-        // Refuse to save empty name.
+      if (this.busy || !this.canManage || !m.Name || m.Name.trim() === "") {
+        // Refuse to save an empty name or re-enter while a save is in flight.
         return;
       }
+
+      // Mark busy before the async lookup so the dialog cannot be re-submitted
+      // while the people cache resolves (cold cache / mid-flight eviction).
+      this.busy = true;
 
       // Look up an existing person with the same name through the shared people
       // cache to detect a merge (a different subject already owns the name).
       const name = m.Name.toLowerCase();
-      typeaheadCache.getPeople().then((people) => {
-        const existing = people.find((p) => p.Name && p.Name.toLowerCase() === name) || null;
-        if (!existing || existing.UID === m.UID) {
-          this.busy = true;
-          m.update()
-            .then(() => {
-              this.$notify.success(this.$gettext("Changes successfully saved"));
-              this.dialog.edit = false;
-            })
-            .finally(() => {
-              this.busy = false;
-              this.dialog.edit = false;
-            });
-        } else {
-          this.merge.subj1 = m;
-          this.merge.subj2 = existing;
-          this.dialog.edit = false;
-          this.merge.visible = true;
-        }
-      });
+      typeaheadCache
+        .getPeople()
+        .then((people) => {
+          const existing = people.find((p) => p.Name && p.Name.toLowerCase() === name) || null;
+          if (!existing || existing.UID === m.UID) {
+            m.update()
+              .then(() => {
+                this.$notify.success(this.$gettext("Changes successfully saved"));
+              })
+              .finally(() => {
+                this.busy = false;
+                this.dialog.edit = false;
+              });
+          } else {
+            this.busy = false;
+            this.merge.subj1 = m;
+            this.merge.subj2 = existing;
+            this.dialog.edit = false;
+            this.merge.visible = true;
+          }
+        })
+        .catch(() => {
+          this.busy = false;
+        });
     },
     onCancelMerge() {
       this.merge.visible = false;

@@ -1008,6 +1008,29 @@ describe("PLightboxSidebar component", () => {
     expect(w.vm.knownPeople).toEqual([]);
   });
 
+  // Locks in the focus-before-resolve flow: loadChipOptions (combobox @focus)
+  // may run while the people fetch is still in flight; knownPeople stays empty
+  // until it resolves, then populates without any synchronous read hazard.
+  it("knownPeople stays empty until the people fetch resolves, then populates", async () => {
+    typeaheadCache.clear();
+    let resolveFn;
+    const deferred = new Promise((resolve) => (resolveFn = resolve));
+    const spy = vi.spyOn(typeaheadCache, "getPeople").mockReturnValue(deferred);
+    const w = mountSidebar({
+      props: { modelValue: mockModel, photo: mockPhoto, canEdit: true, context: contexts.Photos },
+      global: { stubs: { PMap: true } },
+    });
+    w.vm.chipState.people.options = [];
+    w.vm.loadChipOptions("people");
+    await Promise.resolve();
+    expect(w.vm.knownPeople).toEqual([]);
+    resolveFn([{ UID: "sA", Name: "Alice" }]);
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(w.vm.knownPeople).toEqual([{ Name: "Alice", UID: "sA" }]);
+    spy.mockRestore();
+  });
+
   it("should not confirm an empty name (treats it as cancel)", async () => {
     const setName = vi.fn();
     const namedMarker = {

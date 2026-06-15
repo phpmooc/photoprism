@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { mount } from "@vue/test-utils";
+import { mount, flushPromises } from "@vue/test-utils";
 import PeopleTab from "component/photo/edit/people.vue";
 import Subject from "model/subject";
+import typeaheadCache from "common/typeahead-cache";
 import { Marker } from "model/marker";
 
 describe("PTabPhotoPeople face actions", () => {
@@ -21,12 +22,17 @@ describe("PTabPhotoPeople face actions", () => {
     },
   ];
 
-  beforeEach(() => {
+  beforeEach(async () => {
     setCoverSpy = vi.spyOn(Subject.prototype, "setCover").mockImplementation(function (thumb) {
       this.Thumb = thumb;
       this.ThumbSrc = "manual";
       return Promise.resolve(this);
     });
+
+    // created() loads name suggestions from the people cache; resolve it
+    // deterministically so findPerson() sees the seeded people.
+    typeaheadCache.clear();
+    vi.spyOn(typeaheadCache, "getPeople").mockResolvedValue(mockPeople);
 
     openUrlSpy = vi.fn();
 
@@ -99,8 +105,8 @@ describe("PTabPhotoPeople face actions", () => {
       return subject;
     });
 
-    // Seed the cached name suggestions (normally loaded from typeaheadCache.getPeople).
-    wrapper.vm.people = mockPeople;
+    // Let created()'s loadPeople() resolve so wrapper.vm.people === mockPeople.
+    await flushPromises();
   });
 
   afterEach(() => {
