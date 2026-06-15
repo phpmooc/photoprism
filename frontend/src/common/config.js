@@ -1005,6 +1005,10 @@ export default class Config {
       case "crisp":
       case "mint":
       case "bold":
+      case "bloom":
+      case "flower":
+      case "ring":
+      case "shutter":
         return `${this.staticUri}/icons/${this.get("appIcon")}.svg`;
       default:
         return `${this.staticUri}/icons/logo.svg`;
