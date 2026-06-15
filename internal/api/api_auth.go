@@ -48,7 +48,14 @@ func AuthAny(c *gin.Context, resource acl.Resource, perms acl.Permissions) (s *e
 			event.AuditInfo([]string{clientIp, "session %s", "%s %s as %s", status.Granted}, s.RefID, perms.First(), string(resource), s.GetClientRole().String())
 			return s
 		}
-		event.AuditWarn([]string{clientIp, "%s %s without authentication", status.Denied}, perms.String(), string(resource))
+
+		// Log routine anonymous requests at debug level; warn only on a rejected token.
+		if authToken == "" {
+			event.AuditDebug([]string{clientIp, "%s %s without authentication", status.Denied}, perms.String(), string(resource))
+		} else {
+			event.AuditWarn([]string{clientIp, "%s %s with invalid authentication", status.Denied}, perms.String(), string(resource))
+		}
+
 		return entity.SessionStatusUnauthorized()
 	}
 
