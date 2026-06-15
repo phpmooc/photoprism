@@ -5221,6 +5221,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of albums returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of albums to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/search.Album"
@@ -7527,6 +7541,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of errors returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of errors to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "$ref": "#/definitions/entity.Error"
                         }
@@ -7621,6 +7649,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of faces returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of faces to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/search.Face"
@@ -7855,6 +7897,28 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of files and folders returned.  Do not use for determining if all the results have been returned.",
+                                "type": "number"
+                            },
+                            "X-Files": {
+                                "description": "The actual number of files returned.  Use this for comparing to X-Limit to determine if all the results have been returned.",
+                                "type": "number"
+                            },
+                            "X-Folders": {
+                                "description": "The actual number of folders returned.  Do not use for determining if all the results have been returned.",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of files to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "$ref": "#/definitions/api.FoldersResponse"
                         }
@@ -8054,6 +8118,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of files returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of files to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/search.GeoResult"
@@ -8334,6 +8412,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of labels returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of labels to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/search.Label"
@@ -9437,6 +9529,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of files returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of files to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/search.Photo"
@@ -9574,6 +9680,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of files returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of files to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/viewer.Result"
@@ -10723,6 +10843,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of services returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of services to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/entity.Service"
@@ -11686,6 +11820,20 @@
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "headers": {
+                            "X-Count": {
+                                "description": "The actual number of subjects returned",
+                                "type": "number"
+                            },
+                            "X-Limit": {
+                                "description": "The limit of the number of subjects to be returned",
+                                "type": "number"
+                            },
+                            "X-Offset": {
+                                "description": "The offset that was used",
+                                "type": "number"
+                            }
+                        },
                         "schema": {
                             "items": {
                                 "$ref": "#/definitions/search.Subject"
