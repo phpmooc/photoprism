@@ -120,6 +120,13 @@ func (c *ClientConfig) ApplyACL(a acl.ACL, r acl.Role) *ClientConfig {
 		c.Usage.UsersUsedPct = -1
 	}
 
+	// Only include the people list and count for roles permitted to view or
+	// search people; other roles receive an empty list.
+	if !c.ACL[acl.ResourcePeople].Allow(acl.ActionView) && !c.ACL[acl.ResourcePeople].Allow(acl.ActionSearch) {
+		c.People = nil
+		c.Count.People = 0
+	}
+
 	return c
 }
 
