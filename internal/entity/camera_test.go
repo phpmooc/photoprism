@@ -2,9 +2,11 @@ package entity
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/form"
 )
 
@@ -306,6 +308,72 @@ func TestCamera_UpdateMakeModel(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, "Canon", camera.CameraMake)
 		assert.Equal(t, "EOS 7D", camera.CameraModel)
+	})
+}
+
+// TestCamera_EntityEvents pins the camera content-channel payloads to the UID-only
+// invariant: cameras.created/updated carry a []string of stable slugs, never entity
+// fields, and an update does not republish the camera count.
+func TestCamera_EntityEvents(t *testing.T) {
+	t.Run("CreatedPublishesSlugOnly", func(t *testing.T) {
+		m := NewCamera("Acme", "Test Camera 6789")
+
+		// Force the create branch to fire regardless of prior runs, -count>1, or cache state.
+		removeTestCamera := func() {
+			cameraCache.Delete(m.CameraSlug)
+			assert.NoError(t, UnscopedDb().Delete(&Camera{}, "camera_slug = ?", m.CameraSlug).Error)
+		}
+		removeTestCamera()
+		t.Cleanup(removeTestCamera)
+
+		sub := event.Subscribe("cameras.created")
+		t.Cleanup(func() { event.Unsubscribe(sub) })
+
+		camera := FirstOrCreateCamera(m)
+
+		if camera == nil {
+			t.Fatal("result must not be nil")
+		}
+
+		select {
+		case msg := <-sub.Receiver:
+			assert.Equal(t, "cameras.created", msg.Name)
+			slugs, ok := msg.Fields["entities"].([]string)
+			assert.True(t, ok, "entities payload should be []string, got %T", msg.Fields["entities"])
+			assert.Equal(t, []string{camera.CameraSlug}, slugs)
+		case <-time.After(2 * time.Second):
+			t.Fatal("expected one cameras.created event")
+		}
+	})
+	t.Run("UpdatedPublishesSlugOnlyWithoutCount", func(t *testing.T) {
+		fixture := "canon-eos-7d"
+		camera := FirstOrCreateCamera(NewCamera(CameraFixtures.Get(fixture).CameraMake, CameraFixtures.Get(fixture).CameraModel))
+		t.Cleanup(func() { assert.NoError(t, UnscopedDb().Save(CameraFixtures.Pointer(fixture)).Error) })
+
+		updated := event.Subscribe("cameras.updated")
+		t.Cleanup(func() { event.Unsubscribe(updated) })
+		count := event.Subscribe("count.cameras")
+		t.Cleanup(func() { event.Unsubscribe(count) })
+
+		assert.NoError(t, camera.UpdateMakeModel("Pentax", "K-1"))
+		// The slug must be preserved across a Make/Model rename so the published identity is stable.
+		assert.Equal(t, CameraFixtures.Get(fixture).CameraSlug, camera.CameraSlug)
+
+		select {
+		case msg := <-updated.Receiver:
+			assert.Equal(t, "cameras.updated", msg.Name)
+			slugs, ok := msg.Fields["entities"].([]string)
+			assert.True(t, ok, "entities payload should be []string, got %T", msg.Fields["entities"])
+			assert.Equal(t, []string{camera.CameraSlug}, slugs)
+		case <-time.After(2 * time.Second):
+			t.Fatal("expected one cameras.updated event")
+		}
+		// An update does not change the camera count, so no count event is published.
+		select {
+		case msg := <-count.Receiver:
+			t.Fatalf("unexpected %s event on camera update", msg.Name)
+		case <-time.After(200 * time.Millisecond):
+		}
 	})
 }
 

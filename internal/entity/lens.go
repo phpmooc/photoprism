@@ -125,7 +125,8 @@ func FirstOrCreateLens(m *Lens) *Lens {
 		return &result
 	} else if err := m.Create(); err == nil {
 		if !m.Unknown() {
-			event.EntitiesCreated("lenses", []*Lens{m})
+			// Content channels carry only stable identities, never entity fields; publish the slug.
+			event.EntitiesCreated("lenses", []string{m.LensSlug})
 
 			event.Publish("count.lenses", event.Data{
 				"count": 1,
@@ -187,11 +188,7 @@ func (m *Lens) UpdateMakeModel(makeName, modelName string) error {
 		return err
 	} else {
 		if !m.Unknown() {
-			event.EntitiesUpdated("lenses", []*Lens{m})
-
-			event.Publish("count.lenses", event.Data{
-				"count": 1,
-			})
+			event.EntitiesUpdated("lenses", []string{m.LensSlug})
 		}
 		lensCache.SetDefault(m.LensSlug, m)
 	}

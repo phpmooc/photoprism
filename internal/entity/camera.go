@@ -130,7 +130,8 @@ func FirstOrCreateCamera(m *Camera) *Camera {
 		return &result
 	} else if err := m.Create(); err == nil {
 		if !m.Unknown() {
-			event.EntitiesCreated("cameras", []*Camera{m})
+			// Content channels carry only stable identities, never entity fields; publish the slug.
+			event.EntitiesCreated("cameras", []string{m.CameraSlug})
 
 			event.Publish("count.cameras", event.Data{
 				"count": 1,
@@ -217,11 +218,7 @@ func (m *Camera) UpdateMakeModel(makeName, modelName string) error {
 		return err
 	} else {
 		if !m.Unknown() {
-			event.EntitiesUpdated("cameras", []*Camera{m})
-
-			event.Publish("count.cameras", event.Data{
-				"count": 1,
-			})
+			event.EntitiesUpdated("cameras", []string{m.CameraSlug})
 		}
 		cameraCache.SetDefault(m.CameraSlug, m)
 	}

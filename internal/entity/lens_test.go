@@ -2,9 +2,11 @@ package entity
 
 import (
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
+	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/form"
 )
 
@@ -161,6 +163,73 @@ func TestLensUpdateMakeModel(t *testing.T) {
 		assert.Error(t, err)
 		assert.Equal(t, "Apple", lens.LensMake)
 		assert.Equal(t, "F380", lens.LensModel)
+	})
+}
+
+// TestLens_EntityEvents pins the lens content-channel payloads to the UID-only
+// invariant: lenses.created/updated carry a []string of stable slugs, never entity
+// fields, and an update does not republish the lens count.
+func TestLens_EntityEvents(t *testing.T) {
+	t.Run("CreatedPublishesSlugOnly", func(t *testing.T) {
+		m := NewLens("Acme", "Test Lens 6789")
+
+		// Force the create branch to fire regardless of prior runs, -count>1, or cache state.
+		removeTestLens := func() {
+			lensCache.Delete(m.LensSlug)
+			assert.NoError(t, UnscopedDb().Delete(&Lens{}, "lens_slug = ?", m.LensSlug).Error)
+		}
+		removeTestLens()
+		t.Cleanup(removeTestLens)
+
+		sub := event.Subscribe("lenses.created")
+		t.Cleanup(func() { event.Unsubscribe(sub) })
+
+		lens := FirstOrCreateLens(m)
+
+		if lens == nil {
+			t.Fatal("result must not be nil")
+		}
+
+		select {
+		case msg := <-sub.Receiver:
+			assert.Equal(t, "lenses.created", msg.Name)
+			slugs, ok := msg.Fields["entities"].([]string)
+			assert.True(t, ok, "entities payload should be []string, got %T", msg.Fields["entities"])
+			assert.Equal(t, []string{lens.LensSlug}, slugs)
+		case <-time.After(2 * time.Second):
+			t.Fatal("expected one lenses.created event")
+		}
+	})
+	t.Run("UpdatedPublishesSlugOnlyWithoutCount", func(t *testing.T) {
+		fixture := "lens-f-380"
+		lens := Lens{}
+		assert.NoError(t, UnscopedDb().First(&lens, "id = ?", LensFixtures.Get(fixture).ID).Error)
+		t.Cleanup(func() { assert.NoError(t, UnscopedDb().Save(LensFixtures.Pointer(fixture)).Error) })
+
+		updated := event.Subscribe("lenses.updated")
+		t.Cleanup(func() { event.Unsubscribe(updated) })
+		count := event.Subscribe("count.lenses")
+		t.Cleanup(func() { event.Unsubscribe(count) })
+
+		assert.NoError(t, lens.UpdateMakeModel("Sigma", "85mm F1.4"))
+		// The slug must be preserved across a Make/Model rename so the published identity is stable.
+		assert.Equal(t, LensFixtures.Get(fixture).LensSlug, lens.LensSlug)
+
+		select {
+		case msg := <-updated.Receiver:
+			assert.Equal(t, "lenses.updated", msg.Name)
+			slugs, ok := msg.Fields["entities"].([]string)
+			assert.True(t, ok, "entities payload should be []string, got %T", msg.Fields["entities"])
+			assert.Equal(t, []string{lens.LensSlug}, slugs)
+		case <-time.After(2 * time.Second):
+			t.Fatal("expected one lenses.updated event")
+		}
+		// An update does not change the lens count, so no count event is published.
+		select {
+		case msg := <-count.Receiver:
+			t.Fatalf("unexpected %s event on lens update", msg.Name)
+		case <-time.After(200 * time.Millisecond):
+		}
 	})
 }
 
