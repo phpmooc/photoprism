@@ -401,6 +401,8 @@ export default {
       this.busy = true;
       this.$notify.blockUI("busy");
 
+      // Marker.setName() seeds the shared people cache, and the name combobox
+      // reloads suggestions on focus, so no explicit refresh is needed here.
       return model.setName().finally(() => {
         this.$notify.unblockUI();
         this.busy = false;

@@ -286,6 +286,13 @@ export default {
           if (!existing || existing.UID === m.UID) {
             m.update()
               .then(() => {
+                // Seed the shared people cache with the renamed person so
+                // suggestion consumers reflect it without waiting for the WS
+                // event. This rename seed lives here, not in Subject.update(),
+                // because update() also backs hide()/show() — seeding there
+                // would re-add hidden people to the suggestion list. m.UID and
+                // m.Name are populated (the merge check above already uses them).
+                typeaheadCache.upsertPerson({ UID: m.UID, Name: m.Name });
                 this.$notify.success(this.$gettext("Changes successfully saved"));
               })
               .finally(() => {
