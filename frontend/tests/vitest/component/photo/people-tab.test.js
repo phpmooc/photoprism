@@ -217,7 +217,7 @@ describe("PTabPhotoPeople face actions", () => {
       expect(actionMenu.exists()).toBe(true);
 
       // Check props
-      expect(actionMenu.props("buttonIcon")).toBe("mdi-dots-horizontal");
+      expect(actionMenu.props("buttonIcon")).toBe("mdi-dots-vertical");
       expect(actionMenu.props("buttonClass")).toBe("input-menu");
       expect(actionMenu.props("items")).toBeInstanceOf(Function);
 
