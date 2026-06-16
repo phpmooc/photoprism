@@ -80,6 +80,9 @@ describe("PTabPhotoPeople face actions", () => {
           },
           $util: {
             openUrl: openUrlSpy,
+            // PActionMenu reads this in data(); keep the $util mock complete so
+            // the suite does not depend on PActionMenu being stubbed to hide it.
+            shouldOpenOnHover: vi.fn(() => false),
           },
           $view: {
             getData: vi.fn(() => ({
