@@ -27,9 +27,17 @@ vi.mock("@photo-sphere-viewer/video-plugin/index.css", () => ({}));
 import { createSphereViewer, destroySphereViewer, is360Equirectangular } from "common/sphere";
 
 describe("common/sphere is360Equirectangular", () => {
-  it("is true for an explicit equirectangular projection", () => {
+  it("is true for an explicit equirectangular projection without known dimensions", () => {
     expect(is360Equirectangular({ Type: "image", Projection: "equirectangular" })).toBe(true);
     expect(is360Equirectangular({ Type: "video", Projection: "equirectangular" })).toBe(true);
+  });
+  it("is true for an explicit equirectangular projection with ~2:1 dimensions", () => {
+    expect(is360Equirectangular({ Type: "image", Projection: "equirectangular", Width: 6656, Height: 3328 })).toBe(true);
+    expect(is360Equirectangular({ Type: "image", Projection: "equirectangular", Width: 15520, Height: 7760 })).toBe(true);
+  });
+  it("is false for an equirectangular-tagged frame that is clearly not 2:1 (partial/cylindrical panorama)", () => {
+    expect(is360Equirectangular({ Type: "image", Projection: "equirectangular", Width: 8192, Height: 1024 })).toBe(false);
+    expect(is360Equirectangular({ Type: "video", Projection: "equirectangular", Width: 8192, Height: 1024 })).toBe(false);
   });
   it("is false for any other non-empty projection", () => {
     expect(is360Equirectangular({ Type: "video", Projection: "cubemap", Panorama: true, Width: 3840, Height: 1920 })).toBe(false);

@@ -31,15 +31,21 @@ const EQUIRECTANGULAR_RATIO_TOLERANCE = 0.15;
 
 // is360Equirectangular reports whether a slide/thumb model is equirectangular 360°
 // content that should open in the sphere viewer. An explicit "equirectangular"
-// projection is authoritative and any other non-empty projection (cubemap, …) is
-// never 360°. Many 360° videos carry no projection tag PhotoPrism can read, so a
-// panorama-flagged video with no projection falls back to equirectangular's defining
-// 2:1 frame — this keeps genuine spherical videos opening while cubemap (4:3, 6:1)
-// and ultrawide (~2.35:1) clips stay in the flat player.
+// projection is authoritative, but a full sphere is ~2:1: when the frame size is known
+// and clearly not 2:1 it stays in the flat viewer, since a partial/cylindrical panorama
+// tagged equirectangular (or promoted from GPano markers) would otherwise render as a
+// vertically distorted sphere. Any other non-empty projection (cubemap, …) is never 360°.
+// Many 360° videos carry no projection tag PhotoPrism can read, so a panorama-flagged
+// video with no projection falls back to the same 2:1 frame test — this keeps genuine
+// spherical videos opening while cubemap (4:3, 6:1) and ultrawide (~2.35:1) clips stay flat.
 export function is360Equirectangular(model) {
   const projection = (model?.Projection || "").toLowerCase();
+  const w = Number(model?.Width);
+  const h = Number(model?.Height);
+  const known = w > 0 && h > 0;
+  const is2to1 = known && Math.abs(w / h - 2) <= EQUIRECTANGULAR_RATIO_TOLERANCE;
   if (projection === "equirectangular") {
-    return true;
+    return !known || is2to1;
   }
   if (projection) {
     return false;
@@ -48,9 +54,7 @@ export function is360Equirectangular(model) {
   if (!isVideo || model?.Panorama !== true) {
     return false;
   }
-  const w = Number(model?.Width);
-  const h = Number(model?.Height);
-  return w > 0 && h > 0 && Math.abs(w / h - 2) <= EQUIRECTANGULAR_RATIO_TOLERANCE;
+  return is2to1;
 }
 
 // createSphereViewer mounts a Photo Sphere Viewer instance for an equirectangular photo or video.

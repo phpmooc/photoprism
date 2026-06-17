@@ -672,7 +672,9 @@ export default {
       const isEquirect = is360Equirectangular(model);
       if (isEquirect && model?.Hash) {
         const isVideo = model?.Type === media.Video || model?.Type === media.Animated;
-        const src = isVideo ? this.$util.videoUrl(model.Hash, model?.Codec, model?.Mime) : this.$util.thumb(model.Thumbs, 8192, 4096).src;
+        // Request the largest available size so 360° photos stay crisp when zoomed; $util.thumb
+        // clamps to the biggest size the server advertises (fit_15360 when the on-demand limit allows).
+        const src = isVideo ? this.$util.videoUrl(model.Hash, model?.Codec, model?.Mime) : this.$util.thumb(model.Thumbs, 15360, 8640).src;
         return {
           type: "html",
           html: `<div class="pswp__html"></div>`,
