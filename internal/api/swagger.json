@@ -4654,6 +4654,9 @@
                 "fit_1280": {
                     "$ref": "#/definitions/thumb.Thumb"
                 },
+                "fit_15360": {
+                    "$ref": "#/definitions/thumb.Thumb"
+                },
                 "fit_1920": {
                     "$ref": "#/definitions/thumb.Thumb"
                 },
