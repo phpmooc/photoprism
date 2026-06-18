@@ -1446,7 +1446,9 @@ describe("PLightboxSidebar component", () => {
   // onInlineEnter — Enter commits on single-line fields (commitOnEnter:
   // true) and falls through (no preventDefault) for free-form fields
   // like Notes / Caption so the textarea can insert a newline. Shift+
-  // Enter always falls through, even on commitOnEnter fields.
+  // Enter always falls through, even on commitOnEnter fields. Propagation
+  // is contained by the `.stop` modifier on the @keydown.enter binding, not
+  // by the method, so the keystroke never reaches the dialog's Enter handler.
   describe("onInlineEnter (commit-on-Enter for single-line fields)", () => {
     let w;
     beforeEach(() => {
@@ -1472,7 +1474,8 @@ describe("PLightboxSidebar component", () => {
       const confirmSpy = vi.spyOn(w.vm, "confirmField").mockImplementation(() => {});
       w.vm.onInlineEnter(ev, subject);
       expect(ev.preventDefault).toHaveBeenCalledTimes(1);
-      expect(ev.stopPropagation).toHaveBeenCalledTimes(1);
+      // Propagation is stopped by the binding's `.stop` modifier, not the method.
+      expect(ev.stopPropagation).not.toHaveBeenCalled();
       expect(confirmSpy).toHaveBeenCalledTimes(1);
     });
 

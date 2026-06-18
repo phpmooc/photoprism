@@ -61,8 +61,28 @@
           <div :title="video.error" class="video-control video-control--play">
             <v-icon v-if="video.error || video.errorCode > 0" icon="mdi-alert"></v-icon>
             <v-icon v-else-if="video.seeking || video.waiting" icon="mdi-loading" class="animate-loading"></v-icon>
-            <v-icon v-else-if="video.playing" icon="mdi-pause" class="clickable" @pointerdown.stop.prevent="toggleVideo"></v-icon>
-            <v-icon v-else icon="mdi-play" class="clickable" @pointerdown.stop.prevent="toggleVideo"></v-icon>
+            <button
+              v-else-if="video.playing"
+              type="button"
+              class="video-btn meta-icon-btn"
+              :title="$gettext('Pause')"
+              :aria-label="$gettext('Pause')"
+              @pointerdown.stop.prevent
+              @click.stop.prevent="toggleVideo"
+            >
+              <v-icon icon="mdi-pause"></v-icon>
+            </button>
+            <button
+              v-else
+              type="button"
+              class="video-btn meta-icon-btn"
+              :title="$gettext('Play')"
+              :aria-label="$gettext('Play')"
+              @pointerdown.stop.prevent
+              @click.stop.prevent="toggleVideo"
+            >
+              <v-icon icon="mdi-play"></v-icon>
+            </button>
           </div>
           <div class="video-control video-control--time text-body-2">
             {{ $util.formatSeconds(video.ended ? Math.ceil(video.time) : Math.floor(video.time)) }}
@@ -86,8 +106,29 @@
             {{ $util.formatRemainingSeconds(video.time, video.duration) }}
           </div>
           <div v-if="featExperimental && video.castable" class="video-control video-control--cast">
-            <v-icon v-if="video.casting" icon="mdi-cast-connected" class="clickable" @pointerdown.stop.prevent="toggleVideoRemote"></v-icon>
-            <v-icon v-else icon="mdi-cast" :disabled="video.remote === 'connecting'" class="clickable" @pointerdown.stop.prevent="toggleVideoRemote"></v-icon>
+            <button
+              v-if="video.casting"
+              type="button"
+              class="video-btn meta-icon-btn"
+              :title="$gettext('Stop Casting')"
+              :aria-label="$gettext('Stop Casting')"
+              @pointerdown.stop.prevent
+              @click.stop.prevent="toggleVideoRemote"
+            >
+              <v-icon icon="mdi-cast-connected"></v-icon>
+            </button>
+            <button
+              v-else
+              type="button"
+              class="video-btn meta-icon-btn"
+              :disabled="video.remote === 'connecting'"
+              :title="$gettext('Cast')"
+              :aria-label="$gettext('Cast')"
+              @pointerdown.stop.prevent
+              @click.stop.prevent="toggleVideoRemote"
+            >
+              <v-icon icon="mdi-cast"></v-icon>
+            </button>
           </div>
         </div>
       </div>
