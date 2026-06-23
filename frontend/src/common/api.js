@@ -25,7 +25,7 @@ Additional information can be found in our Developer Guide:
 
 import Axios from "axios";
 import $notify from "common/notify";
-import { $gettext } from "common/gettext";
+import { $gettext, Tp } from "common/gettext";
 import $event from "common/event";
 import { getAppStorage } from "common/storage";
 
@@ -111,7 +111,10 @@ $api.interceptors.response.use(
         code = data.code;
       }
 
-      if (data.message) {
+      if (data.id) {
+        // Render the backend message in the current UI locale from its source id and params.
+        errorMessage = Tp(data.id, data.params);
+      } else if (data.message) {
         errorMessage = data.message;
       } else if (data.error) {
         errorMessage = data.error;

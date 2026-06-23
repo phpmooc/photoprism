@@ -163,7 +163,7 @@ func RemovePhotoLabel(router *gin.RouterGroup) {
 		labelId, err := strconv.Atoi(clean.Token(c.Param("id")))
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UpperFirst(err.Error())})
+			Abort(c, http.StatusNotFound, i18n.ErrLabelNotFound)
 			return
 		}
 
@@ -175,7 +175,7 @@ func RemovePhotoLabel(router *gin.RouterGroup) {
 		label, err := query.PhotoLabel(m.ID, uint(labelId))
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UpperFirst(err.Error())})
+			Abort(c, http.StatusNotFound, i18n.ErrLabelNotFound)
 			return
 		}
 
@@ -255,7 +255,7 @@ func UpdatePhotoLabel(router *gin.RouterGroup) {
 		labelId, err := strconv.Atoi(clean.Token(c.Param("id")))
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UpperFirst(err.Error())})
+			Abort(c, http.StatusNotFound, i18n.ErrLabelNotFound)
 			return
 		}
 
@@ -267,7 +267,7 @@ func UpdatePhotoLabel(router *gin.RouterGroup) {
 		label, err := query.PhotoLabel(m.ID, uint(labelId))
 
 		if err != nil {
-			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": txt.UpperFirst(err.Error())})
+			Abort(c, http.StatusNotFound, i18n.ErrLabelNotFound)
 			return
 		}
 

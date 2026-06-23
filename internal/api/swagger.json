@@ -3435,8 +3435,15 @@
                 "error": {
                     "type": "string"
                 },
+                "id": {
+                    "type": "string"
+                },
                 "message": {
                     "type": "string"
+                },
+                "params": {
+                    "items": {},
+                    "type": "array"
                 }
             },
             "type": "object"
@@ -11008,9 +11015,9 @@
                         }
                     },
                     "400": {
-                        "description": "Missing search query",
+                        "description": "Bad Request",
                         "schema": {
-                            "$ref": "#/definitions/gin.H"
+                            "$ref": "#/definitions/i18n.Response"
                         }
                     },
                     "401": {
