@@ -69,3 +69,9 @@ func Error(id Message, params ...any) error {
 func Lower(id Message, params ...any) string {
 	return strings.ToLower(msgParams(Messages[id], params...))
 }
+
+// Source returns the untranslated English source string (gettext msgid) for a message id.
+// This is the stable key the frontend uses to render the message in the user's UI language.
+func Source(id Message) string {
+	return Messages[id]
+}
