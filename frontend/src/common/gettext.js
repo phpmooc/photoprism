@@ -23,6 +23,8 @@ function interpolate(message, params = {}) {
 
 // interpolatePositional substitutes Go printf verbs (%s, %d, %v, %%, …) sequentially from an
 // ordered params array, bridging the backend's positional placeholders to the frontend runtime.
+// The verb must be a real Go fmt letter and no space flag is allowed, so a literal percent in a
+// translated string (e.g. "100% sicher") is not mistaken for a verb and corrupted.
 function interpolatePositional(message, params) {
   if (message === null || message === undefined) {
     return "";
@@ -36,7 +38,7 @@ function interpolatePositional(message, params) {
 
   let i = 0;
 
-  return text.replace(/%(%|[-+ 0#]*\d*(?:\.\d+)?[a-zA-Z])/g, (match, verb) => {
+  return text.replace(/%(%|[-+0#]*\d*(?:\.\d+)?[vTtbcdoOqxXUeEfFgGsp])/g, (match, verb) => {
     if (verb === "%") {
       return "%";
     }

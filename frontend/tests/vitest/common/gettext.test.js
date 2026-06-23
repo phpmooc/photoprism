@@ -26,6 +26,12 @@ describe("common/gettext", () => {
     it("un-escapes %% to a literal percent and does not consume a param", () => {
       expect(Tp("100%% complete in %d s", [5])).toBe("100% complete in 5 s");
     });
+    it("leaves a literal percent in translated text intact (no space flag, real verbs only)", () => {
+      // A translator may write a bare "100% ..." in a localized backend message; "% " must not be
+      // mistaken for a printf verb and splice a param mid-word.
+      expect(Tp("100% done in %d s", [5])).toBe("100% done in 5 s");
+      expect(Tp("Zu 50% fertig", [])).toBe("Zu 50% fertig");
+    });
     it("leaves a placeholder literal when its param is missing", () => {
       expect(Tp("Indexing files in %s", [])).toBe("Indexing files in %s");
     });
