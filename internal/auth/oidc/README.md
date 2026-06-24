@@ -30,6 +30,7 @@
 
 - `oidc.go` — package doc + logger.
 - `client.go` — RP construction (`NewClient`), PKCE detection, auth redirect, code exchange + userinfo retrieval.
+- `logout.go` — `(*Client).EndSessionURL` builds the RP-initiated logout URL (id_token_hint, post_logout_redirect_uri, client_id, state) for a browser redirect; tests in `logout_test.go`.
 - `http_client.go` — shared HTTP client with TLS toggle and timeouts; helpers for tests in `http_client_test.go`.
 - `redirect_url.go` — builds the redirect/callback URL from site config.
 - `register.go` — provider registration glue; tests in `register_test.go`.
@@ -50,6 +51,12 @@
 - Cookie handler is created per client with fresh random keys to avoid reuse across restarts.
 - Audit every provider/redirect/token error with sanitized messages; avoid logging secrets.
 - Prefer explicit scopes from configuration; defaults request only the minimal set.
+
+#### RP-Initiated Logout
+
+- The provider's `end_session_endpoint` is captured automatically from discovery by the wrapped `zitadel/oidc` RP and read via `GetEndSessionEndpoint()`; no separate config is needed.
+- `(*Client).EndSessionURL` constructs the redirect URL for the browser (it does not call the endpoint server-side, unlike `rp.EndSession`, because only the browser carries the provider's SSO cookie). It returns an empty string when the provider advertises no end-session endpoint, so callers fall back to a local-only logout.
+- The behavior is gated by `PHOTOPRISM_OIDC_LOGOUT` (default off) and enforced at sign-out in `internal/api/session_delete.go`.
 
 ### Security Group Extension for Entra ID
 

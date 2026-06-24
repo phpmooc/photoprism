@@ -2,14 +2,18 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/photoprism/photoprism/pkg/http/header"
+	"github.com/photoprism/photoprism/pkg/http/scheme"
 	"github.com/photoprism/photoprism/pkg/log/status"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/photoprism/photoprism/internal/auth/acl"
+	"github.com/photoprism/photoprism/internal/auth/oidc"
 	"github.com/photoprism/photoprism/internal/auth/session"
+	"github.com/photoprism/photoprism/internal/config"
 	"github.com/photoprism/photoprism/internal/entity"
 	"github.com/photoprism/photoprism/internal/event"
 	"github.com/photoprism/photoprism/internal/photoprism/get"
@@ -82,20 +86,73 @@ func DeleteSession(router *gin.RouterGroup) {
 			event.AuditDebug([]string{clientIp, "session %s", "deleted"}, s.RefID)
 		}
 
-		// Clear the OP session cookie on the caller's own logout (not a manager
-		// deleting another session by ref id), so a cluster-wide Sign-Out stops silent
-		// re-SSO no matter which node is hit. OIDCSessionCookieClearPath picks the path.
+		// Confirmation response; gains an optional providerLogoutUri below.
+		resp := DeleteSessionResponse(s.ID)
+
+		// On the caller's own logout (not a manager deleting another session by ref id),
+		// clear the OP session cookie so a cluster-wide Sign-Out stops silent re-SSO no
+		// matter which node is hit, and — when PHOTOPRISM_OIDC_LOGOUT is enabled — return
+		// the provider's RP-initiated logout URL so the browser can end the provider session.
 		if conf := get.Config(); !rnd.IsRefID(id) {
 			if clearPath := OIDCSessionCookieClearPath(conf); clearPath != "" {
 				ClearOIDCSessionCookie(c, clearPath, conf.SiteHttps())
 			}
+
+			if logoutUri := oidcLogoutURL(conf, get.OIDC(), s); logoutUri != "" {
+				resp["providerLogoutUri"] = logoutUri
+				event.AuditInfo([]string{clientIp, "session %s", "oidc provider logout initiated", status.Granted}, s.RefID)
+			}
 		}
 
 		// Return JSON response for confirmation.
-		c.JSON(http.StatusOK, DeleteSessionResponse(s.ID))
+		c.JSON(http.StatusOK, resp)
 	}
 
 	router.DELETE("/session", deleteSessionHandler)
 	router.DELETE("/session/:id", deleteSessionHandler)
 	router.DELETE("/sessions/:id", deleteSessionHandler)
+}
+
+// oidcLogoutURL returns the RP-initiated logout URL for a just-deleted OIDC session, or ""
+// when RP-initiated logout is disabled, the session was not authenticated via OIDC, or the
+// provider advertises no end_session_endpoint. The browser is then redirected there so the
+// provider ends its own SSO session and a subsequent login re-prompts for credentials.
+func oidcLogoutURL(conf *config.Config, provider *oidc.Client, s *entity.Session) string {
+	if conf == nil || provider == nil || s == nil {
+		return ""
+	} else if !conf.OIDCLogout() || s.IdToken == "" || !s.GetProvider().IsOIDC() {
+		return ""
+	}
+
+	logoutUri, err := provider.EndSessionURL(s.IdToken, AbsoluteLoginURL(conf), "")
+
+	if err != nil {
+		event.AuditWarn([]string{"oidc", "provider logout", status.Error(err)})
+		return ""
+	}
+
+	return logoutUri
+}
+
+// AbsoluteLoginURL resolves the node's login page to an absolute URL, so it can be used
+// as an OIDC post_logout_redirect_uri (which providers require to be absolute and
+// registered). LoginUri() is a root-relative path; it is joined to the site origin.
+func AbsoluteLoginURL(conf *config.Config) string {
+	path := conf.LoginUri()
+
+	if strings.Contains(path, "://") {
+		return path
+	}
+
+	origin := scheme.OriginURL(conf.SiteUrl())
+
+	if origin == "" {
+		return path
+	}
+
+	if !strings.HasPrefix(path, "/") {
+		path = "/" + path
+	}
+
+	return strings.TrimRight(origin, "/") + path
 }

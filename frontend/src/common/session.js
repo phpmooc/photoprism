@@ -823,9 +823,12 @@ export default class Session {
     return this.config.loginUri;
   }
 
-  onLogout(noRedirect) {
-    // Capture the redirect target before reset() clears the auth provider.
-    const redirectUri = this.logoutRedirectUri();
+  // onLogout resets client state and redirects to the post-sign-out landing page.
+  onLogout(noRedirect, providerLogoutUri) {
+    // Prefer the provider's RP-initiated logout URL when the backend returned one
+    // (PHOTOPRISM_OIDC_LOGOUT), so the browser ends the provider SSO session; otherwise
+    // capture the local target before reset() clears the auth provider.
+    const redirectUri = providerLogoutUri || this.logoutRedirectUri();
 
     this.reset();
 
@@ -898,8 +901,10 @@ export default class Session {
     if (this.isAuthenticated()) {
       return $api
         .delete("session")
-        .then(() => {
-          return this.onLogout(noRedirect);
+        .then((resp) => {
+          // The backend returns providerLogoutUri when RP-initiated logout is enabled,
+          // so the browser is redirected to the provider's end-session endpoint.
+          return this.onLogout(noRedirect, resp?.data?.providerLogoutUri);
         })
         .catch(() => {
           return this.onLogout(noRedirect);
