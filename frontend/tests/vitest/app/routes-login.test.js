@@ -360,6 +360,29 @@ describe("app/routes /logout guard", () => {
     expect(followRedirect).toHaveBeenCalledWith($config.loginUri);
   });
 
+  // A non-cluster OIDC node reached via direct /logout entry must still chain RP-initiated
+  // logout: the guard runs the cluster-wide sign-out (peer fan-out is a no-op when there are
+  // no peers) and follows the provider logout URL it resolves, matching the nav-menu Sign-Out.
+  it("follows the provider logout URL on a standalone OIDC sign-out with RP-initiated logout", async () => {
+    $config.values = {
+      ...$config.values,
+      ext: { oidc: { enabled: true, redirect: false, cluster: false, logout: true, loginUri: "/api/v1/oidc/login" } },
+    };
+    $session.provider = "oidc";
+    const providerLogoutUri = "https://keycloak.example.com/realms/master/protocol/openid-connect/logout?id_token_hint=abc";
+    const logoutEverywhere = vi.spyOn($session, "logoutEverywhere").mockResolvedValue(providerLogoutUri);
+    const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
+    const next = vi.fn();
+
+    logoutGuard({}, {}, next);
+
+    expect(next).toHaveBeenCalledWith(false);
+    expect(logoutEverywhere).toHaveBeenCalledWith(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(followRedirect).toHaveBeenCalledWith(providerLogoutUri);
+  });
+
   it("sends a local sign-out to the login route", () => {
     $config.values = {
       ...$config.values,

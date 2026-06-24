@@ -180,12 +180,17 @@ export default [
       // decision must not depend on the redirect target, or a node without a
       // persisted Portal login URL would silently skip the cluster-wide sign-out.
       const isClusterSession = $session.isClusterSession();
+      // RP-initiated logout (OIDC + PHOTOPRISM_OIDC_LOGOUT) returns a provider logout URL
+      // that must be followed AFTER the async DELETE resolves; an OIDC node that is not a
+      // cluster session still needs this so direct /logout entry ends the upstream session,
+      // matching the nav-menu Sign-Out.
+      const rpInitiated = $session.getProvider() === "oidc" && $config.oidcLogout();
       const redirectUri = $session.logoutRedirectUri();
-      if (isClusterSession) {
-        // Cluster-OIDC: await the cluster-wide sign-out (which clears the Portal OP cookie)
-        // BEFORE redirecting. logoutEverywhere resolves to the provider logout URL when
-        // RP-initiated logout is enabled, so follow that (it ends the upstream session);
-        // otherwise fall back to the local landing.
+      if (isClusterSession || rpInitiated) {
+        // Await the cluster-wide sign-out (peer fan-out + Portal OP cookie clear) BEFORE
+        // redirecting; logoutEverywhere resolves to the provider logout URL when present (it
+        // ends the upstream session), else fall back to the local landing. A standalone OIDC
+        // node has no peers, so the fan-out is a no-op and only the RP-logout follow applies.
         next(false);
         $session
           .logoutEverywhere(true)
