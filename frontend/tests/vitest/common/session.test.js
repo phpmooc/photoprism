@@ -1073,5 +1073,44 @@ describe("common/session", () => {
       expect(raw.getItem(pro2 + "session.token")).toBeNull();
       expect(onLogoutSpy).toHaveBeenCalledWith(true);
     });
+
+    it("delegates the Portal session to the Portal OP on a cluster-OIDC Sign-Out (no instance-side Portal DELETE)", async () => {
+      // With RP-initiated logout enabled, the instance must NOT revoke the Portal
+      // session itself — the Portal's end-session endpoint ends it and performs the
+      // upstream RP-logout. The instance still revokes peer instances and clears all
+      // peer storage (including the Portal's stale token).
+      const raw = new StorageShim();
+      const appStorage = createNamespacedStorage(raw, "ns-current");
+      const config = createConfig("/library", "ns-current");
+      config.values.ext = { oidc: { enabled: true, cluster: true, logout: true, portalLoginUri: "https://app.example.com/portal/login" } };
+      const session = new Session(appStorage, config);
+      session.provider = "oidc";
+
+      const pro2 = buildNamespace("ns-pro-2");
+      const portal = buildNamespace("ns-portal");
+      raw.setItem(pro2 + "session.token", "tok2");
+      raw.setItem(pro2 + "instance.url", "https://app.example.com/i/pro-2/");
+      raw.setItem(portal + "session.token", "tokp");
+      raw.setItem(portal + "instance.url", "https://app.example.com/");
+      raw.setItem(portal + "instance.portal", "true"); // Portal flags its own session
+
+      const fetchCalls = [];
+      const originalFetch = window.fetch;
+      window.fetch = (url, opts) => {
+        fetchCalls.push({ url, method: opts?.method });
+        return Promise.resolve({ ok: true });
+      };
+      try {
+        await session.revokePeerSessions();
+      } finally {
+        window.fetch = originalFetch;
+      }
+
+      // Only the peer instance was DELETEd; the Portal session was NOT revoked here.
+      expect(fetchCalls).toEqual([{ url: "https://app.example.com/i/pro-2/api/v1/session", method: "DELETE" }]);
+      // Both peers' local storage is still cleared, including the Portal's stale token.
+      expect(raw.getItem(pro2 + "session.token")).toBeNull();
+      expect(raw.getItem(portal + "session.token")).toBeNull();
+    });
   });
 });

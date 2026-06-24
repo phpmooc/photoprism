@@ -298,7 +298,9 @@ describe("app/routes /logout guard", () => {
       },
     };
     $session.provider = "oidc";
-    const logoutEverywhere = vi.spyOn($session, "logoutEverywhere").mockResolvedValue($session);
+    // logoutEverywhere resolves to the landing URL (here the Portal login, since RP-logout
+    // is off so no provider logout URL is returned).
+    const logoutEverywhere = vi.spyOn($session, "logoutEverywhere").mockResolvedValue("https://app.example.com/portal/login");
     const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
     const next = vi.fn();
 
@@ -314,6 +316,28 @@ describe("app/routes /logout guard", () => {
     expect(followRedirect).toHaveBeenCalledWith("https://app.example.com/portal/login");
   });
 
+  // With RP-initiated logout enabled, logoutEverywhere resolves to the provider logout URL
+  // (the Portal end-session endpoint); the guard must follow it so the upstream session ends.
+  it("follows the provider logout URL on a cluster-OIDC sign-out with RP-initiated logout", async () => {
+    $config.values = {
+      ...$config.values,
+      ext: { oidc: { enabled: true, redirect: true, cluster: true, logout: true, loginUri: "/api/v1/oidc/login", portalLoginUri: "https://app.example.com/portal/login" } },
+    };
+    $session.provider = "oidc";
+    const providerLogoutUri = "https://app.example.com/api/v1/oauth/logout?id_token_hint=abc";
+    const logoutEverywhere = vi.spyOn($session, "logoutEverywhere").mockResolvedValue(providerLogoutUri);
+    const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
+    const next = vi.fn();
+
+    logoutGuard({}, {}, next);
+
+    expect(next).toHaveBeenCalledWith(false);
+    expect(logoutEverywhere).toHaveBeenCalledWith(true);
+
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(followRedirect).toHaveBeenCalledWith(providerLogoutUri);
+  });
+
   // A node that has not (re-)registered against a current Portal has no Portal
   // login URL yet — the cluster-wide sign-out and OP-cookie clearing must still
   // run, with the local login form as the fallback landing.
@@ -323,7 +347,7 @@ describe("app/routes /logout guard", () => {
       ext: { oidc: { enabled: true, redirect: true, cluster: true, loginUri: "/api/v1/oidc/login" } },
     };
     $session.provider = "oidc";
-    const logoutEverywhere = vi.spyOn($session, "logoutEverywhere").mockResolvedValue($session);
+    const logoutEverywhere = vi.spyOn($session, "logoutEverywhere").mockResolvedValue($config.loginUri);
     const followRedirect = vi.spyOn($session, "followRedirect").mockImplementation(() => {});
     const next = vi.fn();
 

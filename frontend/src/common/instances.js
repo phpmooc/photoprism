@@ -33,10 +33,11 @@ const InstanceUrlKey = "instance.url";
 const InstanceTitleKey = "instance.title";
 const InstanceIconKey = "instance.icon";
 const InstanceRouteKey = "instance.route";
+const InstancePortalKey = "instance.portal";
 
 // InstanceIdentityKeys lists the suffix keys written by persistInstanceIdentity,
 // so callers (e.g. session logout) can clear them across storage backends.
-export const InstanceIdentityKeys = [InstanceUrlKey, InstanceTitleKey, InstanceIconKey, InstanceRouteKey];
+export const InstanceIdentityKeys = [InstanceUrlKey, InstanceTitleKey, InstanceIconKey, InstanceRouteKey, InstancePortalKey];
 
 // safeWindow returns the browser window if available, else null.
 const safeWindow = () => (typeof window === "undefined" ? null : window);
@@ -133,6 +134,13 @@ export function persistInstanceIdentity(store, identity) {
     store.setItem(InstanceRouteKey, identity.route);
   } else {
     store.removeItem(InstanceRouteKey);
+  }
+
+  // Mark the Portal's own session; Sign-Out delegates it to the Portal end-session endpoint.
+  if (identity.portal) {
+    store.setItem(InstancePortalKey, "true");
+  } else {
+    store.removeItem(InstancePortalKey);
   }
 }
 
@@ -280,6 +288,8 @@ export function listLogoutTargets(options) {
         namespace,
         authToken,
         url: instanceSessionUrl(store.getItem(prefix + InstanceUrlKey)),
+        // True for the cluster Portal's own session (delegated to its end-session endpoint).
+        portal: store.getItem(prefix + InstancePortalKey) === "true",
       });
     });
   });

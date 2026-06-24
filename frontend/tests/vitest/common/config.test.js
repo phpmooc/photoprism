@@ -553,6 +553,13 @@ describe("common/config", () => {
       expect(make({}).portalLoginUri()).toBe("");
       expect(new Config(new StorageShim(), null).portalLoginUri()).toBe("");
     });
+
+    it("oidcLogout reflects the ext.oidc.logout flag as a Boolean", () => {
+      expect(make({ logout: true }).oidcLogout()).toBe(true);
+      expect(make({ logout: false }).oidcLogout()).toBe(false);
+      expect(make(undefined).oidcLogout()).toBe(false);
+      expect(new Config(new StorageShim(), null).oidcLogout()).toBe(false);
+    });
   });
 
   describe("storage availability", () => {

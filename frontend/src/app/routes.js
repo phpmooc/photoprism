@@ -182,11 +182,15 @@ export default [
       const isClusterSession = $session.isClusterSession();
       const redirectUri = $session.logoutRedirectUri();
       if (isClusterSession) {
-        // Cluster-OIDC: await the cluster-wide sign-out (which clears the Portal OP
-        // cookie) BEFORE redirecting, so the Portal shows its login form instead of
-        // silently re-issuing a session from a still-valid OP cookie.
+        // Cluster-OIDC: await the cluster-wide sign-out (which clears the Portal OP cookie)
+        // BEFORE redirecting. logoutEverywhere resolves to the provider logout URL when
+        // RP-initiated logout is enabled, so follow that (it ends the upstream session);
+        // otherwise fall back to the local landing.
         next(false);
-        $session.logoutEverywhere(true).finally(() => $session.followRedirect(redirectUri));
+        $session
+          .logoutEverywhere(true)
+          .then((uri) => $session.followRedirect(uri || redirectUri))
+          .catch(() => $session.followRedirect(redirectUri));
       } else {
         // Local: signOut() resets client state synchronously so /login sees an
         // unauthenticated user; the one-shot logout flag suppresses the next auto-OIDC

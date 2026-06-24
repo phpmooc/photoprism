@@ -483,6 +483,8 @@ export default class Session {
       route: this.config?.frontendUri,
       title: instanceTitle(values),
       icon: this.config.getIcon(),
+      // Flag the Portal's own session so Sign-Out delegates it to the Portal end-session endpoint.
+      portal: !!this.config?.isPortal?.(),
     });
   }
 
@@ -823,11 +825,13 @@ export default class Session {
     return this.config.loginUri;
   }
 
-  // onLogout resets client state and redirects to the post-sign-out landing page.
+  // onLogout resets client state and resolves to the post-sign-out landing URL. It follows
+  // the redirect itself unless noRedirect is set, in which case the caller does (e.g. the
+  // /logout route guard), so the resolved URL — the provider logout URL when present — is
+  // returned either way.
   onLogout(noRedirect, providerLogoutUri) {
-    // Prefer the provider's RP-initiated logout URL when the backend returned one
-    // (PHOTOPRISM_OIDC_LOGOUT), so the browser ends the provider SSO session; otherwise
-    // capture the local target before reset() clears the auth provider.
+    // Prefer the backend's provider logout URL (RP-initiated logout); else the local target,
+    // resolved before reset() clears the auth provider.
     const redirectUri = providerLogoutUri || this.logoutRedirectUri();
 
     this.reset();
@@ -841,7 +845,7 @@ export default class Session {
       this.followRedirect(redirectUri);
     }
 
-    return Promise.resolve();
+    return Promise.resolve(redirectUri);
   }
 
   // Reads and clears the one-shot logout flag set by onLogout().
@@ -902,8 +906,7 @@ export default class Session {
       return $api
         .delete("session")
         .then((resp) => {
-          // The backend returns providerLogoutUri when RP-initiated logout is enabled,
-          // so the browser is redirected to the provider's end-session endpoint.
+          // providerLogoutUri (RP-initiated logout) redirects the browser to the provider.
           return this.onLogout(noRedirect, resp?.data?.providerLogoutUri);
         })
         .catch(() => {
@@ -934,7 +937,14 @@ export default class Session {
       targets = [];
     }
 
-    const revoked = signOutInstances(targets).catch(() => {});
+    // Cluster-OIDC Sign-Out delegates the Portal session to its end-session endpoint (which
+    // performs the upstream RP-logout); revoking it here would strip the session it needs.
+    let deleteTargets = targets;
+    if (this.isClusterSession() && this.config?.oidcLogout?.()) {
+      deleteTargets = targets.filter((t) => !t.portal);
+    }
+
+    const revoked = signOutInstances(deleteTargets).catch(() => {});
     clearInstanceStorage(
       targets.map((t) => t.namespace),
       stores

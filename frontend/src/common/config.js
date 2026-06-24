@@ -826,6 +826,11 @@ export default class Config {
     return this.values?.ext?.oidc?.loginUri || "";
   }
 
+  // oidcLogout returns true when sign-out should perform RP-initiated logout against the provider.
+  oidcLogout() {
+    return !!this.values?.ext?.oidc?.logout;
+  }
+
   // portalLoginUri returns the cluster Portal's browser-facing login page, or "" when unknown.
   portalLoginUri() {
     return this.values?.ext?.oidc?.portalLoginUri || "";

@@ -4,15 +4,10 @@ import (
 	"net/url"
 )
 
-// EndSessionURL builds an RP-initiated logout URL for redirecting the browser to the
-// provider's end_session_endpoint, so the provider can end its own SSO session. It returns
-// an empty string (and no error) when the provider advertises no end_session_endpoint, so
-// callers can fall back to a local-only logout.
-//
-// The returned URL must be followed by a top-level browser navigation, not a server-side
-// request: only the browser carries the provider's SSO cookie that needs clearing. This is
-// why we build the URL here instead of using rp.EndSession, which performs the request
-// server-side.
+// EndSessionURL builds the RP-initiated logout URL for the provider's end_session_endpoint,
+// or "" (no error) when none is advertised so callers fall back to a local-only logout.
+// The result must be followed by a browser navigation, not a server-side request (only the
+// browser carries the provider SSO cookie) — hence building the URL rather than rp.EndSession.
 func (c *Client) EndSessionURL(idToken, postLogoutRedirectURI, state string) (string, error) {
 	endpoint := c.GetEndSessionEndpoint()
 
