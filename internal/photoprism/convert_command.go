@@ -2,6 +2,7 @@ package photoprism
 
 import (
 	"os/exec"
+	"strings"
 
 	"github.com/photoprism/photoprism/pkg/media"
 )
@@ -9,9 +10,10 @@ import (
 // ConvertCmd represents a command to be executed for converting a MediaFile.
 // including any options to be used for this.
 type ConvertCmd struct {
-	Cmd         *exec.Cmd
-	Orientation media.Orientation
-	VerifyImage bool
+	Cmd          *exec.Cmd
+	Orientation  media.Orientation
+	VerifyImage  bool
+	RejectStderr []string
 }
 
 // String returns the conversion command as string e.g. for logging.
@@ -39,6 +41,28 @@ func (c *ConvertCmd) ResetOrientation() *ConvertCmd {
 func (c *ConvertCmd) WithImageVerification() *ConvertCmd {
 	c.VerifyImage = true
 	return c
+}
+
+// WithStderrRejection rejects the command's output when its stderr contains any of the given
+// substrings, even on a zero exit code, so the loop tries the next converter.
+func (c *ConvertCmd) WithStderrRejection(patterns ...string) *ConvertCmd {
+	c.RejectStderr = append(c.RejectStderr, patterns...)
+	return c
+}
+
+// StderrRejected reports whether the given stderr output matches a rejection pattern.
+func (c *ConvertCmd) StderrRejected(stderr string) bool {
+	if stderr == "" {
+		return false
+	}
+
+	for _, pattern := range c.RejectStderr {
+		if pattern != "" && strings.Contains(stderr, pattern) {
+			return true
+		}
+	}
+
+	return false
 }
 
 // NewConvertCmd returns a new file converter command with default options.

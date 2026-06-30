@@ -190,6 +190,16 @@ func (w *Convert) ToImage(f *MediaFile, force bool) (result *MediaFile, err erro
 			continue
 		}
 
+		// Reject output flagged untrustworthy by its stderr (e.g. a RawTherapee render of an
+		// unsupported sensor) so the loop falls back to the next converter.
+		if c.StderrRejected(stderr.String()) {
+			log.Debugf("convert: discarding %s from %s (untrustworthy output)", clean.Log(filepath.Base(imageName)), filepath.Base(cmd.Path))
+			if removeErr := os.Remove(imageName); removeErr != nil && !os.IsNotExist(removeErr) {
+				log.Tracef("convert: %s (%s)", removeErr, filepath.Base(cmd.Path))
+			}
+			continue
+		}
+
 		// Reject undecodable output (e.g. a truncated/bogus embedded RAW preview that passed
 		// the MIME sniff) so the loop tries the next converter instead of indexing a file
 		// whose thumbnails will fail.

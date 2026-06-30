@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/photoprism/photoprism/internal/config"
+	"github.com/photoprism/photoprism/internal/raw"
 	"github.com/photoprism/photoprism/internal/thumb"
 	"github.com/photoprism/photoprism/pkg/fs"
 )
@@ -341,9 +342,9 @@ func TestConvert_JpegConvertCmds(t *testing.T) {
 }
 
 // TestConvert_JpegConvertCmds_RawEmbeddedPreview verifies that RAW inputs emit
-// ExifTool embedded-preview extraction commands (largest-first) ordered after
-// Darktable and before RawTherapee, so an unsupported camera falls back to the
-// camera-rendered JPEG instead of a wrong-color demosaic.
+// ExifTool embedded-preview extraction commands (largest-first) ordered after the
+// RAW developers (Darktable and RawTherapee), so an unsupported camera falls back
+// to the camera-rendered JPEG instead of a wrong-color demosaic.
 func TestConvert_JpegConvertCmds_RawEmbeddedPreview(t *testing.T) {
 	cnf := config.TestConfig()
 
@@ -367,9 +368,9 @@ func TestConvert_JpegConvertCmds_RawEmbeddedPreview(t *testing.T) {
 
 	assert.NotEmpty(t, cmds)
 
-	// Record the first occurrence of each command; DNG inputs additionally emit a
-	// trailing -PreviewImage extraction, which is not the priority position.
+	// Record the position of each command in the priority-ordered list.
 	jpgFromRaw, previewImage, rawTherapee := -1, -1, -1
+	var rawTherapeeCmd *ConvertCmd
 	for i, cmd := range cmds {
 		s := cmd.String()
 		switch {
@@ -379,6 +380,7 @@ func TestConvert_JpegConvertCmds_RawEmbeddedPreview(t *testing.T) {
 			previewImage = i
 		case rawTherapee < 0 && strings.Contains(s, filepath.Base(cnf.RawTherapeeBin())):
 			rawTherapee = i
+			rawTherapeeCmd = cmd
 		}
 	}
 
@@ -387,8 +389,54 @@ func TestConvert_JpegConvertCmds_RawEmbeddedPreview(t *testing.T) {
 	assert.Less(t, jpgFromRaw, previewImage, "JpgFromRaw must be tried before PreviewImage")
 	if cnf.RawTherapeeEnabled() {
 		assert.GreaterOrEqual(t, rawTherapee, 0, "expected a RawTherapee command")
-		assert.Less(t, previewImage, rawTherapee, "embedded preview must be tried before RawTherapee")
+		assert.Less(t, rawTherapee, jpgFromRaw, "RawTherapee must be tried before the embedded preview")
+		assert.Contains(t, rawTherapeeCmd.RejectStderr, raw.WhiteBalanceError, "RawTherapee output must be rejected on a white-balance failure")
 	}
+}
+
+// TestConvert_JpegConvertCmds_RawDisabled verifies that with RAW conversion disabled (--disable-raw)
+// PhotoPrism only extracts an existing embedded preview and never renders the RAW with Darktable or
+// RawTherapee.
+func TestConvert_JpegConvertCmds_RawDisabled(t *testing.T) {
+	cnf := config.TestConfig()
+
+	if !cnf.ExifToolEnabled() {
+		t.Skip("ExifTool must be available for the RAW embedded-preview fallback")
+	}
+
+	origRaw := cnf.Options().DisableRaw
+	cnf.Options().DisableRaw = true
+	t.Cleanup(func() {
+		cnf.Options().DisableRaw = origRaw
+	})
+
+	convert := NewConvert(cnf)
+	rawFile := filepath.Join(cnf.SamplesPath(), "canon_eos_6d.dng")
+	jpegFile := filepath.Join(cnf.SamplesPath(), "canon_eos_6d.dng.jpg")
+
+	mediaFile, err := NewMediaFile(rawFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cmds, _, err := convert.JpegConvertCmds(mediaFile, jpegFile, "")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	assert.NotEmpty(t, cmds)
+
+	previewImage := false
+	for _, cmd := range cmds {
+		base := filepath.Base(cmd.Cmd.Path)
+		assert.NotEqual(t, "darktable-cli", base, "Darktable must not run when RAW conversion is disabled")
+		assert.NotEqual(t, "rawtherapee-cli", base, "RawTherapee must not run when RAW conversion is disabled")
+		if strings.Contains(cmd.String(), "-PreviewImage") {
+			previewImage = true
+		}
+	}
+
+	assert.True(t, previewImage, "embedded preview must still be extracted when RAW conversion is disabled")
 }
 
 // TestConvert_JpegConvertCmds_HeifFallback verifies that the documented external
@@ -515,5 +563,17 @@ func TestConvert_PngConvertCmds(t *testing.T) {
 		assert.True(t, strings.Contains(cmds[0].String(), "rsvg"))
 
 		t.Logf("commands: %#v", cmds)
+	})
+	t.Run("Raw", func(t *testing.T) {
+		// RAW is converted to JPEG, not PNG: no converter command is emitted and the call reports
+		// the format as unsupported (see internal/raw/README.md).
+		mediaFile, err := NewMediaFile(filepath.Join(cnf.SamplesPath(), "canon_eos_6d.dng"))
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		cmds, _, err := convert.PngConvertCmds(mediaFile, filepath.Join(t.TempDir(), "canon_eos_6d.png"))
+		assert.Error(t, err)
+		assert.Empty(t, cmds)
 	})
 }

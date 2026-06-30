@@ -40,6 +40,31 @@ func TestNewConvertCmd(t *testing.T) {
 		assert.Same(t, result, result.WithImageVerification())
 		assert.True(t, result.VerifyImage)
 	})
+	t.Run("WithStderrRejection", func(t *testing.T) {
+		result := NewConvertCmd(
+			exec.Command("rawtherapee-cli", "-o", "file.jpg", "-c", "file.cr3"),
+		)
+		assert.Empty(t, result.RejectStderr)
+		assert.Same(t, result, result.WithStderrRejection("first error", "second error"))
+		assert.Equal(t, []string{"first error", "second error"}, result.RejectStderr)
+	})
+}
+
+func TestConvertCmd_StderrRejected(t *testing.T) {
+	cmd := NewConvertCmd(exec.Command("rawtherapee-cli", "-c", "file.cr3")).WithStderrRejection("Cannot use camera white balance")
+	t.Run("Match", func(t *testing.T) {
+		assert.True(t, cmd.StderrRejected("Processing...\nCannot use camera white balance.\n"))
+	})
+	t.Run("NoMatch", func(t *testing.T) {
+		assert.False(t, cmd.StderrRejected("Warning: sidecar file requested but not found for: file.cr3"))
+	})
+	t.Run("EmptyStderr", func(t *testing.T) {
+		assert.False(t, cmd.StderrRejected(""))
+	})
+	t.Run("NoPatterns", func(t *testing.T) {
+		plain := NewConvertCmd(exec.Command("darktable-cli", "file.cr3", "file.jpg"))
+		assert.False(t, plain.StderrRejected("Cannot use camera white balance."))
+	})
 }
 
 func TestNewConvertCmds(t *testing.T) {
